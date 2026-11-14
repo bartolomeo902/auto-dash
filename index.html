@@ -1,472 +1,584 @@
 <!doctype html>
-<html lang="it">
+<html lang="it" data-theme="auto">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Bigster v5</title>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#07090d">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Auto Dash</title>
 <style>
-:root{--bg:#07090d;--card:#111720;--card2:#18212c;--line:#263140;--fg:#eaf0f6;--mut:#7d8a9b;--g:#3fb950;--b:#58a6ff;--o:#e3a008;--r:#f85149;--p:#a371f7}
+:root{
+  --bg:#06080c;--bg2:#0c1118;--card:#111821;--card2:#18212d;--line:#243040;--fg:#eef3f8;--mut:#8493a6;
+  --acc:#4da3ff;--g:#34d058;--o:#f2a516;--r:#ff5d52;--p:#a78bfa;--b:#4da3ff;
+  --gbg:#12351f;--obg:#3d2a07;--rbg:#43171a;--pbg:#2b2150;--bbg:#12294a;
+  --rad:20px;--pad:14px;color-scheme:dark;
+}
+html[data-theme="light"]{--bg:#eef2f7;--bg2:#e4e9f0;--card:#ffffff;--card2:#edf1f6;--line:#d3dbe6;--fg:#0b1220;--mut:#5b6a7e;--acc:#0a6cdc;--g:#15803d;--o:#b45309;--r:#c62828;--p:#6d3fd1;--b:#0a6cdc;--gbg:#d9f3e2;--obg:#fde8c3;--rbg:#fcdada;--pbg:#e6defc;--bbg:#d6e7fd;color-scheme:light}
+@media (prefers-color-scheme:light){html[data-theme="auto"]{--bg:#eef2f7;--bg2:#e4e9f0;--card:#ffffff;--card2:#edf1f6;--line:#d3dbe6;--fg:#0b1220;--mut:#5b6a7e;--acc:#0a6cdc;--g:#15803d;--o:#b45309;--r:#c62828;--p:#6d3fd1;--b:#0a6cdc;--gbg:#d9f3e2;--obg:#fde8c3;--rbg:#fcdada;--pbg:#e6defc;--bbg:#d6e7fd;color-scheme:light}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif;overscroll-behavior:none}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font:16px/1.25 ui-rounded,-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;overscroll-behavior:none;-webkit-font-smoothing:antialiased}
 body{display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left)}
-header{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--line)}
-#dot{width:12px;height:12px;border-radius:50%;background:var(--r)}
-#dot.on{background:var(--g)}
-#st{font-size:13px;color:var(--mut);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-button{font:inherit;color:var(--fg);background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:8px 14px}
-button.pri{background:#1f6feb;border-color:#1f6feb;font-weight:600}
+button,input,select,textarea{font:inherit;color:inherit}
+button{min-height:44px;background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:8px 16px;cursor:pointer;font-weight:600}
+button:active{transform:scale(.97)}
+button.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+button.danger{color:var(--r)}
+button.ghost{background:transparent;border-color:transparent}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+input,select,textarea{width:100%;min-height:44px;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:8px 12px}
+textarea{min-height:140px;font:12px ui-monospace,Menlo,monospace}
+label{display:block;font-size:12px;color:var(--mut);margin:10px 0 4px;letter-spacing:.04em;text-transform:uppercase}
+header{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--line);background:var(--bg2)}
+#dot{width:12px;height:12px;border-radius:50%;background:var(--r);flex:none;box-shadow:0 0 0 0 transparent}
+#dot.on{background:var(--g);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--g) 55%,transparent)}70%{box-shadow:0 0 0 8px transparent}100%{box-shadow:0 0 0 0 transparent}}
+#veh{font-weight:700;font-size:15px;background:transparent;border:0;padding:4px 6px;min-height:36px;max-width:42%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
+#stat{flex:1;font-size:12px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#alerts{display:grid;gap:6px;padding:0 12px}
+.alert{background:var(--rbg);color:var(--r);border:1px solid var(--r);border-radius:14px;padding:10px 14px;font-weight:700;margin-top:8px}
+.alert.warn{background:var(--obg);color:var(--o);border-color:var(--o)}
 main{flex:1;position:relative;overflow:hidden}
-.page{position:absolute;inset:0;padding:10px 12px;display:none;overflow:auto;gap:10px;grid-auto-rows:min-content}
-.page.on{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
-.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px 14px;position:relative}
-.span2{grid-column:span 2}.spanall{grid-column:1/-1}
-.lab{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--mut)}
-.val{font-size:34px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.05}
-.val small{font-size:15px;font-weight:500;color:var(--mut);margin-left:3px}
-.xl{font-size:76px;font-weight:800;line-height:1}
-.bar{height:12px;border-radius:7px;background:var(--card2);overflow:hidden;margin-top:8px}
-.bar i{display:block;height:100%;border-radius:7px;transition:width .4s}
-.chip{display:inline-block;border-radius:999px;padding:5px 14px;font-weight:700;font-size:17px;background:var(--card2);color:var(--mut)}
-.chip.g{background:#1f6f43;color:#fff}.chip.b{background:#1f4f8f;color:#fff}.chip.o{background:#8a5a0a;color:#fff}.chip.r{background:#8f2a2a;color:#fff}.chip.p{background:#5a3f94;color:#fff}
-.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.row.sp{justify-content:space-between}
-nav{display:flex;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
-nav button{flex:1;border:0;border-radius:0;background:transparent;padding:14px 4px;font-weight:600;color:var(--mut);font-size:15px}
-nav button.on{color:var(--fg);box-shadow:inset 0 3px 0 var(--b)}
-svg{display:block;margin:0 auto}
-.dim{opacity:.5}
-.big-ev{font-size:22px;font-weight:800;letter-spacing:.06em}
-canvas{display:block;margin:0 auto;max-width:100%}
-.tbl{width:100%;border-collapse:collapse;font-size:16px}
-.tbl td{padding:7px 4px;border-bottom:1px solid var(--line)}
-.tbl td:last-child{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.page{position:absolute;inset:0;padding:12px;display:none;overflow:auto;gap:12px;align-content:start;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));-webkit-overflow-scrolling:touch}
+.page.on{display:grid}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);padding:var(--pad);position:relative;min-width:0;transition:opacity .3s}
+.card.stale{opacity:.5}
+.c2{grid-column:span 2}.cAll{grid-column:1/-1}
+@media (min-width:900px){.page{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}}
+.lab{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--mut);font-weight:600}
+.val{font-size:34px;font-weight:750;font-variant-numeric:tabular-nums;line-height:1.05;letter-spacing:-.01em}
+.val small{font-size:14px;font-weight:600;color:var(--mut);margin-left:3px;letter-spacing:0}
+.xl{font-size:clamp(64px,22vw,96px);font-weight:800;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.sp{justify-content:space-between}
+.chip{display:inline-block;border-radius:999px;padding:6px 14px;font-weight:700;font-size:17px;background:var(--card2);color:var(--mut)}
+.chip.g{background:var(--gbg);color:var(--g)}.chip.b{background:var(--bbg);color:var(--b)}.chip.o{background:var(--obg);color:var(--o)}.chip.r{background:var(--rbg);color:var(--r)}.chip.p{background:var(--pbg);color:var(--p)}
+.chip.dim{opacity:.45}
+.bar{height:12px;border-radius:7px;background:var(--card2);overflow:hidden;margin-top:8px;position:relative}
+.bar i{display:block;height:100%;border-radius:7px;transition:width .35s ease,background .3s}
 .pb{position:relative;height:30px;border-radius:15px;background:var(--card2);overflow:hidden;margin-top:10px}
-.pb .mid{position:absolute;left:50%;top:0;bottom:0;width:2px;background:#3b4858}
+.pb .mid{position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--line)}
 .pb i{position:absolute;top:0;bottom:0;transition:all .3s}
 .pbl{display:flex;justify-content:space-between;font-size:11px;color:var(--mut);margin-top:4px}
 .th{display:flex;justify-content:space-around;align-items:flex-end;gap:4px}
 .th div{text-align:center;font-size:11px;color:var(--mut);letter-spacing:.06em;text-transform:uppercase}
 .th b{display:block;font-size:22px;color:var(--fg);font-variant-numeric:tabular-nums;margin-top:2px}
-.kd{display:inline-block;margin-left:8px;border-radius:8px;padding:2px 10px;font-size:13px;font-weight:800;background:#8f2a2a;color:#fff;visibility:hidden}
+.kd{display:inline-block;margin-left:8px;border-radius:8px;padding:2px 10px;font-size:13px;font-weight:800;background:var(--r);color:#fff;visibility:hidden}
 .kd.on{visibility:visible;animation:bl .5s infinite alternate}
 @keyframes bl{from{opacity:1}to{opacity:.45}}
-input.price{width:90px;font-size:18px;background:var(--card2);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:6px 8px}
+svg{display:block;margin:0 auto;max-width:100%}
+canvas{display:block;max-width:100%}
+.spark{width:100%;height:28px;margin-top:6px;opacity:.9}
+.tbl{width:100%;border-collapse:collapse}
+.tbl td{padding:8px 4px;border-bottom:1px solid var(--line)}
+.tbl td:last-child{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+nav{display:flex;border-top:1px solid var(--line);background:var(--bg2);padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;border:0;border-radius:0;background:transparent;padding:10px 2px 12px;font-size:12px;font-weight:700;color:var(--mut);display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav button.on{color:var(--acc);box-shadow:inset 0 2px 0 var(--acc)}
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;z-index:50;padding:0}
+.sheet.hidden{display:none}
+.sheet .in{background:var(--bg2);width:100%;max-width:640px;max-height:92vh;overflow:auto;border-radius:24px 24px 0 0;padding:16px 16px calc(24px + env(safe-area-inset-bottom));border:1px solid var(--line)}
+.sheet h2{margin:0 0 6px;font-size:20px}
+.sheet .tabs{display:flex;gap:6px;margin:10px 0 6px;overflow:auto}
+.sheet .tabs button{flex:none;min-height:36px;padding:4px 12px;font-size:14px}
+.sheet .tabs button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--card);margin-top:8px}
+.item.sel{border-color:var(--acc);box-shadow:inset 0 0 0 1px var(--acc)}
+.item .sub{font-size:12px;color:var(--mut)}
+.badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--obg);color:var(--o)}
+.badge.ok{background:var(--gbg);color:var(--g)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom));background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:10px 16px;z-index:60;max-width:92%;box-shadow:0 8px 30px rgba(0,0,0,.35)}
 .na{opacity:.55}
+.hidden{display:none!important}
+pre.dbg{white-space:pre-wrap;font:11px/1.35 ui-monospace,Menlo,monospace;color:var(--mut);margin:6px 0 0;max-height:240px;overflow:auto}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
 <header>
-  <span id="dot"></span><span id="st">v5 · non collegato</span>
-  <button id="demo">Demo</button>
-  <button class="pri" id="conn">Collega</button><button id="conn2">Tutti</button>
+  <span id="dot" role="status" aria-label="stato collegamento"></span>
+  <button id="veh" class="ghost" aria-label="scegli auto">Auto</button>
+  <span id="stat">non collegato</span>
+  <button id="btnConn" class="pri">Collega</button>
+  <button id="btnMenu" class="ghost" aria-label="impostazioni" style="padding:8px 10px">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
 </header>
-<main>
-
-<section class="page on" id="p0">
-  <div class="card span2" style="text-align:center">
-    <div class="lab">Velocità</div>
-    <svg id="spdSvg" width="230" height="150" viewBox="0 0 230 150"></svg>
-    <div class="xl" id="speed" style="margin-top:-72px">–</div><div class="lab" style="margin-top:4px">km/h</div>
-  </div>
-  <div class="card"><div class="lab">Modo guida</div><div style="margin:8px 0"><span class="chip p" id="mode">–</span></div><div class="lab" style="margin-top:6px">Marcia</div><div style="margin-top:6px"><span class="chip b" id="gear">–</span></div></div>
-  <div class="card"><div class="lab">Motore</div><div style="margin:8px 0"><span class="chip" id="ev">–</span></div><div class="lab" style="margin-top:6px">Giri</div><div class="val" id="rpm">–<small>rpm</small></div></div>
-  <div class="card spanall">
-    <div class="row sp"><div class="lab">Carburante</div><div class="lab" id="fuelNote"></div></div>
-    <div class="row sp" style="margin-top:6px"><div style="flex:1"><div class="row sp"><span class="chip o" id="gplChip">GPL</span><span class="val" id="gplV">–<small>%</small></span></div><div class="bar"><i id="gplBar" style="background:var(--o);width:0"></i></div><div class="lab" id="gplT" style="margin-top:4px"></div></div>
-    <div style="width:14px"></div>
-    <div style="flex:1"><div class="row sp"><span class="chip b" id="benChip">Benzina</span><span class="val" id="benV">–<small>%</small></span></div><div class="bar"><i id="benBar" style="background:var(--b);width:0"></i></div><div class="lab" id="benT" style="margin-top:4px"></div></div></div>
-  </div>
-  <div class="card spanall"><div class="row sp"><div class="lab">Batteria ibrida 48V</div><div class="val" id="hyb">–<small>%</small></div></div><div class="bar"><i id="hybBar" style="background:var(--g);width:0"></i></div></div>
-  <div class="card"><div class="lab">Pedale <span class="kd" id="kd">KICKDOWN</span></div><div class="val" id="pedal">–<small>%</small></div><div class="bar" style="position:relative"><i id="pedalBar" style="background:var(--g);width:0"></i></div><div class="lab" id="pedalRaw" style="margin-top:4px"></div></div>
-  <div class="card"><div class="lab">Consumo</div><div class="val" id="kml">–<small>km/l</small></div><div class="lab" id="frate" style="margin-top:6px"></div></div>
-  <div class="card spanall"><div class="row sp"><div><div class="lab">Costo istantaneo</div><div class="val" id="c100">–<small>€/100 km</small></div></div><div style="text-align:right"><div class="lab">al km</div><div class="val" id="ckm" style="font-size:26px">–<small>€</small></div></div></div></div>
-</section>
-
-<section class="page" id="p1">
-  <div class="card span2" style="text-align:center">
-    <div class="lab">Batteria 48V</div>
-    <svg id="socSvg" width="200" height="130" viewBox="0 0 200 130"></svg>
-    <div class="val" id="soc" style="margin-top:-62px;font-size:44px">–<small>%</small></div>
-  </div>
-  <div class="card"><div class="lab">48V tensione</div><div class="val" id="v48">–<small>V</small></div></div>
-  <div class="card"><div class="lab">Batteria 12V <span class="chip g" id="alt12" style="font-size:11px;padding:2px 8px;margin-left:4px;visibility:hidden">in carica</span></div><div class="val" id="v12">–<small>V</small></div><div class="bar"><i id="v12Bar" style="background:var(--b);width:0"></i></div><div class="lab" id="p12" style="margin-top:4px"></div></div>
-  <div class="card spanall"><div class="lab" style="margin-bottom:8px">Temperature</div><div class="th" id="thermos"></div></div>
-  <div class="card"><div class="lab">Rail carburante</div><div class="val" id="rail">–<small>bar</small></div></div>
-  <div class="card"><div class="lab">Quota GPS</div><div class="val" id="alt">–<small>m</small></div></div>
-</section>
-
-<section class="page" id="p2">
-  <div class="card span2">
-    <div class="lab">Motore termico</div>
-    <div class="row sp" style="align-items:flex-end;margin-top:6px">
-      <div style="text-align:center"><svg id="valve" width="130" height="120" viewBox="0 0 130 120"></svg><div class="val" id="thr">–<small>%</small></div><div class="lab" id="thrW"></div></div>
-      <div style="text-align:center"><svg id="mafSvg" width="130" height="120" viewBox="0 0 130 120"></svg><div class="val" id="maf">–<small>g/s</small></div><div class="lab">debimetro</div></div>
-    </div>
-    <div class="row sp" style="margin-top:10px"><div class="lab">Carico motore</div><div class="val" id="loadV" style="font-size:26px">–<small>%</small></div></div>
-    <div class="bar"><i id="loadBar" style="background:var(--o);width:0"></i></div>
-  </div>
-  <div class="card spanall">
-    <div class="row sp"><div class="lab">Motori elettrici (batteria 48V)</div><span class="chip" id="hvState">–</span></div>
-    <div class="row sp" style="align-items:flex-end"><div class="val" id="hvP">n/d</div><div class="lab" id="hvIV" style="text-align:right">–</div></div>
-    <div class="pb"><div class="mid"></div><i id="hvBar"></i></div>
-    <div class="pbl"><span>−100% rigenera</span><span>0</span><span>+100% eroga</span></div>
-    <div class="row sp" style="margin-top:10px"><div class="lab">Erogata <b id="eOut" style="color:var(--fg)">0.000</b> kWh</div><div class="lab">Rigenerata <b id="eIn" style="color:var(--fg)">0.000</b> kWh</div></div>
-    <div class="row sp" style="margin-top:8px"><button id="hvInv">Inverti segno</button><span class="lab">fondo scala ±15 kW</span></div>
-    <div class="lab" style="margin-top:8px">È il totale della batteria 48V (motore posteriore + starter anteriore + DC/DC): l'auto non separa i due motori. Marcia 1ª/2ª del motore posteriore: non disponibile.</div>
-  </div>
-</section>
-
-<section class="page" id="p3">
-  <div class="card span2" style="text-align:center">
-    <div class="lab">Accelerazione (laterale / longitudinale, unità raw)</div>
-    <canvas id="gm" width="240" height="240"></canvas>
-    <div class="row sp" style="margin-top:6px"><span class="lab">lat <b id="alat" style="color:var(--fg)">–</b></span><span class="lab">long <b id="alon" style="color:var(--fg)">–</b></span></div>
-  </div>
-  <div class="card"><div class="lab">ESC</div><div style="margin-top:10px"><span class="chip" id="esc">–</span></div></div>
-  <div class="card"><div class="lab">Hill Descent</div><div style="margin-top:10px"><span class="chip" id="hdc">–</span></div></div>
-  <div class="card"><div class="lab">Freno di stazionamento</div><div style="margin-top:10px"><span class="chip" id="park">–</span></div></div>
-  <div class="card"><div class="lab">Richiesta trazione 4x4</div><div class="val" id="awd">–</div><div class="bar"><i id="awdBar" style="background:var(--p);width:0"></i></div></div>
-  <div class="card"><div class="lab">Velocità GPS</div><div class="val" id="gspd">–<small>km/h</small></div></div>
-  <div class="card"><div class="lab">Quota GPS</div><div class="val" id="alt2">–<small>m</small></div></div>
-</section>
-
-<section class="page" id="p4">
-  <div class="card spanall">
-    <div class="row sp"><div class="lab">Viaggio</div><div class="row"><button id="rst">Azzera</button><button id="rec">Registra</button><button id="sav">Salva CSV</button></div></div>
-    <table class="tbl" style="margin-top:8px">
-      <tr><td>Distanza</td><td id="tDist">–</td></tr>
-      <tr><td>Durata</td><td id="tTime">–</td></tr>
-      <tr><td>In EV (tempo in movimento)</td><td id="tEv">–</td></tr>
-      <tr><td>Benzina: km · litri · L/100</td><td id="tBen">–</td></tr>
-      <tr><td>GPL: km · litri · L/100</td><td id="tGpl">–</td></tr>
-      <tr><td>Costo viaggio (stima)</td><td id="tCost">–</td></tr>
-      <tr><td>Registrazione</td><td id="tRec">ferma</td></tr>
-    </table>
-  </div>
-  <div class="card spanall"><div class="lab">Prezzi carburante (€/litro) — media nazionale Mimit 14/11/2026</div>
-    <div class="row" style="margin-top:8px"><label>Benzina self <input class="price" id="prBen" type="number" step="0.001"></label><label>GPL <input class="price" id="prGpl" type="number" step="0.001"></label></div>
-    <div class="lab" style="margin-top:6px">Il consumo di GPL è quello dichiarato dalla centralina: può essere sottostimato.</div></div>
-  <div class="card spanall"><div class="lab">Diagnostica</div><pre id="dbg" style="white-space:pre-wrap;font-size:12px;color:#9fb0c3;margin:6px 0 0"></pre></div>
-</section>
-
-</main>
-<nav>
-  <button class="on" data-p="0">Guida</button>
-  <button data-p="1">Energia</button>
-  <button data-p="2">Motori</button>
-  <button data-p="3">Dinamica</button>
-  <button data-p="4">Viaggio</button>
-</nav>
-
+<div id="alerts" aria-live="polite"></div>
+<main id="pages"></main>
+<nav id="tabs"></nav>
+<div id="sheet" class="sheet hidden" role="dialog" aria-modal="true"></div>
+<div id="toast" class="toast hidden" role="status"></div>
 
 <script>
 "use strict";
-const $=id=>document.getElementById(id);
+/* =====================================================================
+   Auto Dash - dashboard OBD-II per Web Bluetooth (Bluefy)
+   Sezioni: util · profili auto · utenti · ELM327 · stato/simulatore ·
+            widget · pagine · impostazioni · avvio
+   ===================================================================== */
 
-/* ---------- definizione sensori ---------- */
-const SENS=[
- {id:"speed",ecu:"15",cmd:"010D",every:1,f:d=>d[0]},
- {id:"rpm",ecu:"15",cmd:"010C",every:1,f:d=>(d[0]*256+d[1])/4},
- {id:"pedal",ecu:"15",cmd:"0149",every:1,f:d=>d[0]*100/255},
- {id:"alat",ecu:"2D",cmd:"224B0B",every:1,f:d=>d[0]-127},
- {id:"alon",ecu:"2D",cmd:"224B07",every:1,f:d=>d[0]-127},
- {id:"frate",ecu:"15",cmd:"015E",every:2,f:d=>(d[0]*256+d[1])/20},
- {id:"hv",ecu:"15",alt:["55","18","92","2D"],cmd:"019A",every:1,f:d=>d},
- {id:"thr",ecu:"15",cmd:"0111",every:1,f:d=>d[0]*100/255},
- {id:"maf",ecu:"15",cmd:"0110",every:2,f:d=>(d[0]*256+d[1])/100},
- {id:"load",ecu:"15",cmd:"0104",every:3,f:d=>d[0]*100/255},
- {id:"mode",ecu:"15",cmd:"220442",every:3,f:d=>d[0]},
- {id:"gear",ecu:"18",cmd:"222271",every:3,f:d=>d[0]},
- {id:"ftype",ecu:"15",cmd:"0151",every:5,f:d=>d[0]},
- {id:"awd",ecu:"15",cmd:"220299",every:5,f:d=>d[0]},
- {id:"esc",ecu:"2D",cmd:"224B35",every:4,f:d=>d[0]},
- {id:"hdc",ecu:"2D",cmd:"224B21",every:4,f:d=>d[0]},
- {id:"park",ecu:"2D",cmd:"224D27",every:4,f:d=>d[0]},
- {id:"soc",ecu:"92",cmd:"229104",every:6,f:d=>(d[0]*256+d[1])/100},
- {id:"v48",ecu:"92",cmd:"229017",every:4,f:d=>(d[0]*256+d[1])/1000},
- {id:"t48",ecu:"92",cmd:"229025",every:20,f:d=>d[0]-40},
- {id:"level",ecu:"15",cmd:"012F",every:10,f:d=>d[0]*100/255},
- {id:"v12",ecu:"15",cmd:"0142",every:10,f:d=>(d[0]*256+d[1])/1000},
- {id:"cool",ecu:"15",cmd:"0105",every:15,f:d=>d[0]-40},
- {id:"oil",ecu:"15",cmd:"015C",every:15,f:d=>d[0]-40},
- {id:"rail",ecu:"15",cmd:"0123",every:10,f:d=>(d[0]*256+d[1])/10},
- {id:"amb",ecu:"15",cmd:"0146",every:40,f:d=>d[0]-40},
+/* ---------- util ---------- */
+const $=(q,r=document)=>r.querySelector(q);
+const h=(tag,a,...kids)=>{a=a||{};const e=document.createElement(tag);for(const[k,v]of Object.entries(a)){if(k==="class")e.className=v;else if(k==="html")e.innerHTML=v;else if(k.startsWith("on"))e.addEventListener(k.slice(2),v);else if(v!==false&&v!=null)e.setAttribute(k,v===true?"":v)}for(const c of kids.flat()){if(c==null||c===false)continue;e.append(c.nodeType?c:document.createTextNode(c))}return e};
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const sg16=(a,b)=>{let v=a*256+b;return v>=32768?v-65536:v};
+const fmt=(x,d=0)=>x==null||!isFinite(x)?"–":Number(x).toFixed(d);
+const NS="http://www.w3.org/2000/svg";
+const svg=(w,hh,inner,cls)=>{const s=document.createElementNS(NS,"svg");s.setAttribute("viewBox",`0 0 ${w} ${hh}`);s.setAttribute("width",w);s.setAttribute("height",hh);if(cls)s.setAttribute("class",cls);s.innerHTML=inner||"";return s};
+const lsGet=(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const b64=u8=>btoa(String.fromCharCode(...u8));
+const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+const T=()=>Date.now();
+const hhmm=t=>t?new Date(t).toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"}):"";
+const LOG=[];function dlog(m){LOG.push(new Date().toLocaleTimeString("it-IT")+" "+m);if(LOG.length>80)LOG.shift();const e=$("#dbg");if(e)e.textContent=LOG.join("\n")}
+function toast(msg,ms=3200,action){const t=$("#toast");t.replaceChildren(msg,action?h("button",{class:"ghost",onclick:()=>{t.classList.add("hidden");action.fn()}},action.label):"");t.classList.remove("hidden");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.add("hidden"),ms)}
+function setStatus(s){$("#stat").textContent=s;dlog(s)}
+window.addEventListener("error",e=>setStatus("errore JS: "+e.message));
+window.addEventListener("unhandledrejection",e=>setStatus("errore: "+(e.reason&&e.reason.message||e.reason||"rifiutato")));
+
+/* ---------- profili auto ----------
+   Ogni profilo = ECU, sensori (comando + formula) e carburanti. Le formule sono
+   testo JS su d[] (byte dati dopo servizio+PID) e si possono importare/esportare.
+   I sensori che l'auto non supporta vengono disattivati da soli. */
+const STD=[ // id, cmd, every, formula, unit, dec, min, max, label
+ ["speed","010D",1,"d[0]","km/h",0,0,200,"Velocità"],
+ ["rpm","010C",1,"(d[0]*256+d[1])/4","rpm",0,0,6500,"Giri"],
+ ["pedal","0149",1,"d[0]*100/255","%",0,0,100,"Pedale"],
+ ["thr","0111",1,"d[0]*100/255","%",0,0,100,"Farfalla"],
+ ["load","0104",3,"d[0]*100/255","%",0,0,100,"Carico motore"],
+ ["maf","0110",2,"(d[0]*256+d[1])/100","g/s",1,0,90,"Portata aria"],
+ ["frate","015E",2,"(d[0]*256+d[1])/20","L/h",1,0,25,"Consumo"],
+ ["cool","0105",15,"d[0]-40","°C",0,0,120,"Acqua"],
+ ["oil","015C",15,"d[0]-40","°C",0,0,140,"Olio"],
+ ["iat","010F",20,"d[0]-40","°C",0,-20,80,"Aria aspirata"],
+ ["amb","0146",40,"d[0]-40","°C",0,-15,40,"Esterna"],
+ ["v12","0142",10,"(d[0]*256+d[1])/1000","V",1,10,16,"12V"],
+ ["level","012F",10,"d[0]*100/255","%",0,0,100,"Livello carburante"],
+ ["ftype","0151",5,"d[0]","",0,0,32,"Carburante"],
+ ["soc","015B",6,"d[0]*100/255","%",0,0,100,"Batteria ibrida"],
+ ["rail","0123",10,"(d[0]*256+d[1])/10","bar",0,0,400,"Rail"],
+ ["hv","019A",2,"({V:(d[2]*256+d[3])/64,I:sg16(d[4],d[5])/10})","",0,0,0,"Batteria alta tensione"],
 ];
-const MODES={1:"AUTO",3:"ECO",4:"SNOW",5:"LOCK",7:"MUD/SAND"};
-const GEARS={1:"P",2:"R",3:"N",4:"D",5:"M"};
+const std=(ecu)=>STD.map(([id,cmd,every,f,unit,dec,min,max,label])=>({id,ecu,cmd,every,f,unit,dec,min,max,label}));
+const FUELS={benzina:{name:"Benzina",price:1.961,codes:[1,9],color:"b"},gpl:{name:"GPL",price:0.85,codes:[5,12],color:"o"},diesel:{name:"Diesel",price:2.21,codes:[4,23],color:"p"}};
+const ALERTS_STD=[{id:"cool",hi:110,label:"Acqua troppo calda"},{id:"oil",hi:130,label:"Olio troppo caldo"},{id:"t48",hi:55,label:"Batteria 48V calda"},{id:"soc",lo:12,label:"Batteria ibrida quasi scarica"}];
+const ECU29=(a)=>({h:"18DA"+a+"F1",r:"18DAF1"+a});
+const ECU11=(n)=>({h:n,r:(parseInt(n,16)+8).toString(16).toUpperCase()});
 
-/* ---------- stato ---------- */
-const ls=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
-const sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
-const S={v:{},lvl:ls("lvl",{9:null,12:null}),gps:{alt:null,spd:null},prices:ls("prices",{9:1.961,12:0.85}),win:[],
- trip:{dist:0,time:0,evTime:0,movTime:0,lit:{9:0,12:0},km:{9:0,12:0}},last:performance.now(),
- rec:false,rows:[],connected:false,demo:false,hv:{inv:ls('hvinv',false),eOut:0,eIn:0}};
-const HVMAX=15;
-const PED0=14.5,PED1=90.6,KD=86;
+const PROFILES=[
+ {id:"dacia-bigster-hg150",name:"Dacia Bigster Hybrid-G 150 4x4",short:"Bigster",brand:"Dacia",verified:true,hybrid:true,proto:"7",
+  notes:"Profilo validato su questa auto: modo guida, marcia, ESC, HDC, freno di stazionamento, batteria 48V, accelerazioni (raw).",
+  fuels:["benzina","gpl"],
+  ecus:{ECM:ECU29("15"),TCM:ECU29("18"),ESP:ECU29("2D"),DMCM:ECU29("55"),BMS:ECU29("92")},
+  sensors:[...std("ECM").filter(s=>s.id!=="soc"),
+   {id:"mode",ecu:"ECM",cmd:"220442",every:3,f:"d[0]",label:"Modo guida",enum:{1:"AUTO",3:"ECO",4:"SNOW",5:"LOCK",7:"MUD/SAND"}},
+   {id:"gear",ecu:"TCM",cmd:"222271",every:3,f:"d[0]",label:"Marcia",enum:{1:"P",2:"R",3:"N",4:"D",5:"M"}},
+   {id:"awd",ecu:"ECM",cmd:"220299",every:5,f:"d[0]",label:"Richiesta 4x4",max:5},
+   {id:"esc",ecu:"ESP",cmd:"224B35",every:4,f:"d[0]",label:"ESC"},
+   {id:"hdc",ecu:"ESP",cmd:"224B21",every:4,f:"d[0]",label:"Hill Descent"},
+   {id:"park",ecu:"ESP",cmd:"224D27",every:4,f:"d[0]",label:"Freno di stazionamento"},
+   {id:"alat",ecu:"ESP",cmd:"224B0B",every:1,f:"d[0]-127",label:"Accel. laterale"},
+   {id:"alon",ecu:"ESP",cmd:"224B07",every:1,f:"d[0]-127",label:"Accel. longitudinale"},
+   {id:"soc",ecu:"BMS",cmd:"229104",every:6,f:"(d[0]*256+d[1])/100",unit:"%",label:"Batteria ibrida 48V",min:0,max:100},
+   {id:"v48",ecu:"BMS",cmd:"229017",every:4,f:"(d[0]*256+d[1])/1000",unit:"V",dec:1,label:"48V tensione",min:36,max:56},
+   {id:"t48",ecu:"BMS",cmd:"229025",every:20,f:"d[0]-40",unit:"°C",label:"48V temperatura",min:0,max:60}],
+  alt:{hv:["DMCM","TCM","BMS"]},
+  flags:{escOffValue:170},hvMax:15,
+  alerts:[...ALERTS_STD,{id:"v48",lo:40,label:"Tensione 48V bassa"}]},
+ {id:"skoda-kamiq",name:"Škoda Kamiq",short:"Kamiq",brand:"Škoda",verified:false,hybrid:false,proto:"6",
+  notes:"Solo sensori OBD-II standard (CAN 11 bit, centralina motore 7E0). I DID specifici VAG non sono stati verificati: aggiungili con l'editor profilo.",
+  fuels:["benzina"],ecus:{ECM:ECU11("7E0"),TCM:ECU11("7E1")},sensors:std("ECM"),alerts:ALERTS_STD},
+ {id:"renault-clio-v",name:"Renault Clio V",short:"Clio",brand:"Renault",verified:false,hybrid:false,proto:"7",
+  notes:"Ereditato dalla Bigster (stessa famiglia Renault/Dacia, CAN 29 bit, ECM 18DA15F1). Solo standard OBD-II; da verificare, anche per le versioni E-Tech e Eco-G.",
+  fuels:["benzina","gpl"],ecus:{ECM:ECU29("15"),TCM:ECU29("18")},sensors:std("ECM"),alerts:ALERTS_STD},
+ {id:"jeep-renegade",name:"Jeep Renegade",short:"Renegade",brand:"Jeep",verified:false,hybrid:false,proto:"6",
+  notes:"Standard OBD-II su CAN 11 bit. Per la 4xe (ibrida plug-in) il PID 9A e la carica ibrida potrebbero comparire da soli. Non verificato.",
+  fuels:["benzina","diesel"],ecus:{ECM:ECU11("7E0"),TCM:ECU11("7E1")},sensors:std("ECM"),alerts:ALERTS_STD},
+ {id:"volvo-xc90",name:"Volvo XC90",short:"XC90",brand:"Volvo",verified:false,hybrid:true,proto:"6",
+  notes:"Standard OBD-II su CAN 11 bit. Per la T8 (ibrida plug-in) provo anche carica ibrida e dati batteria (PID 5B e 9A). Non verificato.",
+  fuels:["benzina","diesel"],ecus:{ECM:ECU11("7E0"),TCM:ECU11("7E1")},sensors:std("ECM"),alerts:ALERTS_STD},
+ {id:"byd-atto2-dmi",name:"BYD Atto 2 DM-i",short:"Atto 2",brand:"BYD",verified:false,hybrid:true,proto:"6",
+  notes:"Ibrida plug-in: provo PID 5B (carica) e 9A (tensione e corrente batteria). BYD limita molti dati OBD: il gateway potrebbe non rispondere. Non verificato.",
+  fuels:["benzina"],ecus:{ECM:ECU11("7E0")},sensors:std("ECM"),hvMax:60,alerts:ALERTS_STD},
+ {id:"generic-obd2",name:"Generico OBD-II",short:"OBD-II",brand:"—",verified:false,hybrid:false,proto:"0",
+  notes:"Per qualsiasi auto: rileva i sensori standard supportati.",
+  fuels:["benzina"],ecus:{ECM:{h:null,r:"*"}},sensors:std("ECM"),alerts:ALERTS_STD},
+];
 
-/* ---------- Bluetooth ELM ---------- */
-const SVC="000018f0-0000-1000-8000-00805f9b34fb",RX="00002af0-0000-1000-8000-00805f9b34fb",TX="00002af1-0000-1000-8000-00805f9b34fb";
-const E={dev:null,tx:null,buf:"",wait:null,cur:null,
- onData(ev){E.buf+=new TextDecoder().decode(ev.target.value.buffer);if(E.buf.includes(">")&&E.wait){const w=E.wait;E.wait=null;w(E.buf)}},
- async raw(c,to=3000){
-  E.buf="";const p=new Promise(res=>{E.wait=res;setTimeout(()=>{if(E.wait===res){E.wait=null;res(E.buf)}},to)});
-  await E.tx.writeValueWithoutResponse(new TextEncoder().encode(c+"\r"));
-  return (await p).replace(/\r/g,"\n").replace(/>/g,"").trim();
- },
- async setEcu(ecu){if(E.cur!==ecu){const r=await E.raw("ATSH18DA"+ecu+"F1");if(!r.includes("OK"))throw new Error("ATSH "+r);E.cur=ecu}},
+/* ---------- cifratura e utenti ---------- */
+const Auth={
+ enc:new TextEncoder(),dec:new TextDecoder(),
+ async key(pw,salt){const m=await crypto.subtle.importKey("raw",Auth.enc.encode(pw),"PBKDF2",false,["deriveKey"]);return crypto.subtle.deriveKey({name:"PBKDF2",salt,iterations:150000,hash:"SHA-256"},m,{name:"AES-GCM",length:256},false,["encrypt","decrypt"])},
+ async seal(key,obj){const iv=crypto.getRandomValues(new Uint8Array(12));const ct=new Uint8Array(await crypto.subtle.encrypt({name:"AES-GCM",iv},key,Auth.enc.encode(JSON.stringify(obj))));return{iv:b64(iv),ct:b64(ct)}},
+ async open(key,box){const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:unb64(box.iv)},key,unb64(box.ct));return JSON.parse(Auth.dec.decode(pt))},
+ users:()=>lsGet("ad.users",[]),
+ cur:null,
+ async create(name,pw){
+  name=name.trim();if(!name)throw new Error("Nome mancante");if(pw.length<4)throw new Error("Password: almeno 4 caratteri");
+  const us=Auth.users();if(us.some(u=>u.name.toLowerCase()===name.toLowerCase()))throw new Error("Nome già usato");
+  const id="u"+T().toString(36),salt=crypto.getRandomValues(new Uint8Array(16));const key=await Auth.key(pw,salt);
+  const data=defaultPrefs();const check=await Auth.seal(key,{ok:1});
+  us.push({id,name,salt:b64(salt),check});lsSet("ad.users",us);lsSet("ad.d."+id,await Auth.seal(key,data));
+  Auth.cur={id,name,key,guest:false};return data},
+ async login(id,pw){
+  const u=Auth.users().find(x=>x.id===id);if(!u)throw new Error("Utente non trovato");
+  const key=await Auth.key(pw,unb64(u.salt));
+  try{await Auth.open(key,u.check)}catch(e){throw new Error("Password errata")}
+  const box=lsGet("ad.d."+id,null);const data=box?await Auth.open(key,box):defaultPrefs();
+  Auth.cur={id,name:u.name,key,guest:false};return data},
+ guest(){Auth.cur={id:"guest",name:"Ospite",key:null,guest:true};return Object.assign(defaultPrefs(),lsGet("ad.guest",{}))},
+ async save(){if(!Auth.cur)return;if(Auth.cur.guest){lsSet("ad.guest",U);return}lsSet("ad.d."+Auth.cur.id,await Auth.seal(Auth.cur.key,U))},
+ async changePw(old,nw){const u=Auth.users().find(x=>x.id===Auth.cur.id);const ok=await Auth.key(old,unb64(u.salt)).then(k=>Auth.open(k,u.check)).then(()=>true,()=>false);if(!ok)throw new Error("Password attuale errata");if(nw.length<4)throw new Error("Password: almeno 4 caratteri");const salt=crypto.getRandomValues(new Uint8Array(16));const key=await Auth.key(nw,salt);u.salt=b64(salt);u.check=await Auth.seal(key,{ok:1});const us=Auth.users().map(x=>x.id===u.id?u:x);lsSet("ad.users",us);Auth.cur.key=key;await Auth.save()},
+ remove(id){lsSet("ad.users",Auth.users().filter(u=>u.id!==id));try{localStorage.removeItem("ad.d."+id)}catch(e){}},
+};
+function defaultPrefs(){return{vehicle:"dacia-bigster-hg150",theme:"auto",sound:true,alertsOn:true,lockMin:0,prices:{},lvl:{},trips:{},custom:[],kd:86}}
+let U=defaultPrefs();
+const savePrefs=()=>Auth.save();
+
+/* ---------- ELM327 su Bluetooth LE ---------- */
+const SVC="000018f0-0000-1000-8000-00805f9b34fb",RXC="00002af0-0000-1000-8000-00805f9b34fb",TXC="00002af1-0000-1000-8000-00805f9b34fb";
+const ELM={dev:null,tx:null,buf:"",wait:null,cur:null,
+ onData(ev){ELM.buf+=new TextDecoder().decode(ev.target.value.buffer);if(ELM.buf.includes(">")&&ELM.wait){const w=ELM.wait;ELM.wait=null;w(ELM.buf)}},
+ async raw(c,to=3000){ELM.buf="";const p=new Promise(res=>{ELM.wait=res;setTimeout(()=>{if(ELM.wait===res){ELM.wait=null;res(ELM.buf)}},to)});await ELM.tx.writeValueWithoutResponse(new TextEncoder().encode(c+"\r"));return(await p).replace(/\r/g,"\n").replace(/>/g,"").trim()},
+ async setEcu(e){const k=e.h||"-";if(ELM.cur!==k){if(e.h){const r=await ELM.raw("ATSH"+e.h);if(!r.includes("OK"))throw new Error("ATSH "+r)}ELM.cur=k}},
  parse(r,ecu,cmd){
-  const pre="18DAF1"+ecu;const fr=[];
-  for(const l of r.split("\n")){const t=l.trim().replace(/ /g,"");if(t.startsWith(pre)&&/^[0-9A-F]+$/.test(t))fr.push(t.slice(pre.length))}
-  if(!fr.length)return null;
-  let hex;
-  if(fr[0][0]==="0"){const n=parseInt(fr[0][1],16);hex=fr[0].slice(2,2+2*n)}
-  else if(fr[0][0]==="1"){const n=parseInt(fr[0].slice(1,4),16);hex=fr[0].slice(4);for(let i=1;i<fr.length;i++)if(fr[i][0]==="2")hex+=fr[i].slice(2);hex=hex.slice(0,2*n)}
+  const lines=[];
+  for(const l of r.split("\n")){const t=l.trim().replace(/ /g,"");if(!/^[0-9A-F]+$/.test(t))continue;
+   if(ecu.r==="*"){const m=t.match(/^(?:7E[8-F]|18DAF1[0-9A-F]{2})([0-9A-F]+)$/);if(m)lines.push(m[1])}
+   else if(t.startsWith(ecu.r))lines.push(t.slice(ecu.r.length))}
+  if(!lines.length)return null;let hex;
+  if(lines[0][0]==="0"){const n=parseInt(lines[0][1],16);hex=lines[0].slice(2,2+2*n)}
+  else if(lines[0][0]==="1"){const n=parseInt(lines[0].slice(1,4),16);hex=lines[0].slice(4);for(let i=1;i<lines.length;i++)if(lines[i][0]==="2")hex+=lines[i].slice(2);hex=hex.slice(0,2*n)}
   else return null;
   const b=[];for(let i=0;i+1<hex.length;i+=2)b.push(parseInt(hex.slice(i,i+2),16));
-  if(!b.length)return null;
-  if(b[0]===0x7F)return null;
-  const sid=parseInt(cmd.slice(0,2),16);if(b[0]!==sid+0x40)return null;
-  return b.slice(sid===1?2:3);
- },
+  if(!b.length||b[0]===0x7F)return null;const sid=parseInt(cmd.slice(0,2),16);if(b[0]!==sid+0x40)return null;
+  const il=sid===1?1:2;const got=b.slice(1,1+il).map(x=>x.toString(16).padStart(2,"0")).join("").toUpperCase();if(got!==cmd.slice(2,2+2*il).toUpperCase())return null;
+  return b.slice(1+il)},
  async connect(all){
   setStatus("ricerca adattatore...");
-  const describe=e=>e===undefined?"undefined":(e&&(e.name||"")+" "+(e.message||"")).trim()||String(e);
-  if(all){
-   dlog("richiesta: tutti i dispositivi");
-   E.dev=await navigator.bluetooth.requestDevice({acceptAllDevices:true,optionalServices:[SVC]});
-  }else{
-   dlog("richiesta: filtro nome/servizio");
-   E.dev=await navigator.bluetooth.requestDevice({filters:[{namePrefix:"IOS-Vlink"},{services:[SVC]}],optionalServices:[SVC]});
-  }
-  dlog("scelto: "+E.dev.name);
-  E.dev.addEventListener("gattserverdisconnected",()=>{S.connected=false;setStatus("scollegato, riprovo...");setTimeout(()=>E.reconnect(),2500)});
-  await E.open();
- },
+  ELM.dev=await navigator.bluetooth.requestDevice(all?{acceptAllDevices:true,optionalServices:[SVC]}:{filters:[{namePrefix:"IOS-Vlink"},{namePrefix:"V-LINK"},{services:[SVC]}],optionalServices:[SVC]});
+  dlog("scelto: "+ELM.dev.name);
+  ELM.dev.addEventListener("gattserverdisconnected",()=>{if(!Link.on)return;Link.on=false;$("#dot").classList.remove("on");setStatus("scollegato, riprovo...");setTimeout(()=>ELM.reconnect(),2500)});
+  await ELM.open()},
  async open(){
-  dlog("connessione GATT...");const srv=await E.dev.gatt.connect();dlog("GATT ok, servizio...");const s=await srv.getPrimaryService(SVC);dlog("servizio ok");
-  const rx=await s.getCharacteristic(RX);E.tx=await s.getCharacteristic(TX);
-  await rx.startNotifications();rx.addEventListener("characteristicvaluechanged",E.onData);dlog("notifiche ok");
-  setStatus("inizializzo...");E.cur=null;
-  for(const c of["ATZ","ATE0","ATL0","ATH1","ATS0","ATSP7","ATST20"])await E.raw(c,5000);
-  S.connected=true;setStatus("collegato");$("dot").classList.add("on");poll();
- },
- async reconnect(){if(S.connected||!E.dev)return;try{await E.open()}catch(e){setStatus("riprovo...");setTimeout(()=>E.reconnect(),3000)}}
-};
+  dlog("GATT...");const srv=await ELM.dev.gatt.connect();const s=await srv.getPrimaryService(SVC);
+  const rx=await s.getCharacteristic(RXC);ELM.tx=await s.getCharacteristic(TXC);
+  await rx.startNotifications();rx.addEventListener("characteristicvaluechanged",ELM.onData);
+  setStatus("inizializzo...");ELM.cur=null;
+  for(const c of["ATZ","ATE0","ATL0","ATH1","ATS0","ATSP"+(Veh.p.proto||"0"),"ATST20"])await ELM.raw(c,5000);
+  Link.start("ble");setStatus("collegato");startGps();wake()},
+ async reconnect(){if(Link.on||!ELM.dev)return;try{await ELM.open()}catch(e){setStatus("riprovo...");setTimeout(()=>ELM.reconnect(),3000)}}};
 
-let cycle=0,polling=false;
-async function poll(){
- if(polling)return;polling=true;
- while(S.connected){
-  cycle++;
-  const act=SENS.filter(s=>cycle%s.every===0).sort((a,b)=>a.ecu.localeCompare(b.ecu));
-  for(const s of act){
-   if(!S.connected)break;
-   try{
-    const list=s.alt&&!s.ok?[s.ecu,...s.alt]:[s.ecu];
-    let d=null,used=s.ecu;
-    for(const ecu of list){await E.setEcu(ecu);const r=await E.raw(s.cmd,2500);d=E.parse(r,ecu,s.cmd);if(d&&d.length){used=ecu;break}}
-    if(d&&d.length){if(s.alt&&!s.ok){s.ok=true;s.ecu=used;dlog(s.id+" risponde da ECU "+used+": "+d.map(x=>x.toString(16).padStart(2,"0")).join(" "))}S.v[s.id]=s.f(d);s.fail=0}
-    else if(s.alt&&!s.ok){s.fail=(s.fail||0)+1;if(s.fail===3){s.every=60;dlog(s.id+": nessuna ECU risponde, riprovo di rado")}}
-   }catch(e){if(!S.connected)break}
+/* ---------- veicolo attivo ---------- */
+const Veh={p:null,S:{},ecus:{},
+ all(){return[...PROFILES,...(U.custom||[])]},
+ set(id){
+  const p=Veh.all().find(x=>x.id===id)||PROFILES[0];Veh.p=p;Veh.ecus=p.ecus;
+  Veh.S={};for(const s of p.sensors){try{s.fn=new Function("d","sg16","return ("+s.f+")")}catch(e){s.fn=()=>null;dlog("formula non valida "+s.id)}s.fail=0;s.dead=false;s.mult=1;s.last=undefined;s.skip=0;Veh.S[s.id]=s}
+  Veh.fuels=(p.fuels||["benzina"]).map(k=>({...FUELS[k],key:k,price:(U.prices&&U.prices[k])||FUELS[k].price}));
+  Veh.trip=newTrip();Veh.win=[];U.vehicle=id;Hist.clear();Live.reset();
+  try{$("#veh").textContent=p.short}catch(e){}},
+ has(id){const s=Veh.S[id];return !!s&&!s.dead},
+ fuelOf(code){return Veh.fuels.find(f=>f.codes.includes(code))||Veh.fuels[0]},
+ lvl(){return(U.lvl&&U.lvl[Veh.p.id])||(U.lvl[Veh.p.id]={})},
+ prices(){return Object.fromEntries(Veh.fuels.map(f=>[f.key,f.price]))}};
+const newTrip=()=>({dist:0,time:0,evTime:0,movTime:0,lit:{},km:{},energyOut:0,energyIn:0,start:T()});
+
+/* ---------- dati live, storico, qualità ---------- */
+const Live={v:{},t:{},n:0,hz:0,lat:0,_c:0,_t0:T(),dirty:new Set(),
+ reset(){Live.v={};Live.t={};Live.n=0;Live._c=0;Live._t0=T();Live.dirty.clear()},
+ put(id,val){Live.v[id]=val;Live.t[id]=T();Live.dirty.add(id);Hist.add(id,val)},
+ get:id=>Live.v[id],age:id=>Live.t[id]?T()-Live.t[id]:Infinity,
+ cycle(){Live._c++;const dt=(T()-Live._t0)/1000;if(dt>=3){Live.hz=Live._c/dt;Live._c=0;Live._t0=T()}}};
+const Hist={m:new Map(),N:120,clear(){Hist.m.clear()},
+ add(id,v){if(typeof v!=="number")return;let a=Hist.m.get(id);if(!a)Hist.m.set(id,a=[]);a.push(v);if(a.length>Hist.N)a.shift()},
+ get:id=>Hist.m.get(id)||[]};
+
+/* ---------- collegamento: Bluetooth o simulatore ---------- */
+const Link={on:false,mode:null,cycle:0,polling:false,sim:null,
+ start(mode){Link.on=true;Link.mode=mode;$("#dot").classList.add("on");$("#btnConn").textContent="Scollega";if(mode==="ble")Link.poll();else Sim.start()},
+ stop(){Link.on=false;Link.mode=null;Sim.stop();$("#dot").classList.remove("on");$("#btnConn").textContent="Collega";setStatus("non collegato");try{ELM.dev&&ELM.dev.gatt&&ELM.dev.gatt.connected&&ELM.dev.gatt.disconnect()}catch(e){}},
+ async poll(){
+  if(Link.polling)return;Link.polling=true;
+  while(Link.on&&Link.mode==="ble"){
+   Link.cycle++;const c=Link.cycle;
+   const act=Object.values(Veh.S).filter(s=>{if(s.skip>0){s.skip--;return false}return c%Math.max(1,Math.round(s.every*s.mult))===0||s.last===undefined}).sort((a,b)=>String(a.ecu).localeCompare(String(b.ecu)));
+   for(const s of act){
+    if(!Link.on)break;
+    try{
+     const list=(s.dead?[]:[s.ecu,...((Veh.p.alt&&Veh.p.alt[s.id])||[]).filter(()=>!s.ok)]);
+     let d=null,used=s.ecu;
+     for(const k of list){const e=Veh.ecus[k];if(!e)continue;await ELM.setEcu(e);const r=await ELM.raw(s.cmd,2200);d=ELM.parse(r,e,s.cmd);if(d&&d.length){used=k;break}}
+     if(d&&d.length){if(used!==s.ecu){s.ecu=used;dlog(s.id+" risponde da "+used)}ingest(s,s.fn(d,sg16));s.fail=0}
+     else{s.fail++;if(s.fail>=4&&!s.dead){s.dead=true;s.skip=240;dlog(s.id+": non supportato");Pages.refreshVisibility()}}
+    }catch(e){if(!Link.on)break}
+   }
+   if(Veh.S&&Object.values(Veh.S).some(s=>s.dead&&s.skip<=0)){Object.values(Veh.S).forEach(s=>{if(s.dead&&s.skip<=0){s.dead=false;s.fail=2}})}
+   Live.cycle();tick()
   }
-  tick();render();
- }
- polling=false;$("dot").classList.remove("on");
-}
+  Link.polling=false}};
+function ingest(s,val){
+ // poll adattivo: valori fermi vengono letti meno spesso
+ if(typeof val==="number"&&typeof s.last==="number"){const stable=Math.abs(val-s.last)<=Math.max(.01,Math.abs(s.last)*.002);s.mult=stable?Math.min(5,s.mult*1.25):1}
+ s.last=val;Live.put(s.id,val)}
 
 /* ---------- calcoli di viaggio ---------- */
-function tick(){
- const now=performance.now();let dt=(now-S.last)/1000;S.last=now;if(dt>3)dt=3;
- const v=S.v,t=S.trip,ft=v.ftype,spd=v.speed||0;
- if(v.level!=null&&(ft===9||ft===12)){S.lvl[ft]={v:v.level,t:Date.now()};sv("lvl",S.lvl)}
- t.time+=dt;
- const mov=spd>2;
- if(mov){t.movTime+=dt;if((v.rpm||0)<1)t.evTime+=dt;}
- const km=spd*dt/3600;t.dist+=km;
- const lit=(ft===9||ft===12)?(v.frate||0)*dt/3600:0;
- if(ft===9||ft===12){t.km[ft]+=km;t.lit[ft]+=lit}
- const hv=v.hv;if(hv&&hv.length>=6){const V=(hv[2]*256+hv[3])/64;let I=(hv[4]*256+hv[5]);if(I>=32768)I-=65536;I/=10;let P=V*I/1000;if(S.hv.inv)P=-P;S.hv.V=V;S.hv.I=S.hv.inv?-I:I;S.hv.P=P;if(P>0)S.hv.eOut+=P*dt/3600;else S.hv.eIn+=-P*dt/3600}
- S.win.push({t:now,km,l:lit});while(S.win.length&&now-S.win[0].t>10000)S.win.shift();
- if(S.rec){S.rows.push([Date.now()/1000,...SENS.map(s=>v[s.id]??"")])}
-}
+const Trip={last:performance.now(),
+ tick(){
+  const now=performance.now();let dt=(now-Trip.last)/1000;Trip.last=now;if(dt>3)dt=3;
+  const v=Live.v,t=Veh.trip;const spd=v.speed||0;
+  const ft=Veh.has("ftype")&&v.ftype!=null?Veh.fuelOf(v.ftype):Veh.fuels[0];
+  if(v.level!=null&&ft){Veh.lvl()[ft.key]={v:v.level,t:T()};Trip.lvlDirty=true}
+  const fr=v.frate!=null?v.frate:(v.maf!=null?v.maf/14.7/745*3600:null);Live.fr=fr;
+  t.time+=dt;const mov=spd>2;if(mov){t.movTime+=dt;if(Veh.p.hybrid&&(v.rpm||0)<1)t.evTime+=dt}
+  const km=spd*dt/3600;t.dist+=km;const lit=(fr||0)*dt/3600;
+  if(ft){t.km[ft.key]=(t.km[ft.key]||0)+km;t.lit[ft.key]=(t.lit[ft.key]||0)+lit}
+  const hv=v.hv;if(hv&&hv.V!=null){let P=hv.V*hv.I/1000;if(U.hvInv)P=-P;Live.hvP=P;if(P>0)t.energyOut+=P*dt/3600;else t.energyIn+=-P*dt/3600}
+  Veh.win.push({t:now,km,l:lit});while(Veh.win.length&&now-Veh.win[0].t>10000)Veh.win.shift();
+  Live.ft=ft;
+  if(Trip.rec)Trip.rows.push([T()/1000,...Object.keys(Veh.S).map(k=>{const x=Live.v[k];return typeof x==="object"&&x?JSON.stringify(x).replace(/,/g,";"):(x??"")})])},
+ rec:false,rows:[]};
+function tick(){Trip.tick()}
 
-/* ---------- grafica ---------- */
-function arc(svgId,val,min,max,color,w,h,rad,thick){
- const cx=w/2,cy=h-14,a0=Math.PI*1.0,a1=Math.PI*2.0;
- const f=Math.max(0,Math.min(1,(val-min)/(max-min)));
- const pt=(a)=>[cx+rad*Math.cos(a),cy+rad*Math.sin(a)];
- const [x0,y0]=pt(a0),[x1,y1]=pt(a1),[xv,yv]=pt(a0+(a1-a0)*f);
- $(svgId).innerHTML=`<path d="M${x0} ${y0}A${rad} ${rad} 0 0 1 ${x1} ${y1}" stroke="#18212c" stroke-width="${thick}" fill="none" stroke-linecap="round"/>`+
-  (f>0.005?`<path d="M${x0} ${y0}A${rad} ${rad} 0 0 1 ${xv} ${yv}" stroke="${color}" stroke-width="${thick}" fill="none" stroke-linecap="round"/>`:"");
-}
-const hex2=c=>[1,3,5].map(i=>parseInt(c.slice(i,i+2),16));
-function colorAt(v,stops){
- if(v<=stops[0][0])return stops[0][1];if(v>=stops[stops.length-1][0])return stops[stops.length-1][1];
- for(let i=0;i<stops.length-1;i++){const[a,ca]=stops[i],[b,cb]=stops[i+1];if(v>=a&&v<=b){const f=(v-a)/(b-a),A=hex2(ca),B=hex2(cb);return "rgb("+A.map((x,k)=>Math.round(x+(B[k]-x)*f)).join(",")+")"}}
-}
-function thermo(val,min,max,stops){
- const f=val==null?0:Math.max(0,Math.min(1,(val-min)/(max-min)));const col=val==null?"#3b4858":colorAt(val,stops);
- const H=76,y=6+H*(1-f);
- return `<svg width="40" height="118" viewBox="0 0 40 118"><rect x="14" y="6" width="12" height="${H}" rx="6" fill="#18212c" stroke="#2f3b4b"/><circle cx="20" cy="94" r="13" fill="${col}"/><rect x="16" y="${y}" width="8" height="${6+H-y+8}" rx="4" fill="${col}"/>${[0.25,0.5,0.75].map(t=>`<line x1="28" x2="33" y1="${6+H*(1-t)}" y2="${6+H*(1-t)}" stroke="#4a586a"/>`).join("")}</svg>`;
-}
-const TH=[
- {id:"cool",name:"Acqua",min:0,max:120,stops:[[0,"#4aa3ff"],[60,"#4aa3ff"],[80,"#3fb950"],[100,"#3fb950"],[108,"#e3a008"],[118,"#f85149"]]},
- {id:"oil",name:"Olio",min:0,max:140,stops:[[0,"#4aa3ff"],[50,"#4aa3ff"],[80,"#3fb950"],[115,"#3fb950"],[125,"#e3a008"],[138,"#f85149"]]},
- {id:"t48",name:"48V",min:0,max:60,stops:[[0,"#4aa3ff"],[12,"#4aa3ff"],[20,"#3fb950"],[40,"#3fb950"],[47,"#e3a008"],[56,"#f85149"]]},
- {id:"amb",name:"Esterna",min:-15,max:40,stops:[[-15,"#7a5cff"],[0,"#4aa3ff"],[15,"#3fb950"],[28,"#e3a008"],[38,"#f85149"]]},
-];
-function drawThermos(){
- const v=S.v;$("thermos").innerHTML=TH.map(t=>`<div>${thermo(v[t.id],t.min,t.max,t.stops)}<b>${v[t.id]==null?"–":Math.round(v[t.id])+"°"}</b>${t.name}</div>`).join("");
-}
-function valve(pct){
- const a=(pct==null?0:pct)/100*90;
- $("valve").innerHTML=`<line x1="6" x2="124" y1="16" y2="16" stroke="#4a586a" stroke-width="4"/><line x1="6" x2="124" y1="104" y2="104" stroke="#4a586a" stroke-width="4"/>
- <g transform="rotate(${a} 65 60)"><rect x="61" y="18" width="8" height="84" rx="3" fill="#58a6ff"/></g><circle cx="65" cy="60" r="7" fill="#e6edf3"/>
- <path d="M10 60h16m-6-6l6 6-6 6" stroke="#7d8a9b" stroke-width="2" fill="none" opacity="${pct>50?1:.45}"/>`;
-}
-function mafIcon(g){
- const f=g==null?0:Math.min(1,g/90);const n=Math.ceil(f*4);
- let arrows="";for(let i=0;i<4;i++)arrows+=`<path d="M${14+i*4} ${26+i*20}h26m-6-6l6 6-6 6" stroke="${i<n?"#58a6ff":"#2f3b4b"}" stroke-width="3" fill="none"/>`;
- $("mafSvg").innerHTML=`<rect x="6" y="10" width="118" height="100" rx="12" fill="none" stroke="#4a586a" stroke-width="4"/>${arrows.replace(/M(\d+) /g,(m,x)=>"M"+(+x+10)+" ")}<rect x="82" y="2" width="18" height="30" rx="4" fill="#2f3b4b"/><line x1="91" x2="91" y1="32" y2="86" stroke="${f>0.02?"#e3a008":"#4a586a"}" stroke-width="3"/>`;
-}
-function pbar(id,pct){
- const el=$(id);if(pct==null){el.style.cssText="";return}
- const w=Math.min(100,Math.abs(pct))/2;
- el.style.cssText=pct>=0?`left:50%;width:${w}%;background:#f85149`:`right:50%;width:${w}%;background:#3fb950`;
-}
-const gmPts=[];
-function drawG(){
- const c=$("gm"),x=c.getContext("2d"),w=c.width,h=c.height,cx=w/2,cy=h/2;x.clearRect(0,0,w,h);
- x.strokeStyle="#263140";x.lineWidth=1.5;
- for(const r of[40,80,115]){x.beginPath();x.arc(cx,cy,r,0,7);x.stroke()}
- x.beginPath();x.moveTo(8,cy);x.lineTo(w-8,cy);x.moveTo(cx,8);x.lineTo(cx,h-8);x.stroke();
- const sc=115/25;
- gmPts.forEach((p,i)=>{x.fillStyle=`rgba(88,166,255,${(i+1)/gmPts.length*0.5})`;x.beginPath();x.arc(cx+p[0]*sc,cy-p[1]*sc,5,0,7);x.fill()});
- const p=gmPts[gmPts.length-1];if(p){x.fillStyle="#58a6ff";x.beginPath();x.arc(cx+p[0]*sc,cy-p[1]*sc,10,0,7);x.fill()}
-}
-function chip(id,txt,cls){const e=$(id);e.textContent=txt;e.className="chip "+cls}
-function setV(id,x,unit,d=0){$(id).innerHTML=(x==null?"–":x.toFixed(d))+"<small>"+unit+"</small>"}
-const fmtT=s=>{s=Math.floor(s);const h=Math.floor(s/3600),m=Math.floor(s%3600/60);return (h?h+"h ":"")+m+"m "+(s%60)+"s"};
-const hhmm=t=>t?new Date(t).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}):"";
-const eur=x=>x==null||!isFinite(x)?"–":x.toFixed(2);
-
-function render(){
- const v=S.v,t=S.trip;
- // ---- Guida
- $("speed").textContent=v.speed==null?"–":Math.round(v.speed);
- arc("spdSvg",v.speed||0,0,160,"#58a6ff",230,150,100,16);
- chip("mode",MODES[v.mode]||(v.mode==null?"–":"?"+v.mode),"p");
- chip("gear",GEARS[v.gear]||(v.gear==null?"–":"?"+v.gear),"b");
- if(v.rpm!=null&&v.speed!=null){const ev=v.rpm<1;chip("ev",ev?(v.speed>2?"EV":"spento"):"TERMICO",ev?"g":"o")}
- setV("rpm",v.rpm,"rpm");
- const act=v.ftype;
- $("gplChip").className="chip o"+(act===12?"":" dim");$("benChip").className="chip b"+(act===9?"":" dim");
- const gl=S.lvl[12],bl=S.lvl[9];
- $("gplV").innerHTML=(gl==null?"–":gl.v.toFixed(0))+"<small>%</small>";$("benV").innerHTML=(bl==null?"–":bl.v.toFixed(0))+"<small>%</small>";
- $("gplBar").style.width=(gl?gl.v:0)+"%";$("benBar").style.width=(bl?bl.v:0)+"%";
- $("gplV").style.opacity=act===12?1:.55;$("benV").style.opacity=act===9?1:.55;
- $("gplT").textContent=act===12?"in uso adesso":(gl?"ultima lettura "+hhmm(gl.t):"mai letto");
- $("benT").textContent=act===9?"in uso adesso":(bl?"ultima lettura "+hhmm(bl.t):"mai letto");
- $("fuelNote").textContent="l'auto legge solo il serbatoio in uso";
- setV("hyb",v.soc,"%");$("hybBar").style.width=(v.soc||0)+"%";$("hybBar").style.background=v.soc<20?"var(--r)":"var(--g)";
- if(v.pedal!=null){const n=Math.max(0,Math.min(100,(v.pedal-PED0)/(PED1-PED0)*100));setV("pedal",n,"%");$("pedalBar").style.width=n+"%";$("pedalBar").style.background=v.pedal>=KD?"var(--r)":"var(--g)";$("kd").classList.toggle("on",v.pedal>=KD);$("pedalRaw").textContent="grezzo "+v.pedal.toFixed(0)+"%"}
- const w=S.win;let wk=0,wl=0;w.forEach(x=>{wk+=x.km;wl+=x.l});
- const kml=wl>0.00005?wk/wl:null;
- if(kml!=null&&isFinite(kml)&&v.speed>2){$("kml").innerHTML=Math.min(kml,99).toFixed(1)+"<small>km/l</small>"}
- else if(v.speed>2&&(v.rpm||0)<1){$("kml").innerHTML="EV<small></small>"}
- else{$("kml").innerHTML="–<small>km/l</small>"}
- $("frate").textContent=v.frate==null?"":v.frate.toFixed(1)+" L/h";
- const price=S.prices[act];
- if(kml!=null&&kml>0&&price&&v.speed>2){const l100=100/kml;$("c100").innerHTML=eur(l100*price)+"<small>€/100 km</small>";$("ckm").innerHTML=eur(price/kml)+"<small>€</small>"}
- else if(v.speed>2&&(v.rpm||0)<1){$("c100").innerHTML="0.00<small>€/100 km</small>";$("ckm").innerHTML="0.00<small>€</small>"}
- else{$("c100").innerHTML="–<small>€/100 km</small>";$("ckm").innerHTML="–<small>€</small>"}
- // ---- Energia
- arc("socSvg",v.soc||0,0,100,v.soc<20?"#f85149":"#3fb950",200,130,85,16);
- setV("soc",v.soc,"%");setV("v48",v.v48,"V",1);
- if(v.v12!=null){setV("v12",v.v12,"V",1);const chg=v.v12>13.2;$("alt12").style.visibility=chg?"visible":"hidden";
-  const p=chg?Math.max(0,Math.min(100,(v.v12-13.2)/(15-13.2)*100)):Math.max(0,Math.min(100,(v.v12-11.8)/(12.7-11.8)*100));
-  $("v12Bar").style.width=p+"%";$("v12Bar").style.background=chg?"var(--g)":(p<30?"var(--r)":"var(--b)");
-  $("p12").textContent=chg?"alternatore/DC-DC attivo ("+Math.round(p)+"% della tensione di carica)":"carica stimata "+Math.round(p)+"%"}
- drawThermos();
- setV("rail",v.rail,"bar");
- const alt=S.gps.alt;setV("alt",alt,"m");setV("alt2",alt,"m");
- // ---- Motori
- valve(v.thr);setV("thr",v.thr,"%");$("thrW").textContent=v.thr==null?"":(v.thr<15?"farfalla quasi chiusa":v.thr>70?"farfalla aperta":"farfalla in apertura");
- mafIcon(v.maf);setV("maf",v.maf,"g/s",1);setV("loadV",v.load,"%");$("loadBar").style.width=(v.load||0)+"%";
- // ---- 48V potenza
- if(S.hv.P!=null){const P=S.hv.P,pct=Math.max(-100,Math.min(100,P/HVMAX*100));$("hvP").innerHTML=P.toFixed(1)+"<small>kW</small>";$("hvIV").textContent=S.hv.V.toFixed(1)+" V · "+S.hv.I.toFixed(0)+" A · "+pct.toFixed(0)+"%";pbar("hvBar",pct);chip("hvState",P>0.3?"EROGA":P<-0.3?"RIGENERA":"fermo",P>0.3?"r":P<-0.3?"g":"")}
- $("eOut").textContent=S.hv.eOut.toFixed(3);$("eIn").textContent=S.hv.eIn.toFixed(3);
- // ---- Dinamica
- if(v.alat!=null&&v.alon!=null){gmPts.push([v.alat,v.alon]);if(gmPts.length>25)gmPts.shift();drawG();$("alat").textContent=Math.round(v.alat);$("alon").textContent=Math.round(v.alon)}
- chip("esc",v.esc==null?"–":(v.esc===170?"SPENTO":"attivo"),v.esc===170?"r":"g");
- chip("hdc",v.hdc==null?"–":(v.hdc?"ATTIVO":"off"),v.hdc?"o":"");
- chip("park",v.park==null?"–":(v.park?"INSERITO":"libero"),v.park?"r":"");
- $("awd").textContent=v.awd==null?"–":v.awd;$("awdBar").style.width=((v.awd||0)/5*100)+"%";
- setV("gspd",S.gps.spd,"km/h");
- // ---- Viaggio
- $("tDist").textContent=t.dist.toFixed(2)+" km";$("tTime").textContent=fmtT(t.time);
- $("tEv").textContent=t.movTime>0?(100*t.evTime/t.movTime).toFixed(0)+"%":"–";
- let cost=0;
- for(const [k,id] of[[9,"tBen"],[12,"tGpl"]]){const km=t.km[k],l=t.lit[k];cost+=l*S.prices[k];$(id).textContent=km.toFixed(1)+" · "+l.toFixed(2)+" · "+(km>0.3?(100*l/km).toFixed(1):"–")}
- $("tCost").textContent=cost.toFixed(2)+" €"+(t.dist>0.3?" · "+(cost/t.dist*100).toFixed(1)+" €/100 km":"");
- $("tRec").textContent=S.rec?("in corso, "+S.rows.length+" righe"):"ferma";
-}
-
-const LOGS=[];
-function dlog(m){LOGS.push(new Date().toLocaleTimeString()+" "+m);if(LOGS.length>60)LOGS.shift();const e=$("dbg");if(e)e.textContent=LOGS.join("\n")}
-function setStatus(s){$("st").textContent=s;dlog(s)}
-window.addEventListener("error",e=>setStatus("errore JS: "+e.message));
-window.addEventListener("unhandledrejection",e=>setStatus("errore: "+(e.reason&&e.reason.message||e.reason)));
-
-/* ---------- UI ---------- */
-document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>showPage(+b.dataset.p));
-function showPage(i){document.querySelectorAll(".page").forEach((p,k)=>p.classList.toggle("on",k===i));document.querySelectorAll("nav button").forEach((b,k)=>b.classList.toggle("on",k===i));window._pg=i}
-let tx0=null;document.addEventListener("touchstart",e=>{tx0=e.touches[0].clientX},{passive:true});
-document.addEventListener("touchend",e=>{if(tx0==null)return;const dx=e.changedTouches[0].clientX-tx0;tx0=null;if(Math.abs(dx)>80){const i=(window._pg||0)+(dx<0?1:-1);if(i>=0&&i<5)showPage(i)}},{passive:true});
-
-async function doConnect(all){
- setStatus("tocco ricevuto");
- dlog("sicuro="+window.isSecureContext+" bluetooth="+("bluetooth" in navigator)+" geo="+("geolocation" in navigator));
- try{
-  if(!("bluetooth" in navigator)){setStatus("Web Bluetooth non disponibile: apri la pagina in Bluefy");return}
-  await E.connect(all);
-  startGps();wake();
- }catch(e){
-  const m=e===undefined?"rifiutato (nessun dettaglio): scelta annullata o permesso negato":((e&&e.name?e.name+" · ":"")+(e&&e.message||e));
-  setStatus("errore: "+m);
- }
-}
-$("conn").onclick=()=>doConnect(false);
-$("conn2").onclick=()=>doConnect(true);
-$("hvInv").onclick=()=>{S.hv.inv=!S.hv.inv;sv("hvinv",S.hv.inv);S.hv.eOut=0;S.hv.eIn=0};
-$("rst").onclick=()=>{S.hv.eOut=0;S.hv.eIn=0;S.trip={dist:0,time:0,evTime:0,movTime:0,lit:{9:0,12:0},km:{9:0,12:0}};render()};
-$("rec").onclick=()=>{S.rec=!S.rec;if(S.rec)S.rows=[];$("rec").textContent=S.rec?"Ferma":"Registra"};
-$("sav").onclick=async()=>{
- const head=["time",...SENS.map(s=>s.id)].join(",");const csv=head+"\n"+S.rows.map(r=>r.join(",")).join("\n");
- const name="bigster_"+new Date().toISOString().slice(0,19).replace(/[:T]/g,"-")+".csv";
- const file=new File([csv],name,{type:"text/csv"});
- try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:name});return}}catch(e){}
- const a=document.createElement("a");a.href=URL.createObjectURL(file);a.download=name;a.click();
-};
-$("prBen").value=S.prices[9];$("prGpl").value=S.prices[12];
-$("prBen").onchange=e=>{S.prices[9]=parseFloat(e.target.value)||S.prices[9];sv("prices",S.prices)};
-$("prGpl").onchange=e=>{S.prices[12]=parseFloat(e.target.value)||S.prices[12];sv("prices",S.prices)};
-function startGps(){if(!navigator.geolocation||S.gpsOn)return;S.gpsOn=true;navigator.geolocation.watchPosition(p=>{S.gps.alt=p.coords.altitude;S.gps.spd=p.coords.speed!=null?p.coords.speed*3.6:null},()=>{},{enableHighAccuracy:true,maximumAge:1000})}
+/* ---------- simulatore ---------- */
+const Sim={tm:null,t:0,
+ start(){Sim.t=Math.random()*5;Sim.stop();Sim.tm=setInterval(()=>Sim.step(0.5),500);Sim.step(0.5)},
+ stop(){clearInterval(Sim.tm);Sim.tm=null},
+ step(dt){
+  Sim.t+=dt;const t=Sim.t,hy=Veh.p.hybrid;
+  const speed=Math.max(0,62+52*Math.sin(t/9)+8*Math.sin(t/2.3));
+  const ev=hy&&(speed<28||Math.sin(t/17)>0.55);
+  const acc=Math.cos(t/9)*52/9;const thr=clamp(10+acc*5+(ev?-8:12),8,95);
+  const fuelIdx=Math.sin(t/60)>0&&Veh.fuels.length>1?1:0;const fu=Veh.fuels[fuelIdx];
+  const P=(hy?clamp(acc*1.4,-14,14):0);const V=46.5+P*0.12,I=P*1000/V;
+  const vi=Math.round(V*64),ii=Math.round(I*10)&0xffff;
+  const ch={speed,rpm:ev?0:900+speed*18+thr*4,pedal:14.5+Math.max(0,thr-10)*0.9,thr,load:ev?0:thr*.9,maf:ev?0:1.5+thr*.9,frate:ev?0:1.5+speed/14,
+   cool:62+28*(0.5+0.5*Math.sin(t/70)),oil:70+18*(0.5+0.5*Math.sin(t/90)),iat:30,amb:6,v12:ev?12.6:14.3,level:fuelIdx?32:81,ftype:fu.codes[fu.codes.length-1],
+   soc:clamp(55+30*Math.sin(t/35),4,98),rail:170+thr*1.2,hv:{V,I},mode:[1,3,4,7,5][Math.floor(t/25)%5],gear:4,awd:[0,1,3,5,5][Math.floor(t/25)%5],
+   esc:Math.floor(t/70)%2?170:174,hdc:Math.floor(t/50)%3===0?1:0,park:0,alat:clamp(9*Math.sin(t/4),-20,20),alon:clamp(acc*3,-24,24),v48:V,t48:24+14*(0.5+0.5*Math.sin(t/60))};
+  const HYB=new Set(["soc","hv","v48","t48"]);let changed=false;for(const id of Object.keys(Veh.S)){const s=Veh.S[id];if(id in ch&&(hy||!HYB.has(id))){s.dead=false;Live.put(id,ch[id])}else if(!s.dead){s.dead=true;changed=true}}if(changed)Pages.refreshVisibility();
+  Live.hz=2;S_alt=1540+14*Math.sin(t/30);GPS.alt=S_alt;GPS.spd=speed;tick()}};
+let S_alt=null;
+const GPS={alt:null,spd:null,on:false};
+function startGps(){if(GPS.on||!navigator.geolocation)return;GPS.on=true;navigator.geolocation.watchPosition(p=>{GPS.alt=p.coords.altitude;GPS.spd=p.coords.speed!=null?p.coords.speed*3.6:null},()=>{},{enableHighAccuracy:true,maximumAge:1000})}
 async function wake(){try{if(navigator.wakeLock)await navigator.wakeLock.request("screen")}catch(e){}}
 
-/* ---------- demo ---------- */
-$("demo").onclick=()=>{
- if(S.demo){location.reload();return}
- S.demo=true;$("demo").textContent="Esci demo";setStatus("DEMO (dati simulati)");$("dot").classList.add("on");
- let t=0;setInterval(()=>{
-  t+=0.5;const sp=Math.max(0,60+50*Math.sin(t/8));const ev=sp<25||Math.sin(t/20)>0.6;const thr=ev?10:12+60*Math.max(0,Math.sin(t/5));
-  Object.assign(S.v,{speed:sp,rpm:ev?0:1200+sp*18,pedal:14.5+Math.max(0,thr-10)*1.2,frate:ev?0:2+sp/12,mode:[1,3,4,7,5][Math.floor(t/30)%5],gear:4,ftype:Math.sin(t/60)>0?12:9,level:Math.sin(t/60)>0?33:82,
-   awd:[0,1,3,5,5][Math.floor(t/30)%5],esc:174,hdc:0,park:0,soc:50+25*Math.sin(t/25),v48:46+Math.sin(t/25),t48:25+10*Math.sin(t/40),v12:ev?12.6:14.3,cool:60+30*Math.sin(t/50)+20,oil:75,rail:250,amb:6,
-   hv:(()=>{const P=8*Math.sin(t/6);const V=46.5+P*0.1,I=P*1000/V;const vi=Math.round(V*64),ii=Math.round(I*10)&0xffff;return [7,0,vi>>8,vi&255,ii>>8,ii&255]})(),thr:thr,maf:ev?0:2+thr*0.9,load:ev?0:thr*0.9,alat:8*Math.sin(t/4),alon:12*Math.sin(t/6)});
-  S.gps.alt=1540+10*Math.sin(t/30);S.gps.spd=sp;tick();render()},500);
+/* ---------- avvisi ---------- */
+const Alerts={active:new Map(),audio:null,
+ check(){
+  const list=(Veh.p.alerts||[]);const now=new Map();
+  for(const a of list){const v=Live.v[a.id];if(typeof v!=="number"||Live.age(a.id)>15000)continue;if(a.hi!=null&&v>a.hi)now.set(a.id,{...a,v,kind:"r"});else if(a.lo!=null&&v<a.lo)now.set(a.id,{...a,v,kind:"o"})}
+  const box=$("#alerts");let changed=now.size!==Alerts.active.size;for(const k of now.keys())if(!Alerts.active.has(k))changed=true;
+  if(changed){box.replaceChildren(...[...now.values()].map(a=>h("div",{class:"alert"+(a.kind==="o"?" warn":""),role:"alert"},`${a.label}: ${fmt(a.v,0)}`)));
+   if(U.alertsOn&&U.sound&&[...now.keys()].some(k=>!Alerts.active.has(k)))Alerts.beep();
+   Alerts.active=now}},
+ beep(){try{const A=window.AudioContext||window.webkitAudioContext;if(!A)return;Alerts.audio=Alerts.audio||new A();const o=Alerts.audio.createOscillator(),g=Alerts.audio.createGain();o.connect(g);g.connect(Alerts.audio.destination);o.frequency.value=880;g.gain.value=.12;o.start();o.stop(Alerts.audio.currentTime+.25)}catch(e){}}};
+
+/* ---------- widget ---------- */
+const COLORS={cool:[[0,"#4aa3ff"],[60,"#4aa3ff"],[80,"#34d058"],[100,"#34d058"],[108,"#f2a516"],[118,"#ff5d52"]],oil:[[0,"#4aa3ff"],[50,"#4aa3ff"],[80,"#34d058"],[115,"#34d058"],[125,"#f2a516"],[138,"#ff5d52"]],t48:[[0,"#4aa3ff"],[12,"#4aa3ff"],[20,"#34d058"],[40,"#34d058"],[47,"#f2a516"],[56,"#ff5d52"]],amb:[[-15,"#a78bfa"],[0,"#4aa3ff"],[15,"#34d058"],[28,"#f2a516"],[38,"#ff5d52"]],iat:[[-20,"#4aa3ff"],[20,"#34d058"],[45,"#f2a516"],[70,"#ff5d52"]]};
+const hex2=c=>[1,3,5].map(i=>parseInt(c.slice(i,i+2),16));
+function colorAt(v,st){if(v<=st[0][0])return st[0][1];if(v>=st[st.length-1][0])return st[st.length-1][1];for(let i=0;i<st.length-1;i++){const[a,ca]=st[i],[b,cb]=st[i+1];if(v>=a&&v<=b){const f=(v-a)/(b-a),A=hex2(ca),B=hex2(cb);return"rgb("+A.map((x,k)=>Math.round(x+(B[k]-x)*f)).join(",")+")"}}}
+const any=(...ids)=>ids.some(i=>Veh.has(i));
+const V=id=>Live.v[id];
+const setHTML=(el,html)=>{if(el._h!==html){el._h=html;el.innerHTML=html}};
+const setTxt=(el,t)=>{if(el.textContent!==t)el.textContent=t};
+const valHTML=(x,unit,d=0)=>`${fmt(x,d)}<small>${unit||""}</small>`;
+
+function arcSVG(box,val,min,max,color,w,hh,rad,th){
+ const cx=w/2,cy=hh-14,a0=Math.PI,a1=Math.PI*2;const f=clamp((val-min)/(max-min||1),0,1);
+ const pt=a=>[cx+rad*Math.cos(a),cy+rad*Math.sin(a)];const[x0,y0]=pt(a0),[x1,y1]=pt(a1),[xv,yv]=pt(a0+(a1-a0)*f);
+ box.innerHTML=`<path d="M${x0} ${y0}A${rad} ${rad} 0 0 1 ${x1} ${y1}" stroke="var(--card2)" stroke-width="${th}" fill="none" stroke-linecap="round"/>`+(f>.005?`<path d="M${x0} ${y0}A${rad} ${rad} 0 0 1 ${xv} ${yv}" stroke="${color}" stroke-width="${th}" fill="none" stroke-linecap="round"/>`:"")}
+function thermoSVG(val,min,max,st){const f=val==null?0:clamp((val-min)/(max-min),0,1);const col=val==null?"var(--line)":colorAt(val,st);const H=76,y=6+H*(1-f);
+ return`<svg width="40" height="118" viewBox="0 0 40 118"><rect x="14" y="6" width="12" height="${H}" rx="6" fill="var(--card2)" stroke="var(--line)"/><circle cx="20" cy="94" r="13" fill="${col}"/><rect x="16" y="${y}" width="8" height="${6+H-y+8}" rx="4" fill="${col}"/>${[.25,.5,.75].map(t=>`<line x1="28" x2="33" y1="${6+H*(1-t)}" y2="${6+H*(1-t)}" stroke="var(--line)"/>`).join("")}</svg>`}
+function sparkDraw(cv,id,color){
+ if(!cv.getContext)return;const a=Hist.get(id);const c=cv.getContext("2d");if(!c)return;const w=cv.width,hh=cv.height;c.clearRect(0,0,w,hh);if(a.length<2)return;
+ const mn=Math.min(...a),mx=Math.max(...a),r=(mx-mn)||1;c.strokeStyle=color||"#4da3ff";c.lineWidth=2;c.lineJoin="round";c.beginPath();
+ a.forEach((v,i)=>{const x=i*(w/(a.length-1)),y=hh-3-(v-mn)/r*(hh-6);i?c.lineTo(x,y):c.moveTo(x,y)});c.stroke()}
+function tileW(id,label,unit,dec,opts={}){
+ const val=h("div",{class:"val"}),lab=h("div",{class:"lab"},label);const bar=opts.bar?h("div",{class:"bar"},h("i")):null;
+ const cv=opts.spark?h("canvas",{class:"spark",width:200,height:28}):null;
+ const root=h("section",{class:"card"+(opts.cls?" "+opts.cls:"")},lab,val,bar,cv);
+ return{root,need:[id],update(){const x=V(id);setHTML(val,valHTML(x,unit,dec));if(bar){const i=bar.firstChild;i.style.width=clamp(((x||0)-opts.bar[0])/(opts.bar[1]-opts.bar[0])*100,0,100)+"%";i.style.background=opts.barColor?opts.barColor(x):"var(--acc)"}if(cv)sparkDraw(cv,id,opts.sparkColor)}}}
+
+const W={
+ speedArc:()=>{const box=svg(230,150,"");const num=h("div",{class:"xl",style:"margin-top:-78px"},"–");const root=h("section",{class:"card c2",style:"text-align:center"},h("div",{class:"lab"},"Velocità"),box,num,h("div",{class:"lab",style:"margin-top:6px"},"km/h"));
+  return{root,need:["speed"],update(){const v=V("speed");setTxt(num,v==null?"–":String(Math.round(v)));arcSVG(box,v||0,0,Math.max(160,Veh.p.vmax||160),"var(--acc)",230,150,100,16)}}},
+ modeGear:()=>{const m=h("span",{class:"chip p"},"–"),g=h("span",{class:"chip b"},"–");const root=h("section",{class:"card"},h("div",{class:"lab"},"Modo guida"),h("div",{style:"margin:8px 0"},m),h("div",{class:"lab",style:"margin-top:6px"},"Marcia"),h("div",{style:"margin-top:6px"},g));
+  return{root,need:["mode","gear"],update(){const sm=Veh.S.mode,sg=Veh.S.gear;const a=V("mode"),b=V("gear");setTxt(m,a==null?"–":(sm&&sm.enum&&sm.enum[a])||"?"+a);setTxt(g,b==null?"–":(sg&&sg.enum&&sg.enum[b])||"?"+b)}}},
+ engineState:()=>{const c=h("span",{class:"chip"},"–"),r=h("div",{class:"val"});const root=h("section",{class:"card"},h("div",{class:"lab"},"Motore"),h("div",{style:"margin:8px 0"},c),h("div",{class:"lab",style:"margin-top:6px"},"Giri"),r);
+  return{root,need:["rpm"],update(){const rpm=V("rpm"),sp=V("speed");setHTML(r,valHTML(rpm,"rpm"));if(rpm==null){setTxt(c,"–");return}const hy=Veh.p.hybrid,off=rpm<1;
+   setTxt(c,off?(hy&&(sp||0)>2?"EV":"spento"):(hy?"TERMICO":"acceso"));c.className="chip "+(off?(hy&&(sp||0)>2?"g":""):"o")}}},
+ fuels:()=>{const root=h("section",{class:"card cAll"});const note=h("div",{class:"lab"},"");const cols=Veh.fuels.map(f=>({f,chip:h("span",{class:"chip "+f.color},f.name),v:h("span",{class:"val"}),bar:h("i"),t:h("div",{class:"lab",style:"margin-top:4px"})}));
+  root.append(h("div",{class:"row sp"},h("div",{class:"lab"},"Carburante"),note),h("div",{class:"row",style:"margin-top:6px;align-items:flex-start;gap:14px"},...cols.map(c=>h("div",{style:"flex:1;min-width:120px"},h("div",{class:"row sp"},c.chip,c.v),h("div",{class:"bar"},c.bar),c.t))));
+  return{root,need:["level"],update(){const act=Veh.has("ftype")&&V("ftype")!=null?Veh.fuelOf(V("ftype")):Veh.fuels[0];const L=Veh.lvl();
+   cols.forEach(c=>{const l=L[c.f.key];const on=c.f===act;c.chip.className="chip "+c.f.color+(on||Veh.fuels.length===1?"":" dim");setHTML(c.v,valHTML(l?l.v:null,"%"));c.v.style.opacity=on?1:.55;c.bar.style.width=(l?l.v:0)+"%";c.bar.style.background=`var(--${c.f.color})`;setTxt(c.t,on?"in uso adesso":(l?"ultima lettura "+hhmm(l.t):"mai letto"))});
+   setTxt(note,Veh.fuels.length>1?"l'auto legge solo il serbatoio in uso":"")}}},
+ hybrid:()=>{const v=h("div",{class:"val"}),i=h("i");const root=h("section",{class:"card cAll"},h("div",{class:"row sp"},h("div",{class:"lab"},"Batteria ibrida"),v),h("div",{class:"bar"},i));
+  return{root,need:["soc"],update(){const x=V("soc");setHTML(v,valHTML(x,"%"));i.style.width=(x||0)+"%";i.style.background=x<20?"var(--r)":"var(--g)"}}},
+ pedal:()=>{const v=h("div",{class:"val"}),i=h("i"),raw=h("div",{class:"lab",style:"margin-top:4px"}),kd=h("span",{class:"kd"},"KICKDOWN");const root=h("section",{class:"card"},h("div",{class:"lab"},"Pedale",kd),v,h("div",{class:"bar"},i),raw);
+  return{root,need:["pedal"],update(){const x=V("pedal");if(x==null)return;const p0=Veh.p.pedal0??14.5,p1=Veh.p.pedal1??90.6;const n=clamp((x-p0)/(p1-p0)*100,0,100);setHTML(v,valHTML(n,"%"));i.style.width=n+"%";const kdv=U.kd||86;i.style.background=x>=kdv&&Veh.p.id.startsWith("dacia")?"var(--r)":"var(--g)";kd.classList.toggle("on",Veh.p.id.startsWith("dacia")&&x>=kdv);setTxt(raw,"grezzo "+fmt(x,0)+"%")}}},
+ consumption:()=>{const v=h("div",{class:"val"}),f=h("div",{class:"lab",style:"margin-top:6px"});const root=h("section",{class:"card"},h("div",{class:"lab"},"Consumo"),v,f);
+  return{root,need:["frate","maf"],update(){let wk=0,wl=0;Veh.win.forEach(x=>{wk+=x.km;wl+=x.l});const kml=wl>5e-5?wk/wl:null,sp=V("speed")||0;
+   if(kml!=null&&sp>2)setHTML(v,valHTML(Math.min(kml,99),"km/l",1));else if(sp>2&&Veh.p.hybrid&&(V("rpm")||0)<1)setHTML(v,"EV");else setHTML(v,valHTML(null,"km/l"));setTxt(f,Live.fr==null?"":fmt(Live.fr,1)+" L/h"+(V("frate")==null?" (stima da MAF)":""))}}},
+ cost:()=>{const c=h("div",{class:"val"}),k=h("div",{class:"val",style:"font-size:26px"});const root=h("section",{class:"card cAll"},h("div",{class:"row sp"},h("div",null,h("div",{class:"lab"},"Costo istantaneo"),c),h("div",{style:"text-align:right"},h("div",{class:"lab"},"al km"),k)));
+  return{root,need:["frate","maf"],update(){let wk=0,wl=0;Veh.win.forEach(x=>{wk+=x.km;wl+=x.l});const kml=wl>5e-5?wk/wl:null,sp=V("speed")||0,ft=Live.ft;const pr=ft?ft.price:null;
+   if(kml&&pr&&sp>2){setHTML(c,valHTML(100/kml*pr,"€/100 km",2));setHTML(k,valHTML(pr/kml,"€",2))}else if(sp>2&&Veh.p.hybrid&&(V("rpm")||0)<1){setHTML(c,valHTML(0,"€/100 km",2));setHTML(k,valHTML(0,"€",2))}else{setHTML(c,valHTML(null,"€/100 km"));setHTML(k,valHTML(null,"€"))}}}},
+ socArc:()=>{const box=svg(200,130,"");const num=h("div",{class:"val",style:"margin-top:-62px;font-size:44px"},"–");const root=h("section",{class:"card c2",style:"text-align:center"},h("div",{class:"lab"},"Batteria ibrida"),box,num);
+  return{root,need:["soc"],update(){const x=V("soc");arcSVG(box,x||0,0,100,x<20?"var(--r)":"var(--g)",200,130,85,16);setHTML(num,valHTML(x,"%"))}}},
+ v48:()=>tileW("v48","Tensione batteria ibrida","V",1,{spark:true}),
+ v12:()=>{const v=h("div",{class:"val"}),i=h("i"),p=h("div",{class:"lab",style:"margin-top:4px"}),chg=h("span",{class:"chip g",style:"font-size:11px;padding:2px 8px;margin-left:4px;visibility:hidden"},"in carica"),cv=h("canvas",{class:"spark",width:200,height:28});
+  const root=h("section",{class:"card"},h("div",{class:"lab"},"Batteria 12V",chg),v,h("div",{class:"bar"},i),p,cv);
+  return{root,need:["v12"],update(){const x=V("v12");setHTML(v,valHTML(x,"V",1));if(x==null)return;const c=x>13.2;chg.style.visibility=c?"visible":"hidden";const pc=c?clamp((x-13.2)/1.8*100,0,100):clamp((x-11.8)/.9*100,0,100);i.style.width=pc+"%";i.style.background=c?"var(--g)":(pc<30?"var(--r)":"var(--b)");setTxt(p,c?"alternatore/DC-DC attivo":"carica stimata "+Math.round(pc)+"%");sparkDraw(cv,"v12")}}},
+ thermos:()=>{const box=h("div",{class:"th"});const root=h("section",{class:"card cAll"},h("div",{class:"lab",style:"margin-bottom:8px"},"Temperature"),box);
+  const ids=[["cool","Acqua",0,120],["oil","Olio",0,140],["t48","Batt.",0,60],["iat","Aspir.",-20,80],["amb","Esterna",-15,40]];
+  return{root,need:["cool","oil","t48","amb","iat"],update(){setHTML(box,ids.filter(([id])=>Veh.has(id)).map(([id,n,mn,mx])=>`<div>${thermoSVG(V(id),mn,mx,COLORS[id])}<b>${V(id)==null?"–":Math.round(V(id))+"°"}</b>${n}</div>`).join(""))}}},
+ rail:()=>tileW("rail","Rail carburante","bar",0,{spark:true}),
+ alt:()=>{const v=h("div",{class:"val"});const root=h("section",{class:"card"},h("div",{class:"lab"},"Quota GPS"),v);return{root,need:[],always:true,update(){setHTML(v,valHTML(GPS.alt,"m"))}}},
+ engineCard:()=>{const valve=svg(130,120,""),maf=svg(130,120,"");const thr=h("div",{class:"val"}),thrw=h("div",{class:"lab"}),mv=h("div",{class:"val"}),ld=h("div",{class:"val",style:"font-size:26px"}),lb=h("i");
+  const root=h("section",{class:"card c2"},h("div",{class:"lab"},"Motore termico"),h("div",{class:"row sp",style:"align-items:flex-end;margin-top:6px"},h("div",{style:"text-align:center"},valve,thr,thrw),h("div",{style:"text-align:center"},maf,mv,h("div",{class:"lab"},"debimetro"))),h("div",{class:"row sp",style:"margin-top:10px"},h("div",{class:"lab"},"Carico motore"),ld),h("div",{class:"bar"},lb));
+  return{root,need:["thr","maf","load"],update(){const t=V("thr"),m=V("maf"),a=(t==null?0:t)/100*90;
+   valve.innerHTML=`<line x1="6" x2="124" y1="16" y2="16" stroke="var(--line)" stroke-width="4"/><line x1="6" x2="124" y1="104" y2="104" stroke="var(--line)" stroke-width="4"/><g transform="rotate(${a} 65 60)"><rect x="61" y="18" width="8" height="84" rx="3" fill="var(--acc)"/></g><circle cx="65" cy="60" r="7" fill="var(--fg)"/><path d="M10 60h16m-6-6l6 6-6 6" stroke="var(--mut)" stroke-width="2" fill="none" opacity="${t>50?1:.45}"/>`;
+   const f=m==null?0:Math.min(1,m/90),n=Math.ceil(f*4);let ar="";for(let i=0;i<4;i++)ar+=`<path d="M${24+i*4} ${26+i*20}h26m-6-6l6 6-6 6" stroke="${i<n?"var(--acc)":"var(--line)"}" stroke-width="3" fill="none"/>`;
+   maf.innerHTML=`<rect x="6" y="10" width="118" height="100" rx="12" fill="none" stroke="var(--line)" stroke-width="4"/>${ar}<rect x="82" y="2" width="18" height="30" rx="4" fill="var(--card2)"/><line x1="91" x2="91" y1="32" y2="86" stroke="${f>.02?"var(--o)":"var(--line)"}" stroke-width="3"/>`;
+   setHTML(thr,valHTML(t,"%"));setTxt(thrw,t==null?"":(t<15?"farfalla quasi chiusa":t>70?"farfalla aperta":"farfalla in apertura"));setHTML(mv,valHTML(m,"g/s",1));setHTML(ld,valHTML(V("load"),"%"));lb.style.width=(V("load")||0)+"%";lb.style.background="var(--o)"}}},
+ hvPower:()=>{const st=h("span",{class:"chip"},"–"),pv=h("div",{class:"val"},"n/d"),iv=h("div",{class:"lab",style:"text-align:right"}),bar=h("i"),eo=h("b",null,"0.000"),ei=h("b",null,"0.000");
+  const inv=h("button",{onclick:()=>{U.hvInv=!U.hvInv;savePrefs();Veh.trip.energyOut=0;Veh.trip.energyIn=0}},"Inverti segno");
+  const root=h("section",{class:"card cAll"},h("div",{class:"row sp"},h("div",{class:"lab"},"Motori elettrici (batteria alta tensione)"),st),h("div",{class:"row sp",style:"align-items:flex-end"},pv,iv),h("div",{class:"pb"},h("div",{class:"mid"}),bar),h("div",{class:"pbl"},h("span",null,"−100% rigenera"),h("span",null,"0"),h("span",null,"+100% eroga")),h("div",{class:"row sp",style:"margin-top:10px"},h("div",{class:"lab"},"Erogata ",eo," kWh"),h("div",{class:"lab"},"Rigenerata ",ei," kWh")),h("div",{class:"row sp",style:"margin-top:8px"},inv,h("span",{class:"lab"},"fondo scala ±"+(Veh.p.hvMax||15)+" kW")),h("div",{class:"lab",style:"margin-top:8px;text-transform:none;letter-spacing:0"},"Totale del pacco: motore elettrico posteriore, starter e DC/DC insieme."));
+  return{root,need:["hv"],update(){const hv=V("hv");if(hv&&hv.V!=null){const P=Live.hvP||0,mx=Veh.p.hvMax||15,pc=clamp(P/mx*100,-100,100);setHTML(pv,valHTML(P,"kW",1));setTxt(iv,fmt(hv.V,1)+" V · "+fmt(U.hvInv?-hv.I:hv.I,0)+" A · "+fmt(pc,0)+"%");bar.style.cssText=pc>=0?`left:50%;width:${Math.abs(pc)/2}%;background:var(--r)`:`right:50%;width:${Math.abs(pc)/2}%;background:var(--g)`;setTxt(st,P>.3?"EROGA":P<-.3?"RIGENERA":"fermo");st.className="chip "+(P>.3?"r":P<-.3?"g":"")}
+   setTxt(eo,Veh.trip.energyOut.toFixed(3));setTxt(ei,Veh.trip.energyIn.toFixed(3))}}},
+ gmeter:()=>{const cv=h("canvas",{width:240,height:240,style:"margin:0 auto"});const la=h("b",null,"–"),lo=h("b",null,"–");const pts=[];
+  const root=h("section",{class:"card c2",style:"text-align:center"},h("div",{class:"lab"},"Accelerazione (laterale / longitudinale)"),cv,h("div",{class:"row sp",style:"margin-top:6px"},h("span",{class:"lab"},"lat ",la),h("span",{class:"lab"},"long ",lo)));
+  const draw=()=>{if(!cv.getContext)return;const x=cv.getContext("2d");if(!x)return;const w=240,hh=240,cx=w/2,cy=hh/2,css=getComputedStyle(document.documentElement);x.clearRect(0,0,w,hh);x.strokeStyle=css.getPropertyValue("--line")||"#243040";x.lineWidth=1.5;for(const r of[40,80,115]){x.beginPath();x.arc(cx,cy,r,0,7);x.stroke()}x.beginPath();x.moveTo(8,cy);x.lineTo(w-8,cy);x.moveTo(cx,8);x.lineTo(cx,hh-8);x.stroke();const sc=115/25;
+   pts.forEach((p,i)=>{x.fillStyle=`rgba(77,163,255,${(i+1)/pts.length*.5})`;x.beginPath();x.arc(cx+p[0]*sc,cy-p[1]*sc,5,0,7);x.fill()});const p=pts[pts.length-1];if(p){x.fillStyle="#4da3ff";x.beginPath();x.arc(cx+p[0]*sc,cy-p[1]*sc,10,0,7);x.fill()}};
+  return{root,need:["alat","alon"],update(){const a=V("alat"),b=V("alon");if(a!=null&&b!=null){pts.push([a,b]);if(pts.length>25)pts.shift();setTxt(la,fmt(a,0));setTxt(lo,fmt(b,0))}draw()}}},
+ flags:()=>{const esc=h("span",{class:"chip"},"–"),hdc=h("span",{class:"chip"},"–"),park=h("span",{class:"chip"},"–");
+  const cell=(t,c)=>h("div",{class:"card"},h("div",{class:"lab"},t),h("div",{style:"margin-top:10px"},c));const wrap=h("div",{style:"display:contents"},cell("ESC",esc),cell("Hill Descent",hdc),cell("Freno di stazionamento",park));
+  return{root:wrap,need:["esc","hdc","park"],update(){const e=V("esc"),hh=V("hdc"),p=V("park");setTxt(esc,e==null?"–":(e===(Veh.p.flags&&Veh.p.flags.escOffValue)?"SPENTO":"attivo"));esc.className="chip "+(e===170?"r":e==null?"":"g");setTxt(hdc,hh==null?"–":(hh?"ATTIVO":"off"));hdc.className="chip "+(hh?"o":"");setTxt(park,p==null?"–":(p?"INSERITO":"libero"));park.className="chip "+(p?"r":"")}}},
+ awd:()=>{const v=h("div",{class:"val"}),i=h("i");const root=h("section",{class:"card"},h("div",{class:"lab"},"Richiesta trazione 4x4"),v,h("div",{class:"bar"},h("i")));const b=root.querySelector(".bar i");
+  return{root,need:["awd"],update(){const x=V("awd");setHTML(v,x==null?"–":String(x));b.style.width=((x||0)/5*100)+"%";b.style.background="var(--p)"}}},
+ gps:()=>{const s=h("div",{class:"val"}),a=h("div",{class:"val"});const wrap=h("div",{style:"display:contents"},h("section",{class:"card"},h("div",{class:"lab"},"Velocità GPS"),s),h("section",{class:"card"},h("div",{class:"lab"},"Quota GPS"),a));
+  return{root:wrap,need:[],always:true,update(){setHTML(s,valHTML(GPS.spd,"km/h"));setHTML(a,valHTML(GPS.alt,"m"))}}},
+ trip:()=>{const rows={};const mk=(k,l)=>{rows[k]=h("td",null,"–");return h("tr",null,h("td",null,l),rows[k])};
+  const rec=h("button",{onclick:()=>{Trip.rec=!Trip.rec;if(Trip.rec)Trip.rows=[];rec.textContent=Trip.rec?"Ferma":"Registra"}},"Registra");
+  const sav=h("button",{onclick:saveCsv},"Salva CSV");const rst=h("button",{onclick:()=>{archiveTrip();Veh.trip=newTrip()}},"Azzera");
+  const tb=h("table",{class:"tbl"},mk("d","Distanza"),mk("t","Durata"),mk("ev","In EV (tempo in movimento)"),...Veh.fuels.map(f=>mk("f_"+f.key,f.name+": km · litri · L/100")),mk("c","Costo viaggio (stima)"),mk("r","Registrazione"));
+  const root=h("section",{class:"card cAll"},h("div",{class:"row sp"},h("div",{class:"lab"},"Viaggio"),h("div",{class:"row"},rst,rec,sav)),tb);
+  return{root,need:[],always:true,update(){const t=Veh.trip;setTxt(rows.d,t.dist.toFixed(2)+" km");setTxt(rows.t,fmtT(t.time));setTxt(rows.ev,Veh.p.hybrid?(t.movTime>0?(100*t.evTime/t.movTime).toFixed(0)+"%":"–"):"n/d");let cost=0;
+   Veh.fuels.forEach(f=>{const km=t.km[f.key]||0,l=t.lit[f.key]||0;cost+=l*f.price;setTxt(rows["f_"+f.key],km.toFixed(1)+" · "+l.toFixed(2)+" · "+(km>.3?(100*l/km).toFixed(1):"–"))});
+   setTxt(rows.c,cost.toFixed(2)+" €"+(t.dist>.3?" · "+(cost/t.dist*100).toFixed(1)+" €/100 km":""));setTxt(rows.r,Trip.rec?"in corso, "+Trip.rows.length+" righe":"ferma")}}},
+ prices:()=>{const root=h("section",{class:"card cAll"},h("div",{class:"lab"},"Prezzi carburante (€/litro) · media nazionale Mimit 14/11/2026"));const inps=Veh.fuels.map(f=>{const i=h("input",{type:"number",step:"0.001",value:f.price,"aria-label":"prezzo "+f.name,onchange:()=>{const v=parseFloat(i.value);if(v>0){f.price=v;U.prices[f.key]=v;savePrefs()}}});return h("div",{style:"flex:1;min-width:120px"},h("label",null,f.name),i)});
+  root.append(h("div",{class:"row",style:"align-items:flex-end"},...inps),h("div",{class:"lab",style:"margin-top:8px;text-transform:none;letter-spacing:0"},"Il consumo di GPL è quello dichiarato dalla centralina: può essere sottostimato."));
+  return{root,need:[],always:true,update(){}}},
+ history:()=>{const root=h("section",{class:"card cAll"},h("div",{class:"lab"},"Ultimi viaggi"));const box=h("div");root.append(box);let key="";
+  return{root,need:[],always:true,update(){const list=(U.trips&&U.trips[Veh.p.id])||[];const k=list.length+":"+(list[0]&&list[0].start);if(k===key)return;key=k;box.replaceChildren(...(list.length?list.slice(0,6).map(t=>h("div",{class:"item"},h("div",null,new Date(t.start).toLocaleString("it-IT",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}),h("div",{class:"sub"},fmtT(t.time)+" · EV "+(t.ev??"–")+"%")),h("b",null,t.dist.toFixed(1)+" km · "+t.cost.toFixed(2)+" €"))):[h("div",{class:"sub",style:"margin-top:8px"},"Nessun viaggio salvato. Tocca Azzera per archiviare quello in corso.")]))}}},
+ diag:()=>{const root=h("section",{class:"card cAll"},h("div",{class:"lab"},"Diagnostica"),h("pre",{class:"dbg",id:"dbg"},LOG.join("\n")));return{root,need:[],always:true,update(){}}},
 };
-render();drawG();
+const PAGE_DEF=[
+ {id:"drive",title:"Guida",icon:'<circle cx="12" cy="12" r="9"/><path d="M12 12l4-4M7 16h10"/>',widgets:["speedArc","modeGear","engineState","fuels","hybrid","pedal","consumption","cost"]},
+ {id:"energy",title:"Energia",icon:'<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>',widgets:["socArc","v48","v12","thermos","rail","alt"]},
+ {id:"engine",title:"Motori",icon:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',widgets:["engineCard","hvPower"]},
+ {id:"dyn",title:"Dinamica",icon:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 3v18M3 12h18"/>',widgets:["gmeter","flags","awd","gps"]},
+ {id:"trip",title:"Viaggio",icon:'<path d="M4 19l5-14 4 8 3-4 4 10z"/>',widgets:["trip","prices","history","diag"]},
+];
+
+/* ---------- pagine ---------- */
+const Pages={cur:0,built:[],
+ build(){
+  const root=$("#pages"),tabs=$("#tabs");root.replaceChildren();tabs.replaceChildren();Pages.built=[];
+  PAGE_DEF.forEach((p,idx)=>{
+   const el=h("section",{class:"page",id:"pg_"+p.id,"aria-label":p.title});const ws=p.widgets.map(n=>{const w=W[n]();w.name=n;w.page=p.id;el.append(w.root);return w});
+   root.append(el);const btn=h("button",{"aria-label":p.title,onclick:()=>Pages.show(idx)},svg(24,24,p.icon),p.title);tabs.append(btn);Pages.built.push({def:p,el,ws,btn})});
+  Pages.refreshVisibility();Pages.show(Math.min(Pages.cur,PAGE_DEF.length-1))},
+ refreshVisibility(){
+  for(const pg of Pages.built){let vis=0;for(const w of pg.ws){const show=w.always||w.need.some(i=>Veh.has(i));w.root.classList.toggle("hidden",!show);if(show)vis++}pg.btn.classList.toggle("hidden",!vis&&pg.def.id!=="trip")}},
+ show(i){Pages.cur=i;Pages.built.forEach((p,k)=>{p.el.classList.toggle("on",k===i);p.btn.classList.toggle("on",k===i)});Pages.render(true)},
+ render(force){
+  const pg=Pages.built[Pages.cur];if(!pg)return;const live=Link.on;
+  for(const w of pg.ws){if(w.root.classList.contains("hidden"))continue;
+   const now=T();const touched=force||w.always||w.need.some(i=>Live.dirty.has(i))||!w._t||now-w._t>1000;if(!touched)continue;w._t=now;
+   try{w.update()}catch(e){dlog("widget "+w.name+": "+e.message)}
+   const stale=live&&Link.mode==="ble"&&w.need.length&&w.need.every(i=>Live.age(i)>8000&&Live.t[i]!==undefined);w.root.classList&&w.root.classList.toggle("stale",!!stale)}
+  Live.dirty.clear()}};
+
+/* ---------- salvataggi ---------- */
+const fmtT=s=>{s=Math.floor(s);const hh=Math.floor(s/3600),m=Math.floor(s%3600/60);return(hh?hh+"h ":"")+m+"m "+(s%60)+"s"};
+function archiveTrip(){const t=Veh.trip;if(t.dist<0.2)return;let cost=0;Veh.fuels.forEach(f=>cost+=(t.lit[f.key]||0)*f.price);const list=U.trips[Veh.p.id]||(U.trips[Veh.p.id]=[]);list.unshift({start:t.start,time:t.time,dist:t.dist,cost,ev:Veh.p.hybrid&&t.movTime>0?Math.round(100*t.evTime/t.movTime):null});list.splice(30);savePrefs()}
+async function saveCsv(){const keys=Object.keys(Veh.S);const csv=["time,"+keys.join(","),...Trip.rows.map(r=>r.join(","))].join("\n");const name="dash_"+new Date().toISOString().slice(0,19).replace(/[:T]/g,"-")+".csv";const file=new File([csv],name,{type:"text/csv"});
+ try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:name});return}}catch(e){}const a=h("a",{href:URL.createObjectURL(file),download:name});a.click()}
+
+/* ---------- finestre e impostazioni ---------- */
+function openSheet(title,build){const s=$("#sheet");s._locked=false;const body=h("div");const close=()=>{s.classList.add("hidden");s.replaceChildren()};s.replaceChildren(h("div",{class:"in"},h("div",{class:"row sp"},h("h2",null,title),h("button",{class:"ghost",onclick:close,"aria-label":"chiudi"},"✕")),body));s.classList.remove("hidden");s.onclick=e=>{if(e.target===s&&!s._locked)close()};build(body,close);return close}
+function applyTheme(){document.documentElement.setAttribute("data-theme",U.theme||"auto");const dark=!(U.theme==="light"||(U.theme==="auto"&&window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches));document.querySelector('meta[name="theme-color"]').setAttribute("content",dark?"#07090d":"#eef2f7")}
+
+function openVehicles(){openSheet("Auto e profili",(body,close)=>{
+ body.append(h("div",{class:"lab",style:"margin:6px 0 0;text-transform:none;letter-spacing:0"},"Ogni profilo contiene gli indirizzi delle centraline, i sensori e le formule. I sensori che l'auto non supporta si spengono da soli."));
+ for(const p of Veh.all()){body.append(h("div",{class:"item"+(p.id===Veh.p.id?" sel":""),onclick:async()=>{if(Link.on)Link.stop();Veh.set(p.id);await savePrefs();Pages.build();applyTheme();close();toast("Profilo: "+p.name)}},h("div",null,h("b",null,p.name),h("div",{class:"sub"},p.notes||"")),h("span",{class:"badge"+(p.verified?" ok":"")},p.verified?"verificato":"non verificato")))}
+ body.append(h("div",{class:"row",style:"margin-top:14px"},h("button",{onclick:()=>{const txt=JSON.stringify(Veh.p,(k,v)=>k==="fn"||k==="last"||k==="mult"||k==="skip"||k==="fail"||k==="dead"||k==="ok"?undefined:v,1);openSheet("Profilo (JSON)",(b2)=>{b2.append(h("div",{class:"sub"},"Copia e modifica per creare un nuovo profilo."),h("textarea",{readonly:true},txt))})}},"Esporta profilo attivo"),h("button",{onclick:()=>importProfile(close)},"Importa profilo")))})}
+function importProfile(close){openSheet("Importa profilo",(body,cl)=>{const ta=h("textarea",{placeholder:'{"id":"mia-auto","name":"La mia auto","proto":"6","ecus":{"ECM":{"h":"7E0","r":"7E8"}},"sensors":[{"id":"speed","ecu":"ECM","cmd":"010D","every":1,"f":"d[0]"}],"fuels":["benzina"]}'});const err=h("div",{class:"sub",style:"color:var(--r)"});
+ body.append(ta,err,h("button",{class:"pri",style:"margin-top:10px",onclick:async()=>{try{const p=JSON.parse(ta.value);if(!p.id||!p.name||!Array.isArray(p.sensors)||!p.ecus)throw new Error("Servono id, name, ecus e sensors");p.short=p.short||p.name;p.verified=false;p.fuels=p.fuels||["benzina"];p.proto=p.proto||"0";U.custom=(U.custom||[]).filter(x=>x.id!==p.id);U.custom.push(p);await savePrefs();cl();toast("Profilo importato");if(close)close();openVehicles()}catch(e){err.textContent=e.message}}},"Salva profilo"))})}
+
+function openUserSheet(first){const done=new Promise(res=>{openSheet(first?"Benvenuto":"Utente",(body,close)=>{
+ const s=$("#sheet");s._locked=!!first;
+ const users=Auth.users();const err=h("div",{class:"sub",style:"color:var(--r);margin-top:8px"});
+ const enter=async(fn)=>{try{U=await fn();U=Object.assign(defaultPrefs(),U);s._locked=false;close();await afterLogin();res()}catch(e){err.textContent=e.message}};
+ const loginBox=()=>{body.replaceChildren();body.append(h("div",{class:"lab",style:"text-transform:none;letter-spacing:0"},"Accedi al tuo profilo: preferenze, prezzi e viaggi sono salvati sul telefono e protetti dalla password."));
+  const sel=h("select",null,...users.map(u=>h("option",{value:u.id},u.name)));const pw=h("input",{type:"password",placeholder:"Password",autocomplete:"current-password"});
+  const go=()=>enter(()=>Auth.login(sel.value,pw.value));pw.addEventListener("keydown",e=>{if(e.key==="Enter")go()});
+  body.append(h("label",null,"Utente"),sel,h("label",null,"Password"),pw,err,h("div",{class:"row",style:"margin-top:12px"},h("button",{class:"pri",onclick:go},"Accedi"),h("button",{onclick:createBox},"Nuovo utente"),h("button",{onclick:()=>enter(async()=>Auth.guest())},"Ospite")))};
+ const createBox=()=>{body.replaceChildren();body.append(h("div",{class:"lab",style:"text-transform:none;letter-spacing:0"},"Crea un profilo utente. Se dimentichi la password i dati non sono recuperabili."));
+  const nm=h("input",{placeholder:"Nome",autocomplete:"username"}),p1=h("input",{type:"password",placeholder:"Password (min. 4)",autocomplete:"new-password"}),p2=h("input",{type:"password",placeholder:"Ripeti password",autocomplete:"new-password"});
+  const go=()=>{if(p1.value!==p2.value){err.textContent="Le password non coincidono";return}enter(()=>Auth.create(nm.value,p1.value))};
+  body.append(h("label",null,"Nome"),nm,h("label",null,"Password"),p1,p2,err,h("div",{class:"row",style:"margin-top:12px"},h("button",{class:"pri",onclick:go},"Crea e accedi"),users.length?h("button",{onclick:loginBox},"Indietro"):h("button",{onclick:()=>enter(async()=>Auth.guest())},"Continua come ospite")))};
+ users.length?loginBox():createBox();if(first){const x=body.parentNode.querySelector('button[aria-label="chiudi"]');if(x)x.remove()}})});return done}
+
+function openSettings(){openSheet("Impostazioni",(body,close)=>{
+ const tabs=["Generali","Utente","Avvisi","Info"];const pane=h("div");const tb=h("div",{class:"tabs"});let cur=0;
+ const draw=()=>{[...tb.children].forEach((b,i)=>b.classList.toggle("on",i===cur));pane.replaceChildren();[gen,usr,alr,inf][cur](pane)};
+ tabs.forEach((t,i)=>tb.append(h("button",{onclick:()=>{cur=i;draw()}},t)));body.append(tb,pane);
+ const gen=p=>{p.append(h("label",null,"Auto"),h("button",{style:"width:100%;text-align:left",onclick:()=>{close();openVehicles()}},Veh.p.name+"  ›"),
+  h("label",null,"Tema"),(()=>{const s=h("select",{onchange:()=>{U.theme=s.value;applyTheme();savePrefs()}},...[["auto","Automatico"],["dark","Scuro"],["light","Chiaro"]].map(([v,t])=>h("option",{value:v,selected:U.theme===v},t)));return s})(),
+  h("label",null,"Soglia kickdown pedale (grezzo %)"),(()=>{const i=h("input",{type:"number",value:U.kd||86,onchange:()=>{U.kd=parseFloat(i.value)||86;savePrefs()}});return i})(),
+  h("label",null,"Collegamento"),h("div",{class:"row"},h("button",{onclick:()=>{close();connect(true)}},"Mostra tutti i dispositivi Bluetooth"),h("button",{onclick:()=>{close();demo()}},"Avvia simulazione")))};
+ const usr=p=>{p.append(h("div",{class:"item"},h("div",null,h("b",null,Auth.cur.name),h("div",{class:"sub"},Auth.cur.guest?"Ospite: dati non protetti":"Dati cifrati con la tua password"))));
+  if(!Auth.cur.guest){const o=h("input",{type:"password",placeholder:"Password attuale"}),n=h("input",{type:"password",placeholder:"Nuova password"}),e=h("div",{class:"sub"});p.append(h("label",null,"Cambia password"),o,n,e,h("button",{style:"margin-top:8px",onclick:async()=>{try{await Auth.changePw(o.value,n.value);e.style.color="var(--g)";e.textContent="Password aggiornata";o.value=n.value=""}catch(x){e.style.color="var(--r)";e.textContent=x.message}}},"Aggiorna password"))}
+  p.append(h("div",{class:"row",style:"margin-top:14px"},h("button",{onclick:async()=>{if(Link.on)Link.stop();Auth.cur=null;close();U=defaultPrefs();await openUserSheet(true)}},Auth.cur.guest?"Accedi / crea utente":"Esci"),!Auth.cur.guest?h("button",{class:"danger",onclick:async()=>{if(confirm("Eliminare questo utente e i suoi dati?")){Auth.remove(Auth.cur.id);Auth.cur=null;close();U=defaultPrefs();await openUserSheet(true)}}},"Elimina utente"):null))};
+ const alr=p=>{p.append(h("label",null,"Avvisi"),h("div",{class:"row"},h("label",{style:"margin:0;text-transform:none;letter-spacing:0;display:flex;gap:8px;align-items:center"},h("input",{type:"checkbox",style:"width:auto;min-height:0",checked:U.alertsOn,onchange:e=>{U.alertsOn=e.target.checked;savePrefs()}}),"Mostra avvisi"),h("label",{style:"margin:0;text-transform:none;letter-spacing:0;display:flex;gap:8px;align-items:center"},h("input",{type:"checkbox",style:"width:auto;min-height:0",checked:U.sound,onchange:e=>{U.sound=e.target.checked;savePrefs()}}),"Suono")));
+  p.append(h("label",null,"Soglie del profilo attivo"),...(Veh.p.alerts||[]).map(a=>h("div",{class:"item"},h("div",null,a.label,h("div",{class:"sub"},a.id)),h("b",null,a.hi!=null?"> "+a.hi:"< "+a.lo))))};
+ const inf=p=>{p.append(h("div",{class:"item"},h("div",null,h("b",null,"Auto Dash v6"),h("div",{class:"sub"},"Web Bluetooth · funziona offline dopo la prima apertura"))),h("div",{class:"item"},h("div",null,"Qualità collegamento"),h("b",null,Link.on?fmt(Live.hz,1)+" cicli/s":"–")),h("div",{class:"item"},h("div",null,"Sensori attivi / totali"),h("b",null,Object.values(Veh.S).filter(s=>!s.dead&&s.last!==undefined).length+" / "+Object.keys(Veh.S).length)))};
+ draw()})}
+
+/* ---------- collegamento ---------- */
+async function connect(all){
+ if(Link.on){Link.stop();return}
+ if(!("bluetooth" in navigator)){toast("Web Bluetooth non disponibile: apri la pagina in Bluefy",5000,{label:"Simulazione",fn:demo});return}
+ setStatus("tocco ricevuto");
+ try{await ELM.connect(all)}catch(e){const m=e===undefined?"scelta annullata o permesso negato":((e&&e.name?e.name+" · ":"")+(e&&e.message||e));setStatus("errore: "+m);toast("Collegamento non riuscito: "+m,6000,all?null:{label:"Mostra tutti",fn:()=>connect(true)})}}
+function demo(){if(Link.on)Link.stop();Veh.trip=newTrip();Link.start("sim");setStatus("SIMULAZIONE · "+Veh.p.short)}
+
+/* ---------- avvio ---------- */
+function migrateV5(){if(lsGet("ad.mig",false))return;const L=lsGet("lvl",null),P=lsGet("prices",null),I=lsGet("hvinv",null);
+ if(L){U.lvl=U.lvl||{};U.lvl["dacia-bigster-hg150"]=U.lvl["dacia-bigster-hg150"]||{};if(L[9])U.lvl["dacia-bigster-hg150"].benzina=L[9];if(L[12])U.lvl["dacia-bigster-hg150"].gpl=L[12]}
+ if(P){U.prices=U.prices||{};if(P[9])U.prices.benzina=P[9];if(P[12])U.prices.gpl=P[12]}
+ if(I!=null)U.hvInv=I;lsSet("ad.mig",true);savePrefs()}
+async function afterLogin(){migrateV5();applyTheme();Veh.set(U.vehicle);Pages.build();$("#veh").textContent=Veh.p.short;try{if(Trip.timer)clearInterval(Trip.timer)}catch(e){}
+ Trip.timer=setInterval(()=>{Pages.render(false);Alerts.check();if(Trip.lvlDirty){Trip.lvlDirty=false;savePrefs()}if(Link.on)$("#stat").textContent=(Link.mode==="sim"?"SIM":"live")+" · "+fmt(Live.hz,1)+" Hz"},250)}
+$("#btnConn").onclick=()=>connect(false);
+$("#btnMenu").onclick=openSettings;
+$("#veh").onclick=openVehicles;
+document.addEventListener("visibilitychange",()=>{if(document.hidden)Trip._hid=T();else if(U.lockMin&&Trip._hid&&T()-Trip._hid>U.lockMin*60000&&Auth.cur&&!Auth.cur.guest){Auth.cur=null;openUserSheet(true)}});
+let tx0=null;document.addEventListener("touchstart",e=>{tx0=e.touches[0].clientX},{passive:true});
+document.addEventListener("touchend",e=>{if(tx0==null)return;const dx=e.changedTouches[0].clientX-tx0;tx0=null;if(Math.abs(dx)>90){const i=Pages.cur+(dx<0?1:-1);if(i>=0&&i<PAGE_DEF.length&&$("#sheet").classList.contains("hidden"))Pages.show(i)}},{passive:true});
+if("serviceWorker" in navigator&&location.protocol==="https:"){navigator.serviceWorker.register("sw.js").catch(()=>{})}
+
+async function boot(){
+ const users=Auth.users();
+ if(!users.length&&lsGet("ad.skipwelcome",false)){U=Auth.guest();await afterLogin();return}
+ U=defaultPrefs();Veh.set(U.vehicle);Pages.build();applyTheme();await openUserSheet(true)}
+if(!window.__NOBOOT)boot();
 </script>
 </body>
 </html>
