@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="format-detection" content="telephone=no">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#07090d">
 <link rel="manifest" href="manifest.webmanifest">
@@ -20,8 +22,9 @@
 html[data-theme="light"]{--bg:#eef2f7;--bg2:#e4e9f0;--card:#ffffff;--card2:#edf1f6;--line:#d3dbe6;--fg:#0b1220;--mut:#5b6a7e;--acc:#0a6cdc;--g:#15803d;--o:#b45309;--r:#c62828;--p:#6d3fd1;--b:#0a6cdc;--gbg:#d9f3e2;--obg:#fde8c3;--rbg:#fcdada;--pbg:#e6defc;--bbg:#d6e7fd;color-scheme:light}
 @media (prefers-color-scheme:light){html[data-theme="auto"]{--bg:#eef2f7;--bg2:#e4e9f0;--card:#ffffff;--card2:#edf1f6;--line:#d3dbe6;--fg:#0b1220;--mut:#5b6a7e;--acc:#0a6cdc;--g:#15803d;--o:#b45309;--r:#c62828;--p:#6d3fd1;--b:#0a6cdc;--gbg:#d9f3e2;--obg:#fde8c3;--rbg:#fcdada;--pbg:#e6defc;--bbg:#d6e7fd;color-scheme:light}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font:16px/1.25 ui-rounded,-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;overscroll-behavior:none;-webkit-font-smoothing:antialiased}
-body{display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left)}
+html,body{height:100%;height:100dvh;margin:0;background:var(--bg);color:var(--fg);font:16px/1.25 ui-rounded,-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;overscroll-behavior:none;-webkit-font-smoothing:antialiased}
+body{display:flex;flex-direction:column;padding:0 env(safe-area-inset-right) 0 env(safe-area-inset-left);overflow:hidden;position:fixed;inset:0;width:100%}
+html{overscroll-behavior-x:none}
 button,input,select,textarea{font:inherit;color:inherit}
 button{min-height:44px;background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:8px 16px;cursor:pointer;font-weight:600}
 button:active{transform:scale(.97)}
@@ -32,7 +35,7 @@ button.ghost{background:transparent;border-color:transparent}
 input,select,textarea{width:100%;min-height:44px;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:8px 12px}
 textarea{min-height:140px;font:12px ui-monospace,Menlo,monospace}
 label{display:block;font-size:12px;color:var(--mut);margin:10px 0 4px;letter-spacing:.04em;text-transform:uppercase}
-header{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--line);background:var(--bg2)}
+header{display:flex;align-items:center;gap:10px;padding:calc(6px + env(safe-area-inset-top)) 14px 6px;margin:0 calc(-1*env(safe-area-inset-right)) 0 calc(-1*env(safe-area-inset-left));padding-left:calc(14px + env(safe-area-inset-left));padding-right:calc(14px + env(safe-area-inset-right));border-bottom:1px solid var(--line);background:var(--bg2)}
 #dot{width:12px;height:12px;border-radius:50%;background:var(--r);flex:none;box-shadow:0 0 0 0 transparent}
 #dot.on{background:var(--g);animation:pulse 2s infinite}
 @keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--g) 55%,transparent)}70%{box-shadow:0 0 0 8px transparent}100%{box-shadow:0 0 0 0 transparent}}
@@ -80,7 +83,7 @@ canvas{display:block;max-width:100%}
 .tbl{width:100%;border-collapse:collapse}
 .tbl td{padding:8px 4px;border-bottom:1px solid var(--line)}
 .tbl td:last-child{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
-nav{display:flex;border-top:1px solid var(--line);background:var(--bg2);padding-bottom:env(safe-area-inset-bottom)}
+nav{display:flex;border-top:1px solid var(--line);background:var(--bg2);padding-bottom:max(env(safe-area-inset-bottom),6px);margin:0 calc(-1*env(safe-area-inset-right)) 0 calc(-1*env(safe-area-inset-left));padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
 nav button{flex:1;border:0;border-radius:0;background:transparent;padding:10px 2px 12px;font-size:12px;font-weight:700;color:var(--mut);display:flex;flex-direction:column;align-items:center;gap:2px}
 nav button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 nav button.on{color:var(--acc);box-shadow:inset 0 2px 0 var(--acc)}
@@ -123,7 +126,7 @@ nav button{min-width:54px;font-size:11px;padding:10px 2px 12px}
 .sum b{display:block;font-size:20px;font-variant-numeric:tabular-nums}
 .scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:40;opacity:0;transition:opacity .2s}
 .scrim.show{opacity:1}
-.drawer{position:fixed;top:0;bottom:0;left:0;width:min(84vw,320px);background:var(--bg2);border-right:1px solid var(--line);z-index:45;transform:translateX(-104%);transition:transform .25s ease;display:flex;flex-direction:column;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);visibility:hidden}
+.drawer{position:fixed;top:0;bottom:0;right:0;width:min(84vw,320px);background:var(--bg2);border-left:1px solid var(--line);z-index:45;transform:translateX(104%);touch-action:pan-y;overscroll-behavior:contain;transition:transform .25s ease;display:flex;flex-direction:column;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);visibility:hidden}
 .drawer.open{transform:none;visibility:visible}
 .dr-head{padding:20px 16px;display:flex;gap:12px;align-items:center;border-bottom:1px solid var(--line)}
 .avatar{width:56px;height:56px;border-radius:50%;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px;overflow:hidden;flex:none}
@@ -148,6 +151,14 @@ nav button{min-width:54px;font-size:11px;padding:10px 2px 12px}
 .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
 .row3 .fc{padding:8px 8px 8px 10px;min-width:0}.row3 .kv{flex-direction:column;gap:0;padding:3px 0}.row3 .kv b{font-size:12px}.row3 .fc .big{font-size:22px}
 .lg2{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--mut)}.lg2 i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.sheet .in{touch-action:pan-y;overscroll-behavior:contain;transition:transform .2s}
+.bk{min-height:40px;width:40px;padding:0;border:0;background:var(--card2);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.bk svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.term{background:#05070a;color:#c9f7d3;font:12px/1.35 ui-monospace,Menlo,monospace;border-radius:12px;padding:10px;height:260px;overflow:auto;white-space:pre-wrap;word-break:break-all;border:1px solid var(--line)}
+.term .e{color:#ff8b84}.term .c{color:#8cc8ff}.term .i{color:#9aa7b8}
+.warnbox{background:var(--obg);color:var(--o);border:1px solid var(--o);border-radius:12px;padding:10px 12px;font-size:13px;margin:8px 0}
+@media (max-width:440px) and (min-height:760px){.page{gap:10px;padding:10px}.xl{font-size:clamp(72px,25vw,110px)}.card{--pad:15px}nav button{padding-top:12px}}
+@media (orientation:landscape) and (max-height:480px){nav button{padding:4px 2px 5px}nav button svg{width:18px;height:18px}.page{padding:8px;gap:8px}}
 </style>
 </head>
 <body>
@@ -223,13 +234,21 @@ const STD=[ // id, cmd, every, formula, unit, dec, min, max, label
 ];
 /* Temperature: p=1 in primo piano; lim=[min,max] consentiti; smin/smax = scala del termometro */
 const TM={cool:{p:1,lim:[75,105],smin:-20,smax:130},oil:{p:1,lim:[75,125],smin:-20,smax:150},amb:{p:1,lim:null,smin:-30,smax:50},iat:{p:0,lim:[-20,60],smin:-30,smax:90},cat1:{p:0,lim:null,smin:0,smax:1000},cat2:{p:0,lim:null,smin:0,smax:1000},manif:{p:0,lim:[-20,90],smin:-30,smax:120}};
+/* exp = mappatura condivisa online, non verificata sull'auto; sw = richiede cambio di protocollo CAN (più lenta) */
+const X=s=>({...s,exp:true}),XS=s=>({...s,exp:true,sw:true});
+const TYRE=(ecu)=>["fl","fr","rl","rr"].flatMap((w,i)=>[XS({id:"tp_"+w,ecu,cmd:"22630"+i,every:40,f:"((d[0]*256+d[1])>=1023?null:(d[0]*256+d[1])*0.0075)",unit:"bar",dec:2,label:"Pressione "+w.toUpperCase()}),XS({id:"tt_"+w,ecu,cmd:"22631"+i,every:40,f:"(d[0]===127||d[0]>=254?null:d[0]-30)",unit:"°C",label:"Gomma "+w.toUpperCase(),temp:{p:0,lim:null,smin:-20,smax:90}})]);
 const std=(ecu)=>STD.map(([id,cmd,every,f,unit,dec,min,max,label])=>({id,ecu,cmd,every,f,unit,dec,min,max,label,...(TM[id]?{temp:TM[id]}:{})}));
 const IC={pump:'<path d="M4 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16M2.5 21h13M7 7h5v4H7z"/><path d="M14 8l3 3v6a1.6 1.6 0 0 0 3.2 0v-7l-3-3"/>',
  flame:'<path d="M12 22c4 0 7-2.8 7-7 0-3-2-5-3.5-6.5-.3 1.8-1.2 3-2.5 3.5.5-3-1-6-3.5-8-.3 3-2 5-3.5 7C4.5 12.5 5 14 5 15c0 4.2 3 7 7 7z"/>',
  bolt:'<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>',
  snow:'<path d="M12 2v20M4.5 7l15 10M4.5 17l15-10M9 3.5l3 2.5 3-2.5M9 20.5l3-2.5 3 2.5"/>',
  therm:'<path d="M10 14V5a2 2 0 0 1 4 0v9a4 4 0 1 1-4 0z"/>',
- clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'};
+ clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+ engine:'<path d="M3 10h3V7h3V5h5v2h3v3h2l1 2v4h-3v2H7l-2-3H3z"/>',
+ battery:'<rect x="2" y="7" width="18" height="10" rx="2"/><path d="M22 10v4M6 10v4M10 10v4"/>',
+ gear:'<circle cx="12" cy="12" r="3.2"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/>',
+ lockc:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+ locko:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.2-2.4"/>'};
 const icoHTML=(n,cls)=>`<svg class="ic ${cls||""}" viewBox="0 0 24 24" aria-hidden="true">${IC[n]}</svg>`;
 const ico=(n,cls)=>{const s=document.createElementNS("http://www.w3.org/2000/svg","svg");s.setAttribute("viewBox","0 0 24 24");s.setAttribute("class","ic "+(cls||""));s.setAttribute("aria-hidden","true");s.innerHTML=IC[n];return s};
 /* Colori dei vettori energetici: benzina verde, GPL blu, elettrico giallo */
@@ -241,9 +260,9 @@ const ECU11=(n)=>({h:n,r:(parseInt(n,16)+8).toString(16).toUpperCase()});
 
 const PROFILES=[
  {id:"dacia-bigster-hg150",name:"Dacia Bigster Hybrid-G 150 4x4",short:"Bigster",brand:"Dacia",verified:true,hybrid:true,proto:"7",
-  notes:"Profilo validato su questa auto: modo guida, marcia, ESC, HDC, freno di stazionamento, batteria 48V, accelerazioni (raw).",
+  notes:"Profilo validato su questa auto: modo guida, marcia, ESC, HDC, freno di stazionamento, batteria 48V, accelerazioni (raw). TPMS sperimentale (DID della Sandero III, stessa piattaforma): abilitalo in Impostazioni > Avanzate.",
   fuels:["benzina","gpl"],
-  ecus:{ECM:ECU29("15"),TCM:ECU29("18"),ESP:ECU29("2D"),DMCM:ECU29("55"),BMS:ECU29("92")},
+  ecus:{ECM:ECU29("15"),TCM:ECU29("18"),ESP:ECU29("2D"),DMCM:ECU29("55"),BMS:ECU29("92"),TPMS:{h:"745",r:"765",p:"6"}},
   sensors:[...std("ECM").filter(s=>s.id!=="soc"),
    {id:"mode",ecu:"ECM",cmd:"220442",every:3,f:"d[0]",label:"Modo guida",enum:{1:"AUTO",3:"ECO",4:"SNOW",5:"LOCK",7:"MUD/SAND"}},
    {id:"gear",ecu:"TCM",cmd:"222271",every:3,f:"d[0]",label:"Marcia",enum:{1:"P",2:"R",3:"N",4:"D",5:"M"}},
@@ -259,26 +278,44 @@ const PROFILES=[
    {id:"t48b",ecu:"BMS",cmd:"229026",every:30,f:"d[0]-40",unit:"°C",label:"48V sens. 2",temp:{p:0,lim:[10,50],smin:-10,smax:70}},
    {id:"t48c",ecu:"BMS",cmd:"229027",every:30,f:"(d[0]*256+d[1])-40",unit:"°C",label:"48V sens. 3",temp:{p:0,lim:[10,50],smin:-10,smax:70}},
    {id:"t48d",ecu:"BMS",cmd:"229034",every:30,f:"(d[0]*256+d[1])-40",unit:"°C",label:"48V sens. 4",temp:{p:0,lim:[10,50],smin:-10,smax:70}},
-   {id:"t48e",ecu:"BMS",cmd:"229035",every:30,f:"(d[0]*256+d[1])-40",unit:"°C",label:"48V sens. 5",temp:{p:0,lim:[10,50],smin:-10,smax:70}}],
+   {id:"t48e",ecu:"BMS",cmd:"229035",every:30,f:"(d[0]*256+d[1])-40",unit:"°C",label:"48V sens. 5",temp:{p:0,lim:[10,50],smin:-10,smax:70}},...TYRE("TPMS")],
   esp:{lon:{k:96},lat:{k:22.7}},
   alt:{hv:["DMCM","TCM","BMS"]},
   flags:{escOffValue:170},hvMax:15,
   alerts:[...ALERTS_STD,{id:"v48",lo:40,label:"Tensione 48V bassa"}]},
  {id:"skoda-kamiq",name:"Škoda Kamiq",short:"Kamiq",brand:"Škoda",verified:false,hybrid:false,proto:"6",
-  notes:"Solo sensori OBD-II standard (CAN 11 bit, centralina motore 7E0). I DID specifici VAG non sono stati verificati: aggiungili con l'editor profilo.",
-  fuels:["benzina"],ecus:{ECM:ECU11("7E0"),TCM:ECU11("7E1")},sensors:std("ECM"),alerts:ALERTS_STD},
+  notes:"Mappatura condivisa online (OBDb, ricavata da T-Cross e Arona, stessa piattaforma MQB-A0): olio, marcia DSG, temperatura olio cambio, velocità ruote, pressione freno, batteria 12V. Non ancora verificata sulla tua auto: attiva il logging avanzato per controllarla.",
+  fuels:["benzina"],ecus:{ECM:ECU11("7E0"),TCM:ECU11("7E1"),ABS:{h:"713",r:"77D"},GW:{h:"710",r:"77A"}},
+  sensors:[...std("ECM").filter(s=>s.id!=="oil"),
+   X({id:"oil",ecu:"ECM",cmd:"2211BD",every:15,f:"(d[0]*256+d[1])/10-273.1",unit:"°C",dec:0,label:"Olio",temp:TM.oil}),
+   X({id:"gear",ecu:"TCM",cmd:"22210F",every:3,f:"d[0]",label:"Marcia",enum:{1:"R",3:"1",4:"2",5:"3",6:"4",7:"5",8:"6",9:"7"}}),
+   X({id:"atf",ecu:"TCM",cmd:"222104",every:20,f:"d[0]-40",unit:"°C",label:"Olio cambio",temp:{p:0,lim:null,smin:0,smax:140}}),
+   X({id:"ws_fl",ecu:"ABS",cmd:"221800",every:2,f:"(d[0]*256+d[1])/10",unit:"km/h",label:"Ruota ant. sx"}),X({id:"ws_fr",ecu:"ABS",cmd:"221801",every:2,f:"(d[0]*256+d[1])/10",unit:"km/h",label:"Ruota ant. dx"}),
+   X({id:"ws_rl",ecu:"ABS",cmd:"221802",every:2,f:"(d[0]*256+d[1])/10",unit:"km/h",label:"Ruota post. sx"}),X({id:"ws_rr",ecu:"ABS",cmd:"221803",every:2,f:"(d[0]*256+d[1])/10",unit:"km/h",label:"Ruota post. dx"}),
+   X({id:"brkp",ecu:"ABS",cmd:"221816",every:2,f:"((d[1]<<8|d[2])<<16>>16)/100",unit:"bar",label:"Pressione freno"}),
+   X({id:"soc12",ecu:"GW",cmd:"222A0C",every:30,f:"d[0]",unit:"%",label:"Batteria 12V (carica)"})],
+  alerts:ALERTS_STD},
  {id:"renault-clio-v",name:"Renault Clio V",short:"Clio",brand:"Renault",verified:false,hybrid:false,proto:"7",
-  notes:"Ereditato dalla Bigster (stessa famiglia Renault/Dacia, CAN 29 bit, ECM 18DA15F1). Solo standard OBD-II; da verificare, anche per le versioni E-Tech e Eco-G.",
-  fuels:["benzina","gpl"],ecus:{ECM:ECU29("15"),TCM:ECU29("18")},sensors:std("ECM"),alerts:ALERTS_STD},
- {id:"jeep-renegade",name:"Jeep Renegade",short:"Renegade",brand:"Jeep",verified:false,hybrid:false,proto:"6",
-  notes:"Standard OBD-II su CAN 11 bit. Per la 4xe (ibrida plug-in) il PID 9A e la carica ibrida potrebbero comparire da soli. Non verificato.",
-  fuels:["benzina","diesel"],ecus:{ECM:ECU11("7E0"),TCM:ECU11("7E1")},sensors:std("ECM"),alerts:ALERTS_STD},
+  notes:"Ereditato dalla Bigster (stessa famiglia Renault/Dacia, CAN 29 bit, ECM 18DA15F1). Solo standard OBD-II più il TPMS sperimentale (DID della Sandero III, stessa piattaforma CMF-B): richiede il cambio di protocollo, da abilitare in Impostazioni > Avanzate. Non verificato.",
+  fuels:["benzina","gpl"],ecus:{ECM:ECU29("15"),TCM:ECU29("18"),TPMS:{h:"745",r:"765",p:"6"}},sensors:[...std("ECM"),...TYRE("TPMS")],alerts:ALERTS_STD},
+ {id:"jeep-renegade",name:"Jeep Renegade",short:"Renegade",brand:"Jeep",verified:false,hybrid:false,proto:"7",
+  notes:"Dai dati OBDb la Renegade parla CAN a 29 bit (motore 18DA10F1, cambio 18DA18F1). Aggiunte coppia e temperatura del cambio e velocità ruote (OBDb). I DID del motore richiedono la sessione estesa e non sono usati. TPMS, 4x4 e dati 4xe: nessuna mappatura pubblica. Non verificato.",
+  fuels:["benzina","diesel"],ecus:{ECM:ECU29("10"),TCM:ECU29("18")},sensors:[...std("ECM"),
+   X({id:"atf",ecu:"TCM",cmd:"2204FE",every:20,f:"d[0]-40",unit:"°C",label:"Olio cambio",temp:{p:0,lim:null,smin:0,smax:140}}),
+   X({id:"tqg",ecu:"TCM",cmd:"221018",every:3,f:"(d[0]*256+d[1])-500",unit:"Nm",label:"Coppia cambio"}),
+   X({id:"ws_fl",ecu:"TCM",cmd:"222B1E",every:3,f:"d[0]*256+d[1]",unit:"km/h",label:"Ruota ant. sx"}),X({id:"ws_fr",ecu:"TCM",cmd:"222B1D",every:3,f:"d[0]*256+d[1]",unit:"km/h",label:"Ruota ant. dx"}),
+   X({id:"ws_rl",ecu:"TCM",cmd:"222B1C",every:3,f:"d[0]*256+d[1]",unit:"km/h",label:"Ruota post. sx"}),X({id:"ws_rr",ecu:"TCM",cmd:"222B1B",every:3,f:"d[0]*256+d[1]",unit:"km/h",label:"Ruota post. dx"})],alerts:ALERTS_STD},
  {id:"volvo-xc90",name:"Volvo XC90",short:"XC90",brand:"Volvo",verified:false,hybrid:true,proto:"6",
-  notes:"Standard OBD-II su CAN 11 bit. Per la T8 (ibrida plug-in) provo anche carica ibrida e dati batteria (PID 5B e 9A). Non verificato.",
+  notes:"Standard OBD-II su CAN 11 bit; per la T8 provo carica ibrida e dati batteria (PID 5B e 9A). OBDb ha molti DID Volvo (SoC/corrente/tensione HV 4801-4803, coppia ERAD, velocità ruote) ma con indirizzamento a 29 bit proprio di Volvo, non ancora tradotto per ELM327: da verificare. Non verificato.",
   fuels:["benzina","diesel"],ecus:{ECM:ECU11("7E0"),TCM:ECU11("7E1")},sensors:std("ECM"),alerts:ALERTS_STD},
  {id:"byd-atto2-dmi",name:"BYD Atto 2 DM-i",short:"Atto 2",brand:"BYD",verified:false,hybrid:true,proto:"6",
-  notes:"Ibrida plug-in: provo PID 5B (carica) e 9A (tensione e corrente batteria). BYD limita molti dati OBD: il gateway potrebbe non rispondere. Non verificato.",
-  fuels:["benzina"],ecus:{ECM:ECU11("7E0")},sensors:std("ECM"),hvMax:60,alerts:ALERTS_STD},
+  notes:"Ibrida plug-in. Nessuna fonte specifica: DID del BMS (7E7) ereditati da Seal, Atto 3 e Sealion 6 (WiCAN, OBDb): carica, tensione e temperatura batteria HV. BYD limita l'OBD (dopo alcuni aggiornamenti OTA il dongle legge solo VIN e tensione) e il polling a auto spenta può far suonare l'allarme. Non verificato.",
+  fuels:["benzina"],ecus:{ECM:ECU11("7E0"),BMS:ECU11("7E7")},sensors:[...std("ECM").filter(s=>s.id!=="soc"),
+   X({id:"soc",ecu:"BMS",cmd:"220005",every:6,f:"d[0]",unit:"%",label:"Batteria HV",min:0,max:100}),
+   X({id:"v48",ecu:"BMS",cmd:"220008",every:4,f:"d[0]+d[1]*256",unit:"V",dec:0,label:"Batteria HV tensione"}),
+   X({id:"thv",ecu:"BMS",cmd:"220032",every:20,f:"d[0]-40",unit:"°C",label:"Batteria HV",temp:{p:1,lim:[10,45],smin:-10,smax:60}}),
+   X({id:"thvn",ecu:"BMS",cmd:"22002F",every:30,f:"d[0]-40",unit:"°C",label:"Batteria HV min",temp:{p:0,lim:[10,45],smin:-10,smax:60}}),
+   X({id:"thvx",ecu:"BMS",cmd:"220031",every:30,f:"d[0]-40",unit:"°C",label:"Batteria HV max",temp:{p:0,lim:[10,45],smin:-10,smax:60}})],hvMax:60,alerts:ALERTS_STD},
  {id:"generic-obd2",name:"Generico OBD-II",short:"OBD-II",brand:"—",verified:false,hybrid:false,proto:"0",
   notes:"Per qualsiasi auto: rileva i sensori standard supportati.",
   fuels:["benzina"],ecus:{ECM:{h:null,r:"*"}},sensors:std("ECM"),alerts:ALERTS_STD},
@@ -339,8 +376,9 @@ const savePrefs=()=>Auth.save();
 const SVC="000018f0-0000-1000-8000-00805f9b34fb",RXC="00002af0-0000-1000-8000-00805f9b34fb",TXC="00002af1-0000-1000-8000-00805f9b34fb";
 const ELM={dev:null,tx:null,buf:"",wait:null,cur:null,
  onData(ev){ELM.buf+=new TextDecoder().decode(ev.target.value.buffer);if(ELM.buf.includes(">")&&ELM.wait){const w=ELM.wait;ELM.wait=null;w(ELM.buf)}},
- async raw(c,to=3000){ELM.buf="";const p=new Promise(res=>{ELM.wait=res;setTimeout(()=>{if(ELM.wait===res){ELM.wait=null;res(ELM.buf)}},to)});await ELM.tx.writeValueWithoutResponse(new TextEncoder().encode(c+"\r"));return(await p).replace(/\r/g,"\n").replace(/>/g,"").trim()},
- async setEcu(e){const k=e.h||"-";if(ELM.cur!==k){if(e.h){const r=await ELM.raw("ATSH"+e.h);if(!r.includes("OK"))throw new Error("ATSH "+r)}ELM.cur=k}},
+ async raw(c,to=3000){const t0=performance.now();ELM.buf="";const p=new Promise(res=>{ELM.wait=res;setTimeout(()=>{if(ELM.wait===res){ELM.wait=null;res(ELM.buf)}},to)});await ELM.tx.writeValueWithoutResponse(new TextEncoder().encode(c+"\r"));const out=(await p).replace(/\r/g,"\n").replace(/>/g,"").trim();if(Rec.on)Rec.add({k:"x",c:c,h:ELM.cur,r:out,ms:Math.round(performance.now()-t0)});return out},
+ async reinit(){for(const c of["ATE0","ATL0","ATH1","ATS0","ATSP"+(Veh.p.proto||"0")])await ELM.raw(c,3000);await Perf.apply(Perf.cfg);ELM.cur=null},
+ async setEcu(e){const want=e.p||(Veh.p&&Veh.p.proto)||"0";if(ELM.proto!==undefined&&ELM.proto!==want){await ELM.raw("ATSP"+want,5000);ELM.proto=want;ELM.cur=null}const k=e.h||"-";if(ELM.cur!==k){if(e.h){const r=await ELM.raw("ATSH"+e.h);if(!r.includes("OK"))throw new Error("ATSH "+r)}ELM.cur=k}},
  parse(r,ecu,cmd){
   const lines=[];
   for(const l of r.split("\n")){const t=l.trim().replace(/ /g,"");if(!/^[0-9A-F]+$/.test(t))continue;
@@ -364,8 +402,9 @@ const ELM={dev:null,tx:null,buf:"",wait:null,cur:null,
   dlog("GATT...");const srv=await ELM.dev.gatt.connect();const s=await srv.getPrimaryService(SVC);
   const rx=await s.getCharacteristic(RXC);ELM.tx=await s.getCharacteristic(TXC);
   await rx.startNotifications();rx.addEventListener("characteristicvaluechanged",ELM.onData);
-  setStatus("inizializzo...");ELM.cur=null;
+  setStatus("inizializzo...");ELM.cur=null;ELM.proto=undefined;
   for(const c of["ATZ","ATE0","ATL0","ATH1","ATS0","ATSP"+(Veh.p.proto||"0"),"ATST20"])await ELM.raw(c,5000);
+  ELM.proto=Veh.p.proto||"0";
   try{await Perf.tune(false)}catch(e){dlog("tuning: "+e.message);await Perf.apply(Perf.SAFE).catch(()=>{})}
   Link.start("ble");setStatus("collegato");startGps();wake()},
  async reconnect(){if(Link.on||!ELM.dev)return;try{await ELM.open()}catch(e){setStatus("riprovo...");setTimeout(()=>ELM.reconnect(),3000)}}};
@@ -379,7 +418,8 @@ const Veh={p:null,S:{},ecus:{},
   Veh.fuels=(p.fuels||["benzina"]).map(k=>({...FUELS[k],key:k,price:(U.prices&&U.prices[k])||FUELS[k].price}));
   Veh.trip=newTrip();Veh.win=[];U.vehicle=id;Hist.clear();Live.reset();Sign.reset();
   try{$("#veh").textContent=p.short}catch(e){}Incl.load()},
- has(id){const s=Veh.S[id];return !!s&&!s.dead},
+ has(id){const s=Veh.S[id];return !!s&&!s.dead&&!Veh.blocked(s)},
+ blocked(s){return !!s.exp&&(U.exp===false||(!!s.sw&&!U.expSw))},
  inv(){return !!(U.hvInvV&&U.hvInvV[Veh.p.id])},
  setInv(x){U.hvInvV=U.hvInvV||{};U.hvInvV[Veh.p.id]=!!x;savePrefs()},
  fuelOf(code){return Veh.fuels.find(f=>f.codes.includes(code))||Veh.fuels[0]},
@@ -423,7 +463,7 @@ const isAlert=id=>!!(Veh.p&&Veh.p.alerts&&Veh.p.alerts.some(a=>a.id===id));
 const Sched={vis:new Set(),visT:0,
  visible(){if(T()-Sched.visT>400){Sched.visT=T();const set=new Set();const pg=Pages.built[Pages.cur];if(pg)for(const w of pg.ws){(w.need||[]).forEach(i=>set.add(i));(w.uses||[]).forEach(i=>set.add(i))}Sched.vis=set}return Sched.vis},
  period(s){const vis=Sched.visible();let p=periodOf(s);if(!vis.has(s.id)){if(CORE.has(s.id))p=Math.max(p*1.5,s.id==="speed"?300:500);else if(isAlert(s.id))p=Math.max(p*3,3000);else p=Math.min(15000,p*6)}return p*(s.mult||1)},
- pick(){const now=performance.now(),cur=ELM.cur;let best=null,bs=-1;for(const s of Object.values(Veh.S)){if(!s.cmd)continue;const e=Veh.ecus[s.ecu];if(!e)continue;const per=s.dead?30000:Sched.period(s);let sc=s.tLast===undefined?1e9:(now-s.tLast)/per;if(!s.dead&&(e.h||"-")===cur)sc*=1.25;if(sc>bs){bs=sc;best=s}}return best}};
+ pick(){const now=performance.now(),cur=ELM.cur;let best=null,bs=-1;for(const s of Object.values(Veh.S)){if(!s.cmd||Veh.blocked(s))continue;const e=Veh.ecus[s.ecu];if(!e)continue;const per=s.dead?30000:Sched.period(s);let sc=s.tLast===undefined?1e9:(now-s.tLast)/per;if(!s.dead&&(e.h||"-")===cur)sc*=1.25;if(sc>bs){bs=sc;best=s}}return best}};
 async function readSensor(s){
  const t0=performance.now();let d=null,used=s.ecu;
  try{
@@ -437,8 +477,8 @@ async function readSensor(s){
  else{s.fail=(s.fail||0)+1;Perf.note(t1-t0,false);if(s.fail>=4&&!s.dead){s.dead=true;dlog(s.id+": non supportato");Pages.refreshVisibility()}}}
 const Link={on:false,mode:null,polling:false,paused:false,reading:false,
  async hold(fn){Link.paused=true;try{while(Link.reading)await new Promise(r=>setTimeout(r,20));return await fn()}finally{Link.paused=false}},
- start(mode){Link.on=true;Link.mode=mode;Veh.trip.sim=(mode==="sim");$("#dot").classList.add("on");$("#btnConn").textContent="Scollega";if(mode==="ble")Link.poll();else Sim.start()},
- stop(){const was=Link.on;const pr=was?finishTrip():Promise.resolve();Link.on=false;Link.mode=null;Sim.stop();$("#dot").classList.remove("on");$("#btnConn").textContent="Collega";setStatus("non collegato");try{ELM.dev&&ELM.dev.gatt&&ELM.dev.gatt.connected&&ELM.dev.gatt.disconnect()}catch(e){}return pr},
+ start(mode){Link.on=true;Link.mode=mode;if(mode==="ble"&&U.advLog)Rec.start();Veh.trip.sim=(mode==="sim");$("#dot").classList.add("on");$("#btnConn").textContent="Scollega";if(mode==="ble")Link.poll();else Sim.start()},
+ stop(){const was=Link.on;const pr=was?finishTrip():Promise.resolve();if(Rec.on)Rec.stop();Link.on=false;Link.mode=null;Sim.stop();$("#dot").classList.remove("on");$("#btnConn").textContent="Collega";setStatus("non collegato");try{ELM.dev&&ELM.dev.gatt&&ELM.dev.gatt.connected&&ELM.dev.gatt.disconnect()}catch(e){}return pr},
  async poll(){
   if(Link.polling)return;Link.polling=true;let lt=0;
   while(Link.on&&Link.mode==="ble"){
@@ -473,7 +513,7 @@ const Trip={last:performance.now(),
   Live.ft=ft;
   if(Trip.rec)Trip.rows.push([T()/1000,...Object.keys(Veh.S).map(k=>{const x=Live.v[k];return typeof x==="object"&&x?JSON.stringify(x).replace(/,/g,";"):(x??"")})])},
  rec:false,rows:[]};
-function tick(){Trip.tick()}
+function tick(){Trip.tick();Rec.snap()}
 
 /* ---------- simulatore ---------- */
 const Sim={tm:null,t:0,
@@ -496,6 +536,8 @@ const Sim={tm:null,t:0,
    Live.put("tq_fl",qq(tot*(1-r)*(.5+lat)));Live.put("tq_fr",qq(tot*(1-r)*(.5-lat)));Live.put("tq_rl",qq(tot*r*(.5+lat)));Live.put("tq_rr",qq(tot*r*(.5-lat)));
    for(const k of["fl","fr","rl","rr"])Live.put("ws_"+k,speed*(1+(k[1]==="l"?-1:1)*ch.alat*.004));
    const br=al<-1.2?clamp(-al*25,0,100):0;Live.put("brk",Math.round(br));Live.put("abs",br>60&&Math.sin(t*3)>.5?1:0)}
+  if(hy){Live.put("rpm_e",ev||P>0?Math.round(speed*(ev?52:30)+(P>0?200:0)):0);Live.put("rpm_s",ev?0:Math.round(P*60+(Math.sin(t)>.9?300:0)))}
+  for(const w of["fl","fr","rl","rr"]){const f=w[0]==="f"?2.4:2.3;Live.put("tp_"+w,+(f+.05*Math.sin(t/20)+(w==="rr"?-0.1:0)).toFixed(2));Live.put("tt_"+w,Math.round(22+Math.min(18,speed/8)))}
   Live.hz=2;S_alt=1540+14*Math.sin(t/30);GPS.alt=S_alt;GPS.spd=speed;tick()}};
 let S_alt=null;
 const GPS={alt:null,spd:null,on:false};
@@ -525,6 +567,41 @@ const Sign={n1:0,s1:0,n2:0,s2:0,reset(){Sign.n1=Sign.s1=Sign.n2=Sign.s2=0},
   if(spd>20&&a<-0.04&&(pedal==null||pedal<17)){Sign.n1++;Sign.s1+=P}else if(spd>10&&a>0.04&&pedal!=null&&pedal>22){Sign.n2++;Sign.s2+=P}
   if(Sign.n1>=15&&Sign.n2>=15){const m1=Sign.s1/Sign.n1,m2=Sign.s2/Sign.n2;let inv=null;if(m1>.3&&m2<-.3)inv=true;else if(m1<-.3&&m2>.3)inv=false;
    if(inv!=null&&inv!==Veh.inv()){Veh.setInv(inv);dlog("segno della corrente corretto automaticamente")}Sign.reset()}}};
+/* Logging avanzato: ogni scambio con l'adattatore e uno snapshot dei valori al secondo, salvati in IndexedDB */
+const Rec={on:false,buf:[],n:0,db:null,mem:[],_s:0,
+ async init(){try{Rec.db=await new Promise((res,rej)=>{const q=indexedDB.open("autodash-log",1);q.onupgradeneeded=()=>q.result.createObjectStore("l",{autoIncrement:true});q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)})}catch(e){Rec.db=null}},
+ add(o){if(!Rec.on)return;o.t=Date.now();Rec.buf.push(o);Rec.n++;if(Rec.buf.length>=150)Rec.flush()},
+ async flush(){const b=Rec.buf;Rec.buf=[];if(!b.length)return;if(Rec.db){await new Promise(r=>{try{const tx=Rec.db.transaction("l","readwrite");const st=tx.objectStore("l");b.forEach(x=>st.add(x));tx.oncomplete=tx.onerror=tx.onabort=()=>r()}catch(e){Rec.mem.push(...b);r()}})}else Rec.mem.push(...b)},
+ async all(){await Rec.flush();if(!Rec.db)return[...Rec.mem];return new Promise(r=>{try{const q=Rec.db.transaction("l").objectStore("l").getAll();q.onsuccess=()=>r(q.result.concat(Rec.mem));q.onerror=()=>r([...Rec.mem])}catch(e){r([...Rec.mem])}})},
+ async count(){await Rec.flush();if(!Rec.db)return Rec.mem.length;return new Promise(r=>{try{const q=Rec.db.transaction("l").objectStore("l").count();q.onsuccess=()=>r(q.result+Rec.mem.length);q.onerror=()=>r(Rec.mem.length)}catch(e){r(Rec.mem.length)}})},
+ async clear(){Rec.buf=[];Rec.mem=[];Rec.n=0;if(Rec.db)await new Promise(r=>{try{const tx=Rec.db.transaction("l","readwrite");tx.objectStore("l").clear();tx.oncomplete=tx.onerror=()=>r()}catch(e){r()}})},
+ start(){if(Rec.on)return;Rec.on=true;Rec.add({k:"hdr",app:"Auto Dash v10",veh:Veh.p.id,ua:navigator.userAgent,perf:Perf.cfg,adapter:ELM.dev&&ELM.dev.name,sensors:Object.values(Veh.S).filter(s=>s.cmd).map(s=>[s.id,s.ecu,s.cmd])});dlog("logging avanzato attivo")},
+ stop(){if(!Rec.on)return;Rec.add({k:"end"});Rec.flush();Rec.on=false},
+ mark(label){const was=Rec.on;if(!was)Rec.on=true;Rec.add({k:"m",label:label||"evento"});if(!was){Rec.flush();Rec.on=false}toast("Evento segnato nel log")},
+ snap(){if(!Rec.on)return;const n=T();if(n-Rec._s<1000)return;Rec._s=n;const v={};for(const k in Live.v){const x=Live.v[k];if(x!=null)v[k]=x}Rec.add({k:"v",v,gps:{alt:GPS.alt,spd:GPS.spd},hvP:Live.hvP,perf:{rate:+Perf.rate.toFixed(1),lat:Math.round(Perf.lat)}})},
+ async exportFile(){const rows=await Rec.all();if(!rows.length){toast("Il log è vuoto");return}const st=new Date().toISOString().slice(0,16).replace(/[:T]/g,"-");await shareFile("autodash_log_"+st+".jsonl",rows.map(r=>JSON.stringify(r)).join("\n"),"application/x-ndjson")}};
+const Term={log:[],unlock:false,hist:[],
+ DANGER:/^(04|11|14|27|28|2E|2F|31|34|35|36|37|85|10(?!01$))/i,
+ push(cls,t){Term.log.push([cls,t]);if(Term.log.length>400)Term.log.shift();Term.draw&&Term.draw()},
+ async send(raw){let c=String(raw||"").trim();if(!c)return;Term.hist.unshift(c);Term.hist=[...new Set(Term.hist)].slice(0,20);Term.push("c","> "+c);
+  const hex=/^[0-9A-Fa-f ]+$/.test(c),cc=c.replace(/ /g,"").toUpperCase();
+  if(!(Link.on&&Link.mode==="ble")){Term.push("e",Link.on?"Simulazione attiva: nessun adattatore.":"Non collegato all'auto (Bluetooth).");return}
+  if(hex&&Term.DANGER.test(cc)&&!Term.unlock){Term.push("e","Bloccato: è un comando che può scrivere, cancellare o comandare la centralina. Attiva «Consenti comandi di scrittura» per inviarlo.");return}
+  try{await Link.hold(async()=>{const t0=performance.now();const r=await ELM.raw(hex?cc:c,6000);Term.push("i",r||"(nessuna risposta)");Term.push("i","["+Math.round(performance.now()-t0)+" ms]");
+   if(/^AT/i.test(c)){if(/^AT(Z|D|WS|PC|SP|SH|CRA|CF|CM)/i.test(c))ELM.cur=null;if(/^AT(Z|D|WS)/i.test(c)){Term.push("i","Reinizializzo l'adattatore...");await ELM.reinit()}}})}
+  catch(e){Term.push("e","Errore: "+e.message)}}};
+const Nav={origin:null,stack:[],cur:null,pushed:false,ignore:false,t:null,
+ open(){return $("#drawer").classList.contains("open")||!$("#sheet").classList.contains("hidden")},
+ sync(){clearTimeout(Nav.t);Nav.t=setTimeout(Nav._sync,80)},
+ _sync(){if(Nav.ignore){Nav.t=setTimeout(Nav._sync,150);return}const o=Nav.open();
+  if(o&&!Nav.pushed){try{history.pushState({ad:1},"")}catch(e){}Nav.pushed=true}
+  else if(!o&&Nav.pushed){Nav.pushed=false;Nav.ignore=true;setTimeout(()=>{Nav.ignore=false},600);try{history.back()}catch(e){Nav.ignore=false}}},
+ pop(){if(Nav.ignore){Nav.ignore=false;return}Nav.pushed=false;Nav.back();Nav.sync()},
+ back(){const s=$("#sheet");
+  if(!s.classList.contains("hidden")){if(Nav.stack.length){const pv=Nav.stack.pop();openSheet(pv.title,pv.build,{replace:true})}
+   else if(Nav.origin==="drawer"){sheetHide();openDrawer()}else{Nav.dismiss()}}
+  else if($("#drawer").classList.contains("open"))closeDrawer()},
+ dismiss(){Nav.origin=null;Nav.stack=[];Nav.cur=null;sheetHide()}};
 const Alerts={active:new Map(),audio:null,
  check(){
   const list=(Veh.p.alerts||[]);const now=new Map();
@@ -580,6 +657,16 @@ const tempWidget=primary=>()=>{const ids=Object.values(Veh.S).filter(s=>s.temp&&
  const leg=primary?h("div",{class:"legend"},...TLEG.map(([t,c])=>h("span",null,h("i",{style:"background:"+c}),t)),h("span",null,"· lineette nella colonnina = minimo e massimo consentiti")):null;
  const root=h("section",{class:"card cAll"},h("div",{class:"lab",style:"margin-bottom:6px"},primary?"Temperature principali":"Altre temperature del veicolo"),leg,box);
  return{root,need:ids,update(){box.innerHTML=ids.filter(i=>Veh.has(i)).map(id=>{const s=Veh.S[id],m=s.temp,v=V(id),[st,cls]=tStatus(m,v);return`<div class="tcol${primary?"":" sm"}">${thermoSVG2(v,m,primary?120:78,primary?16:12)}<b>${v==null?"–":Math.round(v)+"°"}</b><em class="tstat" style="color:${cls==="b"?"var(--b)":cls==="r"?"var(--r)":"var(--mut)"}">${st||"&nbsp;"}</em>${esc(s.label)}</div>`}).join("")}}};
+function battPbSVG(p,chg,txt){const x=p==null?0:clamp(p,0,100),col=p==null?"var(--line)":battColor(x),bx=14,by=34,bw=212,bh=92,iw=bw-14,ih=bh-14,fh=ih*x/100;
+ let s=`<svg viewBox="0 0 240 140" style="width:100%;max-width:340px;height:auto" role="img" aria-label="batteria al piombo ${p==null?"non disponibile":Math.round(x)+" per cento"}">`;
+ s+=`<rect x="46" y="20" width="36" height="16" rx="3" fill="#d33"/><rect x="158" y="20" width="36" height="16" rx="3" fill="var(--fg)"/><text x="64" y="16" text-anchor="middle" font-size="15" font-weight="800" fill="#d33">+</text><text x="176" y="16" text-anchor="middle" font-size="17" font-weight="800" fill="var(--fg)">−</text>`;
+ s+=`<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="9" fill="var(--card2)" stroke="var(--fg)" stroke-width="5"/>`;
+ s+=`<rect class="bfill" x="${bx+7}" y="${(by+7+ih-fh).toFixed(1)}" width="${iw}" height="${fh.toFixed(1)}" rx="4" fill="${col}"/>`;
+ for(let i=1;i<6;i++)s+=`<line x1="${(bx+7+iw*i/6).toFixed(1)}" x2="${(bx+7+iw*i/6).toFixed(1)}" y1="${by+7}" y2="${by+bh-7}" stroke="var(--bg)" stroke-width="2" opacity=".4"/>`;
+ s+=`<rect x="${bx+bw/2-34}" y="${by+bh-17}" width="68" height="9" rx="3" fill="var(--bg)" opacity=".25"/>`;
+ if(chg)s+=`<polygon class="bolt" points="44,64 32,92 42,92 37,116 58,84 48,84 54,64" fill="#fff" stroke="#111" stroke-width="2" stroke-linejoin="round"/>`;
+ s+=`<text x="${bx+bw/2+(chg?14:0)}" y="${by+bh/2+11}" text-anchor="middle" font-size="36" font-weight="800" fill="var(--fg)" stroke="var(--bg)" stroke-width="5" paint-order="stroke">${txt}</text>`;
+ return s+"</svg>"}
 const battColor=p=>p>=60?"#34d058":p>=30?"#f5c518":p>=15?"#f59e0b":"#ef4444";
 const batt12Pct=v=>clamp((v-11.8)/(12.7-11.8)*100,0,100);
 function battSVG(p,chg,txt){const x=p==null?0:clamp(p,0,100),col=p==null?"var(--line)":battColor(x),bx=6,by=6,bw=206,bh=98,iw=bw-16;
@@ -590,31 +677,62 @@ function battSVG(p,chg,txt){const x=p==null?0:clamp(p,0,100),col=p==null?"var(--
  if(chg)s+=`<polygon class="bolt" points="48,28 34,60 46,60 40,86 62,50 50,50 56,28" fill="#fff" stroke="#111" stroke-width="2" stroke-linejoin="round"/>`;
  s+=`<text x="${bx+bw/2+(chg?16:0)}" y="${by+bh/2+13}" text-anchor="middle" font-size="38" font-weight="800" fill="var(--fg)" stroke="var(--bg)" stroke-width="5" paint-order="stroke">${txt}</text>`;
  return s+"</svg>"}
+/* Sagome viste dall'alto: dimensioni reali (m) per profilo. drv: fwd | shaft (albero) | emotor (motore posteriore, senza albero) */
+const CARS={"dacia-bigster-hg150":{L:4.57,W:1.81,wb:2.70,of:.92,style:"suv",rails:1,drv:"emotor"},
+ "skoda-kamiq":{L:4.24,W:1.79,wb:2.65,of:.85,style:"suv",drv:"fwd"},
+ "renault-clio-v":{L:4.05,W:1.80,wb:2.58,of:.84,style:"hatch",drv:"fwd"},
+ "jeep-renegade":{L:4.24,W:1.81,wb:2.57,of:.84,style:"boxy",rails:1,drv:"shaft"},
+ "volvo-xc90":{L:4.95,W:1.92,wb:2.98,of:.91,style:"wagon",rails:1,drv:"emotor"},
+ "byd-atto2-dmi":{L:4.31,W:1.83,wb:2.62,of:.88,style:"suv",drv:"fwd"},
+ "generic-obd2":{L:4.40,W:1.80,wb:2.65,of:.90,style:"hatch",drv:"fwd"}};
+function carGeom(p){const c=CARS[p&&p.id]||CARS["generic-obd2"],k=80,L=c.L*k,W=c.W*k,wb=c.wb*k,hl=L/2,hw=W/2,yF=-hl+c.of*k,yR=yF+wb;
+ return{c,k,L,W,wb,hl,hw,yF,yR,xw:hw-.2*k,ww:.235*k,wh:.7*k,cy:222}}
+function carBodySVG(g){const c=g.c,k=g.k,hl=g.hl,hw=g.hw,boxy=c.style==="boxy",nose=hw*(boxy?.82:.64),tail=hw*(boxy?.84:.7);
+ const yWs=g.yF+.10*k,yWt=yWs+(boxy?.5:.62)*k,rg={suv:.30,hatch:.34,boxy:.22,wagon:.16,sedan:.95}[c.style]||.3,yRb=hl-rg*k,yRt=yRb-(c.style==="sedan"?.45:.55)*k,f=n=>n.toFixed(1);
+ let s=`<path d="M${f(-nose)} ${f(-hl)}Q0 ${f(-hl-7)} ${f(nose)} ${f(-hl)}C${f(hw*.96)} ${f(-hl+5)} ${f(hw)} ${f(-hl+.45*k)} ${f(hw)} ${f(-hl+.75*k)}L${f(hw)} ${f(hl-.7*k)}C${f(hw)} ${f(hl-.3*k)} ${f(tail*1.08)} ${f(hl-3)} ${f(tail)} ${f(hl)}Q0 ${f(hl+4)} ${f(-tail)} ${f(hl)}C${f(-tail*1.08)} ${f(hl-3)} ${f(-hw)} ${f(hl-.3*k)} ${f(-hw)} ${f(hl-.7*k)}L${f(-hw)} ${f(-hl+.75*k)}C${f(-hw)} ${f(-hl+.45*k)} ${f(-hw*.96)} ${f(-hl+5)} ${f(-nose)} ${f(-hl)}Z" fill="var(--card2)" stroke="var(--mut)" stroke-width="2.5"/>`;
+ s+=`<path d="M${f(-hw*.3)} ${f(-hl+6)}L${f(-hw*.42)} ${f(yWs)}M${f(hw*.3)} ${f(-hl+6)}L${f(hw*.42)} ${f(yWs)}" stroke="var(--line)" stroke-width="1.5" fill="none"/>`;
+ s+=`<rect x="${f(-hw*.62)}" y="${f(yWt)}" width="${f(hw*1.24)}" height="${f(yRt-yWt)}" rx="10" fill="var(--card)" stroke="var(--line)" stroke-width="1.5"/>`;
+ if(c.rails)s+=`<path d="M${f(-hw*.5)} ${f(yWt+8)}V${f(yRt-8)}M${f(hw*.5)} ${f(yWt+8)}V${f(yRt-8)}" stroke="var(--mut)" stroke-width="2.2" stroke-linecap="round" opacity=".7"/>`;
+ s+=`<path d="M${f(-hw*.76)} ${f(yWs)}L${f(hw*.76)} ${f(yWs)}L${f(hw*.62)} ${f(yWt)}L${f(-hw*.62)} ${f(yWt)}Z" fill="var(--bg)" opacity=".92" stroke="var(--line)"/>`;
+ s+=`<path d="M${f(-hw*.62)} ${f(yRt)}L${f(hw*.62)} ${f(yRt)}L${f(hw*.7)} ${f(yRb)}L${f(-hw*.7)} ${f(yRb)}Z" fill="var(--bg)" opacity=".92" stroke="var(--line)"/>`;
+ for(const sd of[-1,1])s+=`<rect x="${f(sd*hw*.8-hw*.06)}" y="${f(yWs+.12*k)}" width="${f(hw*.12)}" height="${f(yRb-yWs-.25*k)}" rx="4" fill="var(--bg)" opacity=".8"/><ellipse cx="${f(sd*(hw+5))}" cy="${f(yWs+.02*k)}" rx="5" ry="8" fill="var(--card2)" stroke="var(--mut)" stroke-width="2"/>`;
+ s+=`<path d="M${f(-hw*.66)} ${f(-hl+4)}H${f(-hw*.34)}M${f(hw*.34)} ${f(-hl+4)}H${f(hw*.66)}" stroke="#ffe08a" stroke-width="4" stroke-linecap="round"/><path d="M${f(-hw*.62)} ${f(hl-3)}H${f(-hw*.3)}M${f(hw*.3)} ${f(hl-3)}H${f(hw*.62)}" stroke="#ef4444" stroke-width="4" stroke-linecap="round"/>`;
+ return s}
+const wheelXY=g=>({fl:[-g.xw,g.yF],fr:[g.xw,g.yF],rl:[-g.xw,g.yR],rr:[g.xw,g.yR]});
+const wheelRect=(g,x,y,fill,stroke,sw)=>`<rect x="${(x-g.ww/2).toFixed(1)}" y="${(y-g.wh/2).toFixed(1)}" width="${g.ww.toFixed(1)}" height="${g.wh.toFixed(1)}" rx="5" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/><path d="M${(x-g.ww/2+3).toFixed(1)} ${(y-g.wh/2+9).toFixed(1)}H${(x+g.ww/2-3).toFixed(1)}M${(x-g.ww/2+3).toFixed(1)} ${(y+g.wh/2-9).toFixed(1)}H${(x+g.ww/2-3).toFixed(1)}" stroke="rgba(0,0,0,.28)" stroke-width="1.5"/>`;
+const symG=(n,x,y,sc,col)=>`<g transform="translate(${x-12*sc} ${y-12*sc}) scale(${sc})" stroke="${col}" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${IC[n]}</g>`;
+const lockOf=()=>{const m=Veh.S&&Veh.S.mode;if(!m||!m.enum)return null;return V("mode")==null?undefined:Number(V("mode"))===5};
 const EngS={prev:null,crankT:0};
 function engFlows(){const rpm=V("rpm"),sp=V("speed")||0,hy=!!Veh.p.hybrid,P=Live.hvP,ft=Live.ft||Veh.fuels[0];const iceOn=rpm!=null&&rpm>=1;
  if(iceOn&&EngS.prev!=null&&EngS.prev<1)EngS.crankT=T();if(rpm!=null)EngS.prev=rpm;
  const crank=hy&&T()-EngS.crankT<2500,ev=hy&&!iceOn&&sp>2,Pp=P==null?0:P;
  return{rpm,sp,hy,iceOn,ev,crank,P,ft,fr:Live.fr,Pe:hy&&!iceOn?Pp:0,Ps:hy&&iceOn?Pp:0}}
-const flowP=(d,on,col,rev,w)=>`<path d="${d}" fill="none" stroke="var(--line)" stroke-width="3" stroke-linecap="round"/>`+(on?`<path d="${d}" class="fl${rev?" rv":""}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/>`:"");
-function flowSVG(F){const th=.3,cT="var(--"+F.ft.color+")",cY="var(--y)",wd=(x,m)=>(3+Math.min(5,Math.abs(x)/m*5)).toFixed(1),mx=Veh.p.hvMax||15;
- const node=(x,y,w,hh,t,sub,col,on,ic)=>`<rect x="${x}" y="${y}" width="${w}" height="${hh}" rx="12" fill="var(--card2)" stroke="${on?col:"var(--line)"}" stroke-width="${on?3:2}"/>`+(ic?`<g transform="translate(${x+6},${y+5}) scale(.7)" stroke="${col}" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${IC[ic]}</g>`:"")+`<text x="${x+w/2+(ic?8:0)}" y="${y+hh/2-(sub?1:-4)}" text-anchor="middle" font-size="12" font-weight="800" fill="var(--fg)">${t}</text>`+(sub?`<text x="${x+w/2}" y="${y+hh/2+14}" text-anchor="middle" font-size="10" fill="var(--mut)">${sub}</text>`:"");
- let s=`<svg viewBox="0 0 340 236" style="width:100%;height:auto;max-height:320px" role="img" aria-label="flussi di energia tra motori">`;
- s+=flowP("M55 52V96",F.iceOn,cT,false,wd(F.fr||0,8));
- s+=flowP("M55 146V204H126",F.iceOn&&F.sp>2,cT,false,5);
- if(F.hy){const asst=F.Ps>th,chrg=F.Ps<-th;
-  s+=flowP("M100 121H126",F.iceOn&&(asst||chrg)||F.crank,cY,asst||F.crank,wd(F.Ps,mx));
-  s+=flowP("M170 50V96",Math.abs(F.Ps)>th||F.crank,cY,chrg,wd(F.Ps,mx));
-  s+=flowP("M214 30H285V96",Math.abs(F.Pe)>th,cY,F.Pe<-th,wd(F.Pe,mx));
-  s+=flowP("M285 146V204H214",Math.abs(F.Pe)>th,cY,F.Pe<-th,wd(F.Pe,mx))}
+const flowP=(id,d,on,col,rev,w)=>`<path data-f="${id}" d="${d}" fill="none" stroke="var(--line)" stroke-width="3" stroke-linecap="round"/>`+(on?`<path data-f="${id}" d="${d}" class="fl${rev?" rv":""}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/>`:"");
+const nodeSVG=(x,y,w,hh,ic,t,val,col,on)=>`<rect x="${x}" y="${y}" width="${w}" height="${hh}" rx="9" fill="var(--card)" stroke="${on?col:"var(--line)"}" stroke-width="${on?2.6:1.6}"><title>${t}</title></rect>`+symG(ic,x+w/2,y+11,.72,on?col:"var(--mut)")+`<text x="${x+w/2}" y="${y+hh-5}" text-anchor="middle" font-size="10" font-weight="800" fill="var(--fg)">${val}</text>`;
+function flowSVG(F){const g=carGeom(Veh.p),th=.3,cT="var(--"+F.ft.color+")",cY="var(--y)",wd=(x,m)=>(3+Math.min(5,Math.abs(x)/m*5)).toFixed(1),mx=Veh.p.hvMax||15,xw=g.xw,ww=g.ww,yF=g.yF,yR=g.yR,hw=g.hw,k=g.k;
+ const iceY=yF-.45*k,iceB=iceY+18,sgY=yF+.62*k,batY=(yF+yR)/2-.15*k,emY=yR-.5*k,tkY=yR-1.0*k,hy=F.hy,ft=F.ft,r0=(x,y,w,hh)=>[x-w/2,y-hh/2,w,hh];
+ let s=`<svg viewBox="0 0 320 ${g.L+44}" style="width:100%;max-width:360px;display:block;margin:6px auto;height:auto" role="img" aria-label="flussi di energia tra i motori"><g transform="translate(160 ${g.L/2+22})">`;
+ s+=carBodySVG(g);
+ const wl=wheelXY(g),drv=F.sp>2;
+ for(const w in wl){const front=w[0]==="f",on=front?F.iceOn&&drv:(hy&&Math.abs(F.Pe)>th);s+=wheelRect(g,wl[w][0],wl[w][1],on?(front?"color-mix(in srgb,"+cT+" 55%,var(--card2))":"color-mix(in srgb,"+cY+" 55%,var(--card2))"):"var(--card2)","var(--fg)",2)}
+ s+=flowP("fuel",`M-36 ${tkY-18}V${iceY}H-49`,F.iceOn,cT,false,wd(F.fr||0,8));
+ s+=flowP("ice-w",`M-20 ${iceB}V${yF}H0M${-xw+ww/2} ${yF}H${xw-ww/2}`,F.iceOn&&drv,cT,false,5);
+ if(hy){const asst=F.Ps>th||F.crank,chrg=F.Ps<-th&&!F.crank;
+  s+=flowP("ice-sg",`M7 ${iceY}H34V${sgY-17}`,F.iceOn&&(asst||chrg)||F.crank,cY,asst,wd(F.Ps,mx));
+  s+=flowP("bat-sg",`M27 ${batY}H34V${sgY+17}`,Math.abs(F.Ps)>th||F.crank,cY,chrg,wd(F.Ps,mx));
+  s+=flowP("bat-em",`M0 ${batY+18}V${emY-18}`,Math.abs(F.Pe)>th,cY,F.Pe<-th,wd(F.Pe,mx));
+  s+=flowP("em-w",`M0 ${emY+18}V${yR}M${-xw+ww/2} ${yR}H${xw-ww/2}`,Math.abs(F.Pe)>th,cY,F.Pe<-th,wd(F.Pe,mx))}
  const lv=V("level");
- s+=node(10,10,90,42,F.ft.name,lv!=null?fmt(lv,0)+"%":"",`var(--${F.ft.color})`,F.iceOn,F.ft.icon);
- s+=node(10,96,90,50,"Termico",F.iceOn?fmt(F.rpm,0)+" rpm":"spento",`var(--${F.ft.color})`,F.iceOn);
- s+=node(126,186,88,36,"Ruote",fmt(F.sp,0)+" km/h","var(--acc)",F.sp>2);
- if(F.hy){const hv=V("hv");
-  s+=node(126,10,88,40,"Batt. 48V",hv&&hv.V!=null?fmt(hv.V,1)+" V":"",cY,Math.abs(F.P||0)>th);
-  s+=node(126,96,88,50,"Avviamento",F.crank?"AVVIO":fmt(F.Ps,1)+" kW",cY,Math.abs(F.Ps)>th||F.crank);
-  s+=node(240,96,90,50,"Elettrico",fmt(F.Pe,1)+" kW",cY,Math.abs(F.Pe)>th)}
- return s+"</svg>"}
+ let b=r0(-20,iceY,58,36);s+=nodeSVG(b[0],b[1],b[2],b[3],"engine","Motore termico",F.iceOn?fmt(F.rpm,0)+" rpm":"spento",cT,F.iceOn);
+ b=r0(-36,tkY,58,36);s+=nodeSVG(b[0],b[1],b[2],b[3],ft.icon,"Serbatoio "+ft.name,lv!=null?fmt(lv,0)+"%":"–",cT,F.iceOn);
+ s+=`<circle cx="0" cy="${yF}" r="6" fill="var(--card)" stroke="var(--fg)" stroke-width="2"/>`;
+ if(hy){const hv=V("hv"),soc=V("soc"),re=V("rpm_e"),rs=V("rpm_s");
+  b=r0(34,sgY,44,34);s+=nodeSVG(b[0],b[1],b[2],b[3],"gear","Avviamento / generatore",rs!=null?fmt(rs,0)+" rpm":F.crank?"AVVIO":fmt(F.Ps,1)+" kW",cY,Math.abs(F.Ps)>th||F.crank);
+  b=r0(0,batY,54,36);s+=nodeSVG(b[0],b[1],b[2],b[3],"battery","Batteria 48V",soc!=null?fmt(soc,0)+"%":(hv&&hv.V!=null?fmt(hv.V,1)+" V":"–"),cY,Math.abs(F.P||0)>th);
+  b=r0(0,emY,58,36);s+=nodeSVG(b[0],b[1],b[2],b[3],"bolt","Motore elettrico posteriore",re!=null?fmt(re,0)+" rpm":fmt(F.Pe,1)+" kW",cY,Math.abs(F.Pe)>th);
+  s+=`<circle cx="0" cy="${yR}" r="6" fill="var(--card)" stroke="var(--fg)" stroke-width="2"/>`}
+ return s+"</g></svg>"}
+
 function altSVG(arr,cur){const v=(arr||[]).filter(x=>x!=null);if(cur!=null)v.push(cur);if(v.length<2)return`<div class="lab" style="text-transform:none;letter-spacing:0">Il grafico compare dopo qualche secondo di guida con il GPS attivo.</div>`;
  const W0=320,H0=110,mn=Math.min(...v),mx=Math.max(...v),r=Math.max(mx-mn,10),lo=mn-r*.1,hi=mx+r*.1,n=v.length;
  const X=i=>(30+i*(W0-36)/(n-1)).toFixed(1),Y=a=>(H0-16-(a-lo)/(hi-lo)*(H0-28)).toFixed(1);
@@ -633,20 +751,28 @@ function tripView(t){
  s+=`<div class="g3">`+fuels.map(f=>{const km=t.km[f.key]||0,l=t.lit[f.key]||0,c=cf[f.key];return`<div class="fc" style="--c:var(--${f.color})"><div class="lab" style="color:var(--${f.color})">${icoHTML(f.icon)} ${f.name}</div><div class="big">${l>.01&&km>.05?fmt(Math.min(99,km/l),1):"–"}<small>km/l</small></div><div class="kv"><span>Distanza</span><b>${fmt(km,1)} km</b></div><div class="kv"><span>Consumato</span><b>${fmt(l,2)} L</b></div><div class="kv"><span>Speso</span><b>${fmt(c,2)} €</b></div><div class="kv"><span>Costo</span><b>${km>.3?fmt(c/km*100,1)+" €/100 km":"–"}</b></div><div class="kv"><span>Prezzo</span><b>${fmt(f.price,3)} €/L</b></div></div>`}).join("");
  if(hy)s+=`<div class="fc" style="--c:var(--y)"><div class="lab" style="color:var(--y)">${icoHTML("bolt")} Elettrico</div><div class="big">${t.movTime>0?fmt(100*t.evTime/t.movTime,0):"–"}<small>% in EV</small></div><div class="kv"><span>Solo EV</span><b>${fmt(kmE,1)} km</b></div><div class="kv"><span>Erogata</span><b>${fmt(t.energyOut,2)} kWh</b></div><div class="kv"><span>Rigenerata</span><b>${fmt(t.energyIn,2)} kWh</b></div><div class="kv"><span>Consumo</span><b>${t.dist>.3?fmt(t.energyOut/t.dist*100,1)+" kWh/100 km":"–"}</b></div></div>`;
  return s+`</div>`}
-function dtData(){const w={};let any=false;for(const k of["fl","fr","rl","rr"]){const x=V("tq_"+k);w[k]=x==null?null:x;if(x!=null)any=true}
- return{w,any,f:any?(w.fl||0)+(w.fr||0):null,r:any?(w.rl||0)+(w.rr||0):null,brk:V("brk")==null?null:V("brk"),abs:V("abs")==null?null:V("abs"),awd:V("awd"),sp:V("speed")||0,ws:{fl:V("ws_fl"),fr:V("ws_fr"),rl:V("ws_rl"),rr:V("ws_rr")}}}
+function dtData(){const w={},tp={},tt={};let any=false;for(const k of["fl","fr","rl","rr"]){const x=V("tq_"+k);w[k]=x==null?null:x;if(x!=null)any=true;tp[k]=V("tp_"+k);tt[k]=V("tt_"+k)}
+ return{w,tp,tt,any,f:any?(w.fl||0)+(w.fr||0):null,r:any?(w.rl||0)+(w.rr||0):null,brk:V("brk")!=null?V("brk"):(V("brkp")!=null?Math.min(100,Math.max(0,V("brkp"))):null),abs:V("abs")==null?null:V("abs"),awd:V("awd"),sp:V("speed")||0,ws:{fl:V("ws_fl"),fr:V("ws_fr"),rl:V("ws_rl"),rr:V("ws_rr")},lock:lockOf()}}
 const tqCol=n=>n==null?"var(--card2)":n<-5?"#38bdf8":n<135?"#34d058":n<270?"#f5c518":"#ef4444";
-function dtSVG(D){const brk=D.brk||0,abs=!!D.abs;let s=`<svg viewBox="0 0 300 270" style="width:100%;max-width:380px;height:auto;display:block;margin:6px auto" role="img" aria-label="schema trasmissione">`;
- const cp=(D.awd||0)/5;
- s+=`<line x1="56" x2="244" y1="62" y2="62" stroke="var(--mut)" stroke-width="5"/><line x1="56" x2="244" y1="208" y2="208" stroke="var(--mut)" stroke-width="5"/><line x1="150" x2="150" y1="76" y2="194" stroke="var(--mut)" stroke-width="5"/>`;
- s+=`<rect x="110" y="4" width="80" height="26" rx="8" fill="var(--card2)" stroke="var(--line)"/><text x="150" y="21" text-anchor="middle" font-size="11" font-weight="700" fill="var(--fg)">Termico</text><line x1="150" x2="150" y1="30" y2="48" stroke="var(--mut)" stroke-width="5"/>`;
- if(Veh.p.hybrid)s+=`<rect x="110" y="240" width="80" height="26" rx="8" fill="var(--card2)" stroke="var(--y)"/><text x="150" y="257" text-anchor="middle" font-size="11" font-weight="700" fill="var(--y)">El. post.</text><line x1="150" x2="150" y1="222" y2="240" stroke="var(--y)" stroke-width="5"/>`;
- s+=`<circle cx="150" cy="62" r="15" fill="var(--card2)" stroke="var(--fg)" stroke-width="3"/><text x="150" y="66" text-anchor="middle" font-size="10" font-weight="800" fill="var(--fg)">DA</text>`;
- s+=`<circle cx="150" cy="208" r="15" fill="var(--card2)" stroke="var(--fg)" stroke-width="3"/><text x="150" y="212" text-anchor="middle" font-size="10" font-weight="800" fill="var(--fg)">DP</text>`;
- s+=`<rect x="128" y="123" width="44" height="24" rx="7" fill="var(--p)" fill-opacity="${(.15+.85*cp).toFixed(2)}" stroke="var(--p)" stroke-width="2"/><text x="150" y="139" text-anchor="middle" font-size="11" font-weight="800" fill="var(--fg)">4x4</text>`;
- for(const[k,x,y]of[["fl",20,30],["fr",244,30],["rl",20,176],["rr",244,176]]){const tq=D.w[k],sl=D.ws[k]!=null&&D.sp>5?(D.ws[k]-D.sp)/D.sp*100:null;
-  s+=`<g${abs?' class="absb"':""}><rect x="${x}" y="${y}" width="36" height="64" rx="8" fill="${tqCol(tq)}" stroke="${brk>5?"#ef4444":"var(--fg)"}" stroke-width="${(2.5+brk/18).toFixed(1)}"/><text x="${x+18}" y="${y+30}" text-anchor="middle" font-size="12" font-weight="800" fill="${tq==null?"var(--mut)":"#111"}">${tq==null?"n/d":Math.round(tq)}</text><text x="${x+18}" y="${y+44}" text-anchor="middle" font-size="9" fill="${tq==null?"var(--mut)":"#111"}">${tq==null?"":"Nm"}</text>`+(sl!=null?`<text x="${x+18}" y="${y+57}" text-anchor="middle" font-size="9" fill="#111">${sl>=0?"+":""}${sl.toFixed(0)}%</text>`:"")+`</g>`}
- return s+"</svg>"}
+const tpCol=b=>b==null?"var(--mut)":b<1.8?"var(--r)":b<2.0?"var(--o)":b<=3.4?"var(--g)":"var(--o)";
+function dtSVG(D){const g=carGeom(Veh.p),c=g.c,brk=D.brk||0,abs=!!D.abs,xw=g.xw,ww=g.ww,yF=g.yF,yR=g.yR,k=g.k,wl=wheelXY(g);
+ let s=`<svg viewBox="0 0 320 ${g.L+44}" style="width:100%;max-width:380px;display:block;margin:6px auto;height:auto" role="img" aria-label="schema trasmissione"><g transform="translate(160 ${g.L/2+22})">`+carBodySVG(g);
+ const ln=(d,col,w)=>`<path d="${d}" stroke="${col||"var(--mut)"}" stroke-width="${w||5}" stroke-linecap="round" fill="none"/>`,iceY=yF-.45*k;
+ s+=ln(`M${-xw+ww/2} ${yF}H${xw-ww/2}`);
+ s+=`<rect x="-34" y="${iceY-12}" width="68" height="24" rx="8" fill="var(--card)" stroke="var(--line)"/>`+symG("engine",-21,iceY,.6,"var(--mut)")+`<text x="8" y="${iceY+3}" text-anchor="middle" font-size="9" font-weight="700" fill="var(--fg)">Termico</text>`+ln(`M0 ${iceY+12}V${yF-9}`);
+ s+=`<circle cx="0" cy="${yF}" r="9" fill="var(--card)" stroke="var(--fg)" stroke-width="2.5"/><text x="0" y="${yF+3.5}" text-anchor="middle" font-size="9" font-weight="800" fill="var(--fg)">DA</text>`;
+ if(c.drv==="fwd"){s+=`<path d="M${-xw+ww/2} ${yR}H${xw-ww/2}" stroke="var(--line)" stroke-width="3" stroke-dasharray="4 5" fill="none"/>`}
+ else{s+=ln(`M${-xw+ww/2} ${yR}H${xw-ww/2}`);
+  if(c.drv==="shaft")s+=ln(`M0 ${yF+9}V${yR-9}`);
+  else{const eY=yR-.62*k;s+=`<rect x="-34" y="${eY-12}" width="68" height="24" rx="8" fill="var(--card)" stroke="var(--y)"/>`+symG("bolt",-21,eY,.6,"var(--y)")+`<text x="8" y="${eY+3}" text-anchor="middle" font-size="9" font-weight="700" fill="var(--fg)">El. post.</text>`+ln(`M0 ${eY+12}V${yR-9}`,"var(--y)")}
+  s+=`<circle cx="0" cy="${yR}" r="9" fill="var(--card)" stroke="var(--fg)" stroke-width="2.5"/><text x="0" y="${yR+3.5}" text-anchor="middle" font-size="9" font-weight="800" fill="var(--fg)">DP</text>`}
+ if(c.drv!=="fwd"&&D.lock!==null){const on=D.lock===true,my=(yF+yR)/2;s+=`<circle cx="0" cy="${my}" r="19" fill="${on?"var(--p)":"var(--card)"}" stroke="${on?"var(--p)":"var(--line)"}" stroke-width="2.5"/>`+symG(on?"lockc":"locko",0,my,1.05,on?"#fff":"var(--mut)")+`<text x="0" y="${my+32}" text-anchor="middle" font-size="9" font-weight="800" fill="${on?"var(--p)":"var(--mut)"}">4x4 LOCK ${D.lock===undefined?"?":on?"ATTIVO":"no"}</text>`}
+ for(const w in wl){const[x,y]=wl[w],tq=D.w[w],sl=D.ws[w]!=null&&D.sp>5?(D.ws[w]-D.sp)/D.sp*100:null,side=x<0?-1:1,tx=side*(g.hw+16),anc=side<0?"end":"start",pr=D.tp[w],tt=D.tt[w];
+  s+=`<g${abs?' class="absb"':""}>`+wheelRect(g,x,y,tqCol(tq),brk>5?"#ef4444":"var(--fg)",(2.5+brk/18).toFixed(1))+`</g>`;
+  s+=`<text x="${tx}" y="${y-9}" text-anchor="${anc}" font-size="12" font-weight="800" fill="${tq==null?"var(--mut)":"var(--fg)"}">${tq==null?"n/d":Math.round(tq)+" Nm"}</text>`+
+   `<text x="${tx}" y="${y+5}" text-anchor="${anc}" font-size="11" font-weight="700" fill="${tpCol(pr)}">${pr==null?"– bar":fmt(pr,1)+" bar"}</text>`+
+   `<text x="${tx}" y="${y+18}" text-anchor="${anc}" font-size="9.5" fill="var(--mut)">${tt!=null?fmt(tt,0)+"°C":""}${tt!=null&&sl!=null?" · ":""}${sl!=null?(sl>=0?"+":"")+sl.toFixed(0)+"%":""}</text>`}
+ return s+"</g></svg>"}
 function dtChart(b,any){const W0=320,H0=96,n=b.f.length;if(!any&&b.b.every(x=>x==null)||n<2)return`<div class="lab" style="text-transform:none;letter-spacing:0">Il grafico di coppia, freno e ABS compare con i dati.</div>`;
  const X=i=>(4+i*(W0-8)/(Math.max(n,2)-1)).toFixed(1),Yt=v=>(H0-4-(clamp(v,-300,600)+300)/900*(H0-8)).toFixed(1),Yb=v=>(H0-4-clamp(v,0,100)/100*(H0-8)).toFixed(1);
  const line=(arr,y,col)=>{const pts=arr.map((v,i)=>v==null?null:X(i)+","+y(v)).filter(Boolean);return pts.length>1?`<polyline fill="none" stroke="${col}" stroke-width="2" points="${pts.join(" ")}"/>`:""};
@@ -695,22 +821,22 @@ const W={
   const root=h("section",{class:"card c2"},h("div",{class:"lab",style:"color:var(--y)"},ico("bolt")," Batteria ibrida (48V)"),box,sub);
   return{root,need:["soc"],update(){const x=V("soc"),P=Live.hvP,hv=V("hv");setHTML(box,battSVG(x,P!=null&&P<-.3,x==null?"–":Math.round(x)+"%"));setTxt(sub,[hv&&hv.V!=null?fmt(hv.V,1)+" V":"",P!=null?(P>.3?"eroga ":P<-.3?"si ricarica ":"ferma ")+fmt(Math.abs(P),1)+" kW":""].filter(Boolean).join(" · "))}}},
  batt12:()=>{const box=h("div",{style:"text-align:center"}),sub=h("div",{class:"lab",style:"text-align:center;text-transform:none;letter-spacing:0;margin-top:4px"});
-  const root=h("section",{class:"card c2"},h("div",{class:"lab"},"Batteria 12V"),box,sub);
-  return{root,need:["v12"],update(){const x=V("v12");if(x==null){setHTML(box,battSVG(null,false,"–"));setTxt(sub,"");return}const pc=batt12Pct(x),chg=x>13.2;setHTML(box,battSVG(pc,chg,Math.round(pc)+"%"));setTxt(sub,fmt(x,1)+" V · "+(chg?"in carica (alternatore / DC-DC)":"stima dalla tensione a riposo"))}}},
+  const root=h("section",{class:"card c2"},h("div",{class:"lab"},"Batteria 12V (piombo / AGM)"),box,sub);
+  return{root,need:["v12"],update(){const x=V("v12");if(x==null){setHTML(box,battPbSVG(null,false,"–"));setTxt(sub,"");return}const s12=V("soc12"),pc=s12!=null?clamp(s12,0,100):batt12Pct(x),chg=x>13.2;setHTML(box,battPbSVG(pc,chg,Math.round(pc)+"%"));setTxt(sub,fmt(x,1)+" V · "+(chg?"in carica (alternatore / DC-DC)":s12!=null?"carica letta dall'auto":"stima dalla tensione a riposo"))}}},
  v48:()=>tileW("v48","Tensione batteria ibrida","V",1,{spark:true,sparkColor:"#f5c518"}),
 
  tempsPrimary:tempWidget(true),
  tempsSecondary:tempWidget(false),
  rail:()=>tileW("rail","Rail carburante","bar",0,{spark:true}),
  engines:()=>{const fsvg=h("div"),cT=h("div",{class:"fc"}),cE=h("div",{class:"fc"}),cS=h("div",{class:"fc"});
-  const root=h("section",{class:"card cAll"},h("div",{class:"lab"},"Motori e flussi di energia"),fsvg,h("div",{class:"row3"},cT,cE,cS),h("div",{class:"lab",style:"text-transform:none;letter-spacing:0;margin-top:10px"},"Il pacco 48V alimenta motore posteriore, avviamento e DC/DC insieme: la ripartizione è una stima (termico acceso → avviamento/generatore; termico spento in movimento → motore elettrico)."));
-  return{root,need:["rpm"],update(){const F=engFlows(),hy=!!Veh.p.hybrid;setHTML(fsvg,flowSVG(F));const ft=F.ft;
+  const root=h("section",{class:"card cAll"},h("div",{class:"lab"},"Motori e flussi di energia"),fsvg,h("div",{class:"row3"},cT,cE,cS),h("div",{class:"lab",style:"text-transform:none;letter-spacing:0;margin-top:10px"},"Il pacco 48V alimenta motore posteriore, avviamento e DC/DC insieme: la ripartizione è una stima (termico acceso → avviamento/generatore; termico spento in movimento → motore elettrico). I giri dei motori elettrici compaiono solo se l'auto li fornisce."));
+  return{root,need:["rpm"],update(){const F=engFlows(),hy=!!Veh.p.hybrid;setHTML(fsvg,flowSVG(F));const ft=F.ft,re=V("rpm_e"),rs=V("rpm_s");
    cT.style.setProperty("--c","var(--"+ft.color+")");cT.style.opacity=F.iceOn?1:.5;
    setHTML(cT,`<div class="lab" style="color:var(--${ft.color})">${icoHTML(ft.icon)} Termico</div><div class="big">${F.iceOn?fmt(F.rpm,0):"–"}<small>rpm</small></div><div class="kv"><span>${ft.name}</span><b>${F.iceOn&&F.fr!=null?fmt(F.fr,1)+" L/h":"spento"}</b></div><div class="kv"><span>carico</span><b>${V("load")!=null&&F.iceOn?fmt(V("load"),0)+"%":"–"}</b></div>`);
    cE.classList.toggle("hidden",!hy);cS.classList.toggle("hidden",!hy);
    if(hy){const hv=V("hv");cE.style.setProperty("--c","var(--y)");cS.style.setProperty("--c","var(--y)");cE.style.opacity=Math.abs(F.Pe)>.3?1:.5;cS.style.opacity=(Math.abs(F.Ps)>.3||F.crank)?1:.5;
-    setHTML(cE,`<div class="lab" style="color:var(--y)">${icoHTML("bolt")} Elettrico</div><div class="big">${fmt(F.Pe,1)}<small>kW</small></div><div class="kv"><span>stato</span><b>${F.Pe>.3?"trazione":F.Pe<-.3?"rigenera":"fermo"}</b></div><div class="kv"><span>pacco</span><b>${hv&&hv.V!=null?fmt(hv.V,0)+"V "+fmt(Veh.inv()?-hv.I:hv.I,0)+"A":"–"}</b></div>`);
-    setHTML(cS,`<div class="lab" style="color:var(--y)">${icoHTML("bolt")} Avviamento</div><div class="big" style="font-size:${F.crank?22:22}px">${F.crank?"AVVIO":Math.abs(F.Ps)>.3?(F.Ps>0?"assiste":"ricarica"):"riposo"}</div><div class="kv"><span>potenza</span><b>${fmt(F.Ps,1)} kW</b></div><div class="kv"><span>stima</span><b>sì</b></div>`)}}}},
+    setHTML(cE,`<div class="lab" style="color:var(--y)">${icoHTML("bolt")} Elettrico</div><div class="big">${re!=null?fmt(re,0)+"<small>rpm</small>":fmt(F.Pe,1)+"<small>kW</small>"}</div><div class="kv"><span>${re!=null?"potenza":"stato"}</span><b>${re!=null?fmt(F.Pe,1)+" kW":F.Pe>.3?"trazione":F.Pe<-.3?"rigenera":"fermo"}</b></div><div class="kv"><span>pacco</span><b>${hv&&hv.V!=null?fmt(hv.V,0)+"V "+fmt(Veh.inv()?-hv.I:hv.I,0)+"A":"–"}</b></div>`);
+    setHTML(cS,`<div class="lab" style="color:var(--y)">${icoHTML("gear")} Avviamento</div><div class="big" style="font-size:22px">${rs!=null?fmt(rs,0)+"<small>rpm</small>":F.crank?"AVVIO":Math.abs(F.Ps)>.3?(F.Ps>0?"assiste":"ricarica"):"riposo"}</div><div class="kv"><span>potenza</span><b>${fmt(F.Ps,1)} kW</b></div><div class="kv"><span>stato</span><b>${F.crank?"AVVIO":Math.abs(F.Ps)>.3?(F.Ps>0?"assiste":"ricarica"):"riposo"}</b></div>`)}}}},
  engineCard:()=>{const valve=svg(130,120,""),maf=svg(130,120,"");const thr=h("div",{class:"val"}),thrw=h("div",{class:"lab"}),mv=h("div",{class:"val"}),ld=h("div",{class:"val",style:"font-size:26px"}),lb=h("i");
   const root=h("section",{class:"card c2"},h("div",{class:"lab"},"Motore termico"),h("div",{class:"row sp",style:"align-items:flex-end;margin-top:6px"},h("div",{style:"text-align:center"},valve,thr,thrw),h("div",{style:"text-align:center"},maf,mv,h("div",{class:"lab"},"debimetro"))),h("div",{class:"row sp",style:"margin-top:10px"},h("div",{class:"lab"},"Carico motore"),ld),h("div",{class:"bar"},lb));
   return{root,need:["thr","maf","load"],update(){const t=V("thr"),m=V("maf"),a=(t==null?0:t)/100*90;
@@ -729,9 +855,9 @@ const W={
   return{root,need:[],always:true,update(){const D=dtData();
    if(T()-buf.t>=250){buf.t=T();buf.f.push(D.f);buf.r.push(D.r);buf.b.push(D.brk);buf.a.push(D.abs?1:0);if(buf.f.length>120)for(const k of["f","r","b","a"])buf[k].shift()}
    setHTML(svgb,dtSVG(D));
-   setHTML(stats,`<div><span class="lab">Asse anteriore</span><b>${D.any?fmt(D.f,0)+" Nm":"n/d"}</b></div><div><span class="lab">Asse posteriore</span><b>${D.any?fmt(D.r,0)+" Nm":"n/d"}</b></div><div><span class="lab">Ripartizione</span><b>${D.any&&Math.abs(D.f)+Math.abs(D.r)>1?fmt(100*Math.abs(D.f)/(Math.abs(D.f)+Math.abs(D.r)),0)+" / "+fmt(100*Math.abs(D.r)/(Math.abs(D.f)+Math.abs(D.r)),0):"n/d"}</b></div><div><span class="lab">Freno</span><b>${D.brk==null?"n/d":fmt(D.brk,0)+"%"}</b></div><div><span class="lab">ABS</span><b style="color:${D.abs?"var(--r)":"inherit"}">${D.abs==null?"n/d":D.abs?"ATTIVO":"inattivo"}</b></div><div><span class="lab">Giunto 4x4</span><b>${D.awd==null?"n/d":fmt(D.awd/5*100,0)+"%"}</b></div>`);
+   setHTML(stats,`<div><span class="lab">Asse anteriore</span><b>${D.any?fmt(D.f,0)+" Nm":"n/d"}</b></div><div><span class="lab">Asse posteriore</span><b>${D.any?fmt(D.r,0)+" Nm":"n/d"}</b></div><div><span class="lab">Ripartizione</span><b>${D.any&&Math.abs(D.f)+Math.abs(D.r)>1?fmt(100*Math.abs(D.f)/(Math.abs(D.f)+Math.abs(D.r)),0)+" / "+fmt(100*Math.abs(D.r)/(Math.abs(D.f)+Math.abs(D.r)),0):"n/d"}</b></div><div><span class="lab">Freno</span><b>${D.brk==null?"n/d":fmt(D.brk,0)+"%"}</b></div><div><span class="lab">ABS</span><b style="color:${D.abs?"var(--r)":"inherit"}">${D.abs==null?"n/d":D.abs?"ATTIVO":"inattivo"}</b></div><div><span class="lab">Lock 4x4</span><b>${D.lock==null?"n/d":D.lock?"ATTIVO":"no"}</b></div>`);
    setHTML(chart,dtChart(buf,D.any));
-   setTxt(note,D.any?(Link.mode==="sim"?"Dati simulati.":""):"Coppia per ruota, ABS e freni non sono ancora decodificati su questa auto: i campi mostrano n/d. Il giunto 4x4 è la richiesta reale letta dall'auto.")}}},
+   setTxt(note,D.any?(Link.mode==="sim"?"Dati simulati.":""):"Coppia per ruota, ABS e freni non sono ancora decodificati su questa auto: i campi mostrano n/d. Il lock 4x4 e la richiesta di trazione sono letti davvero dall'auto.")}}},
  flags:()=>{const esc=h("span",{class:"chip"},"–"),hdc=h("span",{class:"chip"},"–"),park=h("span",{class:"chip"},"–");
   const cell=(t,c)=>h("div",{class:"card"},h("div",{class:"lab"},t),h("div",{style:"margin-top:10px"},c));const wrap=h("div",{style:"display:contents"},cell("ESC",esc),cell("Hill Descent",hdc),cell("Freno di stazionamento",park));
   return{root:wrap,need:["esc","hdc","park"],update(){const e=V("esc"),hh=V("hdc"),p=V("park");setTxt(esc,e==null?"–":(e===(Veh.p.flags&&Veh.p.flags.escOffValue)?"SPENTO":"attivo"));esc.className="chip "+(e===170?"r":"");setTxt(hdc,hh==null?"–":(hh?"ATTIVO":"off"));hdc.className="chip "+(hh?"o":"");setTxt(park,p==null?"–":(p?"INSERITO":"libero"));park.className="chip "+(p?"r":"")}}},
@@ -748,8 +874,17 @@ const W={
    setTxt(mp,"max "+fmt(Incl.maxP,0)+"° (profilo)");setTxt(mr,"max "+fmt(Incl.maxR,0)+"° (laterale)");
    for(const k in sb)sb[k].classList.toggle("on",Incl.src===k);
    const fast=(V("speed")||0)>=15;setTxt(note,P==null&&R==null?"Nessuna sorgente: scegli Telefono per usare i sensori del telefono (fermo, su un supporto rigido).":(Incl.src!=="phone"&&Veh.p.esp&&fast?"Laterale in pausa sopra 15 km/h: le curve falserebbero la misura. Azzera su terreno piano.":"Azzera su terreno piano. Soglie: 20° attenzione, 30° limite."))}}},
- awd:()=>{const v=h("div",{class:"val"}),i=h("i");const root=h("section",{class:"card"},h("div",{class:"lab"},"Richiesta trazione 4x4"),v,h("div",{class:"bar"},h("i")));const b=root.querySelector(".bar i");
-  return{root,need:["awd"],update(){const x=V("awd");setHTML(v,x==null?"–":String(x));b.style.width=((x||0)/5*100)+"%";b.style.background="var(--p)"}}},
+ awd:()=>{const box=h("div",{style:"text-align:center"}),lbl=h("div",{style:"font-weight:800;font-size:17px;margin-top:6px;text-align:center"}),seg=h("div",{class:"stk",style:"height:14px;gap:3px;background:transparent"});
+  const root=h("section",{class:"card c2"},h("div",{class:"lab"},"Richiesta trazione integrale"),box,lbl,seg,h("div",{class:"row sp lab",style:"margin-top:4px"},h("span",null,"Solo anteriore"),h("span",null,"4x4 pieno")));
+  const NAMES=["Solo anteriore","Posteriore in attesa","Aiuto leggero","Aiuto medio","Aiuto forte","4x4 al massimo"];
+  return{root,need:["awd"],update(){const x=V("awd"),n=x==null?0:clamp(Math.round(x),0,5),g=carGeom(Veh.p),sc=.5;
+   const wl=wheelXY(g);let s=`<svg viewBox="-70 ${-g.L*sc/2-8} 140 ${g.L*sc+16}" style="height:150px;width:auto" role="img" aria-label="trazione"><g transform="scale(${sc})">`+carBodySVG(g);
+   s+=`<path d="M${-g.xw} ${g.yF}H${g.xw}" stroke="var(--acc)" stroke-width="7" stroke-linecap="round"/>`;
+   const ra=x==null?0:n/5;s+=`<path d="M${-g.xw} ${g.yR}H${g.xw}" stroke="var(--p)" stroke-width="7" stroke-linecap="round" opacity="${(.15+.85*ra).toFixed(2)}"/>`;
+   if(g.c.drv==="shaft")s+=`<path d="M0 ${g.yF}V${g.yR}" stroke="var(--p)" stroke-width="6" opacity="${(.15+.85*ra).toFixed(2)}"/>`;
+   for(const w in wl)s+=wheelRect(g,wl[w][0],wl[w][1],w[0]==="f"?"var(--acc)":"color-mix(in srgb,var(--p) "+Math.round(20+80*ra)+"%,var(--card2))","var(--fg)",3);
+   setHTML(box,s+"</g></svg>");setTxt(lbl,x==null?"–":NAMES[n]);
+   seg.innerHTML=[1,2,3,4,5].map(i=>`<i style="flex:1;border-radius:6px;background:${x!=null&&i<=n?"var(--p)":"var(--card2)"}"></i>`).join("")}}},
  gps:()=>{const s=h("div",{class:"val"});const root=h("section",{class:"card"},h("div",{class:"lab"},"Velocità GPS"),s);
   return{root,need:[],always:true,update(){setHTML(s,valHTML(GPS.spd,"km/h"))}}},
  altChart:()=>{const big=h("div",{class:"val"}),sub=h("div",{class:"lab",style:"text-transform:none;letter-spacing:0;margin-top:4px"}),ch=h("div",{style:"margin-top:8px"});
@@ -787,13 +922,13 @@ const PAGE_DEF=[
  {id:"energy",title:"Energia",icon:IC.bolt,widgets:["battHybrid","batt12","v48","rail"]},
  {id:"temp",title:"Temp.",icon:IC.therm,widgets:["tempsPrimary","tempsSecondary"]},
  {id:"engine",title:"Motori",icon:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',widgets:["engines","engineCard"]},
- {id:"dyn",title:"Dinamica",icon:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 3v18M3 12h18"/>',widgets:["gmeter","incl","drivetrain","flags","awd","gps","altChart"]},
+ {id:"dyn",title:"Dinamica",icon:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 3v18M3 12h18"/>',widgets:["drivetrain","gmeter","incl","flags","awd","gps","altChart"]},
  {id:"trip",title:"Viaggio",icon:'<path d="M4 19l5-14 4 8 3-4 4 10z"/>',widgets:["trip","prices","diag"]},
  {id:"hist",title:"Storico",icon:IC.clock,widgets:["history"]},
 ];
 
 /* ---------- pagine ---------- */
-const USES={engineState:["speed"],consumi:["speed","rpm","ftype","level"],fuels:["ftype"],engines:["speed","rpm","frate","maf","hv","load","ftype","level"],drivetrain:["speed","awd","alat","alon"],incl:["speed","alat","alon"],trip:["speed","rpm","frate","maf","hv","ftype","level","soc"],battHybrid:["hv"]};
+const USES={batt12:["soc12"],engineState:["speed"],consumi:["speed","rpm","ftype","level"],fuels:["ftype"],engines:["speed","rpm","frate","maf","hv","load","ftype","level","soc","rpm_e","rpm_s"],drivetrain:["speed","awd","alat","alon","mode","tp_fl","tp_fr","tp_rl","tp_rr"],incl:["speed","alat","alon"],trip:["speed","rpm","frate","maf","hv","ftype","level","soc"],battHybrid:["hv"]};
 const Pages={cur:0,built:[],
  build(){
   const root=$("#pages"),tabs=$("#tabs");root.replaceChildren();tabs.replaceChildren();Pages.built=[];
@@ -857,7 +992,19 @@ async function saveCsv(){const keys=Object.keys(Veh.S);const csv=["time,"+keys.j
  try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:name});return}}catch(e){}const a=h("a",{href:URL.createObjectURL(file),download:name});a.click()}
 
 /* ---------- finestre e impostazioni ---------- */
-function openSheet(title,build){const s=$("#sheet");s._locked=false;const body=h("div");const close=()=>{s.classList.add("hidden");s.replaceChildren()};s.replaceChildren(h("div",{class:"in"},h("div",{class:"row sp"},h("h2",null,title),h("button",{class:"ghost",onclick:close,"aria-label":"chiudi"},"✕")),body));s.classList.remove("hidden");s.onclick=e=>{if(e.target===s&&!s._locked)close()};build(body,close);return close}
+function sheetHide(){const s=$("#sheet");s.classList.add("hidden");s.replaceChildren();Nav.sync()}
+function openSheet(title,build,opts){opts=opts||{};const s=$("#sheet");const vis=!s.classList.contains("hidden");
+ if(vis&&Nav.cur&&!opts.replace)Nav.stack.push(Nav.cur);if(!vis&&!opts.replace)Nav.stack=[];
+ Nav.cur={title,build};s._locked=false;const body=h("div");
+ const close=()=>{sheetHide();setTimeout(()=>{if($("#sheet").classList.contains("hidden")){Nav.origin=null;Nav.stack=[];Nav.cur=null}},250)};
+ const canBack=Nav.stack.length>0||Nav.origin==="drawer";
+ s.replaceChildren(h("div",{class:"in"},h("div",{class:"row sp",style:"flex-wrap:nowrap"},h("div",{class:"row",style:"flex-wrap:nowrap;gap:8px;min-width:0"},canBack?h("button",{class:"bk",onclick:()=>Nav.back(),"aria-label":"indietro"},svg(24,24,'<path d="M15 5l-7 7 7 7"/>')):null,h("h2",null,title)),h("button",{class:"ghost",onclick:()=>Nav.dismiss(),"aria-label":"chiudi"},"✕")),body));
+ s.classList.remove("hidden");s.onclick=e=>{if(e.target===s&&!s._locked)Nav.dismiss()};build(body,close);Nav.sync();return close}
+function swipeBack(el,onGo,opts){opts=opts||{};let x0=null,y0=0,dx=0,live=false;
+ el.addEventListener("touchstart",e=>{if(e.touches.length!==1||e.target.closest&&e.target.closest(".tabs,input[type=range],textarea,pre,.term,.noswipe")){x0=null;return}x0=e.touches[0].clientX;y0=e.touches[0].clientY;dx=0;live=false},{passive:true});
+ el.addEventListener("touchmove",e=>{if(x0==null)return;const mx=e.touches[0].clientX-x0,my=e.touches[0].clientY-y0;if(!live){if(Math.abs(mx)>12&&Math.abs(mx)>Math.abs(my)*1.6&&mx*(opts.dir||1)>0)live=true;else return}dx=mx;const t=opts.target?opts.target():el;t.style.transition="none";t.style.transform="translateX("+Math.max(0,dx*(opts.dir||1))*(opts.dir||1)+"px)"},{passive:true});
+ el.addEventListener("touchend",()=>{if(x0==null)return;const t=opts.target?opts.target():el;t.style.transition="";t.style.transform="";if(live&&Math.abs(dx)>(opts.min||80))onGo();x0=null;live=false});
+ el.addEventListener("touchcancel",()=>{const t=opts.target?opts.target():el;t.style.transition="";t.style.transform="";x0=null;live=false})}
 function applyTheme(){document.documentElement.setAttribute("data-theme",U.theme||"auto");const dark=!(U.theme==="light"||(U.theme==="auto"&&window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches));document.querySelector('meta[name="theme-color"]').setAttribute("content",dark?"#07090d":"#eef2f7")}
 
 function openVehicles(){openSheet("Auto e profili",(body,close)=>{
@@ -895,24 +1042,24 @@ function openUserSheet(first){const done=new Promise(res=>{openSheet(first?"Benv
   body.append(h("label",null,"Nome"),nm,h("label",null,"Password"),p1,p2,err,h("div",{class:"row",style:"margin-top:12px"},h("button",{class:"pri",onclick:go},"Crea e accedi"),users.length?h("button",{onclick:loginBox},"Indietro"):h("button",{onclick:()=>enter(async()=>Auth.guest())},"Continua come ospite")))};
  users.length?loginBox():createBox();if(first){const x=body.parentNode.querySelector('button[aria-label="chiudi"]');if(x)x.remove()}})});return done}
 
-const DRI={user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',car:'<path d="M3 16v-3l2-5h14l2 5v3M3 16h18M7 19v-3M17 19v-3"/><circle cx="7.5" cy="13.5" r="1"/><circle cx="16.5" cy="13.5" r="1"/>',cog:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',bell:'<path d="M6 17V11a6 6 0 0 1 12 0v6l1.5 2h-15zM10 21h4"/>',gauge:'<path d="M4 17a8 8 0 1 1 16 0"/><path d="M12 17l4-5"/>',down:'<path d="M12 4v11M7 11l5 5 5-5M5 20h14"/>',out:'<path d="M9 4H5v16h4M16 8l4 4-4 4M20 12H9"/>'};
+const DRI={user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',car:'<path d="M3 16v-3l2-5h14l2 5v3M3 16h18M7 19v-3M17 19v-3"/><circle cx="7.5" cy="13.5" r="1"/><circle cx="16.5" cy="13.5" r="1"/>',cog:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',bell:'<path d="M6 17V11a6 6 0 0 1 12 0v6l1.5 2h-15zM10 21h4"/>',gauge:'<path d="M4 17a8 8 0 1 1 16 0"/><path d="M12 17l4-5"/>',down:'<path d="M12 4v11M7 11l5 5 5-5M5 20h14"/>',out:'<path d="M9 4H5v16h4M16 8l4 4-4 4M20 12H9"/>',term:'<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7 10l3 2-3 2M12 15h5"/>',flag:'<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>'};
 const avatarEl=(big)=>U.avatar?h("div",{class:"avatar"+(big?" lg":"")},h("img",{src:U.avatar,alt:"foto profilo"})):h("div",{class:"avatar"+(big?" lg":"")},((Auth.cur&&Auth.cur.name)||"?").trim().slice(0,1).toUpperCase());
-function closeDrawer(){const d=$("#drawer"),sc=$("#scrim");d.classList.remove("open");d.setAttribute("aria-hidden","true");sc.classList.remove("show");setTimeout(()=>sc.classList.add("hidden"),200)}
+function closeDrawer(){const d=$("#drawer"),sc=$("#scrim");d.classList.remove("open");d.setAttribute("aria-hidden","true");sc.classList.remove("show");setTimeout(()=>sc.classList.add("hidden"),200);Nav.sync()}
 function openDrawer(){const d=$("#drawer"),sc=$("#scrim");
- const go=fn=>()=>{closeDrawer();fn()};const it=(icon,label,fn)=>h("button",{class:"dr-item",onclick:go(fn)},svg(24,24,DRI[icon]),label);
+ const go=fn=>()=>{Nav.origin="drawer";closeDrawer();fn()};const it=(icon,label,fn)=>h("button",{class:"dr-item",onclick:go(fn)},svg(24,24,DRI[icon]),label);
  d.replaceChildren(h("div",{class:"dr-head"},avatarEl(),h("div",{style:"min-width:0"},h("b",{style:"font-size:17px;display:block;overflow:hidden;text-overflow:ellipsis"},Auth.cur?Auth.cur.name:"Ospite"),h("div",{style:"font-size:12px;color:var(--mut)"},Veh.p.name))),
-  h("div",{class:"dr-list"},it("user","Profilo",()=>openSettings(1)),it("car","Auto e profili",openVehicles),it("cog","Impostazioni",()=>openSettings(0)),it("bell","Avvisi",()=>openSettings(2)),it("gauge","Prestazioni collegamento",()=>openSettings(3)),it("down","Esporta storico",()=>exportAll()),h("div",{class:"dr-sep"}),it("out",Auth.cur&&!Auth.cur.guest?"Esci":"Accedi / crea utente",async()=>{await Link.stop();Auth.cur=null;U=defaultPrefs();await openUserSheet(true)})));
- sc.classList.remove("hidden");requestAnimationFrame(()=>{sc.classList.add("show");d.classList.add("open");d.setAttribute("aria-hidden","false")});sc.onclick=closeDrawer}
+  h("div",{class:"dr-list"},it("user","Profilo",()=>openSettings(1)),it("car","Auto e profili",openVehicles),it("cog","Impostazioni",()=>openSettings(0)),it("bell","Avvisi",()=>openSettings(2)),it("gauge","Prestazioni collegamento",()=>openSettings(3)),it("term","Avanzate e terminale",()=>openSettings(4)),Rec.on?it("flag","Segna evento nel log",()=>Rec.mark(prompt("Nome evento","evento")||"evento")):null,it("down","Esporta storico",()=>exportAll()),h("div",{class:"dr-sep"}),it("out",Auth.cur&&!Auth.cur.guest?"Esci":"Accedi / crea utente",async()=>{await Link.stop();Auth.cur=null;U=defaultPrefs();await openUserSheet(true)})));
+ sc.classList.remove("hidden");requestAnimationFrame(()=>{sc.classList.add("show");d.classList.add("open");d.setAttribute("aria-hidden","false")});sc.onclick=closeDrawer;Nav.sync()}
 async function exportAll(){const trips=Store.range(null,null,Veh.p.id,true);if(!trips.length){toast("Nessun viaggio da esportare");return}await shareFile("viaggi_"+Veh.p.id+"_tutti.csv",tripsCsv(trips))}
 async function pickAvatar(file){
  const url=await new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.onerror=rej;fr.readAsDataURL(file)});
  const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url});
  const S=160,c=document.createElement("canvas");c.width=c.height=S;const x=c.getContext("2d");const m=Math.min(img.width,img.height);x.drawImage(img,(img.width-m)/2,(img.height-m)/2,m,m,0,0,S,S);U.avatar=c.toDataURL("image/jpeg",.82);await savePrefs()}
 function openSettings(tab){openSheet("Impostazioni",(body,close)=>{
- const tabs=["Generali","Profilo","Avvisi","Prestazioni"];const pane=h("div");const tb=h("div",{class:"tabs"});let cur=tab||0;
- const draw=()=>{[...tb.children].forEach((b,i)=>b.classList.toggle("on",i===cur));pane.replaceChildren();[gen,usr,alr,prf][cur](pane)};
+ const tabs=["Generali","Profilo","Avvisi","Prestazioni","Avanzate"];const pane=h("div");const tb=h("div",{class:"tabs"});let cur=tab||0;
+ const draw=()=>{[...tb.children].forEach((b,i)=>b.classList.toggle("on",i===cur));pane.replaceChildren();[gen,usr,alr,prf,adv][cur](pane)};
  tabs.forEach((t,i)=>tb.append(h("button",{onclick:()=>{cur=i;draw()}},t)));body.append(tb,pane);
- const gen=p=>{p.append(h("label",null,"Auto"),h("button",{style:"width:100%;text-align:left",onclick:()=>{close();openVehicles()}},Veh.p.name+"  ›"),
+ const gen=p=>{p.append(h("label",null,"Auto"),h("button",{style:"width:100%;text-align:left",onclick:()=>openVehicles()},Veh.p.name+"  ›"),
   h("label",null,"Tema"),(()=>{const s=h("select",{onchange:()=>{U.theme=s.value;applyTheme();savePrefs()}},...[["auto","Automatico"],["dark","Scuro"],["light","Chiaro"]].map(([v,t])=>h("option",{value:v,selected:U.theme===v},t)));return s})(),
   h("label",null,"Soglia kickdown pedale (grezzo %)"),(()=>{const i=h("input",{type:"number",value:U.kd||86,onchange:()=>{U.kd=parseFloat(i.value)||86;savePrefs()}});return i})(),
   h("label",null,"Collegamento"),h("div",{class:"row"},h("button",{onclick:()=>{close();connect(true)}},"Mostra tutti i dispositivi Bluetooth"),h("button",{onclick:()=>{close();demo()}},"Avvia simulazione")))};
@@ -935,7 +1082,33 @@ function openSettings(tab){openSheet("Impostazioni",(body,close)=>{
   if(rows.length)p.append(h("table",{class:"tbl",style:"margin-top:6px"},...rows.map(s=>h("tr",null,h("td",null,s.label||s.id),h("td",null,fmt(s.hz,1)+" Hz · "+fmt(s.ms,0)+" ms")))));
   if(Perf.report)p.append(h("div",{class:"lab",style:"margin-top:10px;text-transform:none;letter-spacing:0"},"Ultima misura: "+Perf.report.map(r=>(r.c.cnt?"con conteggio ":"standard ")+"ST"+r.c.st+" → "+(r.med==null?"non valido":Math.round(r.med)+" ms")+" ("+Math.round(r.ok*100)+"%)").join(" · ")));
   p.append(h("div",{class:"row",style:"margin-top:12px"},h("button",{class:"pri",onclick:async()=>{if(!live){toast("Collegati all'auto per misurare");return}close();await Link.hold(async()=>{await Perf.tune(true);toast("Configurazione scelta: "+(Perf.cfg.cnt?"con conteggio":"standard")+" ST"+Perf.cfg.st)})}},"Misura e ottimizza"),h("button",{onclick:async()=>{if(live){await Perf.apply(Perf.SAFE);toast("Modalità sicura attiva")}}},"Modalità sicura")))};
+ const adv=p=>{
+  p.append(h("div",{class:"warnbox"},"Funzioni per utenti esperti. Il terminale invia comandi veri all'auto: i comandi di lettura sono sicuri, quelli di scrittura o di controllo (sessioni diagnostiche, routine, attuatori, cancellazione codici) sono bloccati finché non li abiliti."));
+  p.append(h("label",null,"Modalità avanzata"),h("label",{style:"margin:0;text-transform:none;letter-spacing:0;display:flex;gap:8px;align-items:center"},h("input",{type:"checkbox",style:"width:auto;min-height:0",checked:!!U.adv,onchange:e=>{if(e.target.checked&&!confirm("Abilitare le funzioni avanzate? Usale solo se sai cosa stai facendo."))e.target.checked=false;U.adv=e.target.checked;savePrefs();draw()}}),"Abilita terminale e logging avanzato"));
+  p.append(h("label",null,"Sensori sperimentali"),h("label",{style:"margin:0;text-transform:none;letter-spacing:0;display:flex;gap:8px;align-items:center"},h("input",{type:"checkbox",style:"width:auto;min-height:0",checked:U.exp!==false,onchange:e=>{U.exp=e.target.checked;savePrefs();Pages.refreshVisibility()}}),"Usa le mappature condivise online (non verificate su questa auto)"),
+   h("label",{style:"margin:6px 0 0;text-transform:none;letter-spacing:0;display:flex;gap:8px;align-items:center"},h("input",{type:"checkbox",style:"width:auto;min-height:0",checked:!!U.expSw,onchange:e=>{U.expSw=e.target.checked;savePrefs();Pages.refreshVisibility()}}),"Includi quelle che cambiano protocollo CAN (es. TPMS Dacia/Renault: più lente)"),
+   h("div",{class:"sub",style:"margin-top:4px"},"I sensori che l'auto non supporta si spengono da soli dopo qualche tentativo."));
+  if(!U.adv)return;
+  p.append(h("label",null,"Terminale"),h("button",{onclick:()=>openTerminal()},"Apri il terminale ELM327 / UDS  ›"));
+  const cnt=h("span",{class:"sub"},"…");Rec.count().then(n=>setTxt(cnt,n+" righe nel log"));
+  p.append(h("label",null,"Logging avanzato"),h("label",{style:"margin:0;text-transform:none;letter-spacing:0;display:flex;gap:8px;align-items:center"},h("input",{type:"checkbox",style:"width:auto;min-height:0",checked:!!U.advLog,onchange:e=>{U.advLog=e.target.checked;savePrefs();if(U.advLog&&Link.on&&Link.mode==="ble")Rec.start();else if(!U.advLog)Rec.stop()}}),"Registra ogni collegamento (comandi, risposte, valori, GPS)"),
+   h("div",{class:"sub",style:"margin-top:6px"},"Il log resta sul dispositivo (IndexedDB) e si esporta come JSONL: utile per diagnostica, mappatura dei segnali o analisi con un'AI."),cnt,
+   h("div",{class:"row",style:"margin-top:10px"},h("button",{onclick:()=>Rec.exportFile()},"Esporta log"),h("button",{onclick:()=>{const l=prompt("Nome evento (es. freno a fondo, ABS attivo)","evento");if(l!=null)Rec.mark(l)}},"Segna evento"),h("button",{class:"danger",onclick:async()=>{if(confirm("Cancellare il log?")){await Rec.clear();setTxt(cnt,"0 righe nel log")}}},"Cancella")))};
  draw()})}
+function openTerminal(){openSheet("Terminale",(body)=>{
+ const out=h("div",{class:"term"});const inp=h("input",{placeholder:"es. ATRV, 0100, 22 4B07",autocapitalize:"characters",autocorrect:"off",spellcheck:"false",style:"font-family:ui-monospace,Menlo,monospace"});
+ const draw=()=>{out.replaceChildren(...Term.log.map(([c,t])=>h("div",{class:c},t)));out.scrollTop=out.scrollHeight};Term.draw=draw;
+ const go=async()=>{const v=inp.value;inp.value="";await Term.send(v)};inp.addEventListener("keydown",e=>{if(e.key==="Enter")go()});
+ const live=Link.on&&Link.mode==="ble";
+ const quick=[["ATI","ATI"],["Tensione","ATRV"],["Protocollo","ATDP"],["PID std","0100"],["VIN","0902"],["Codici DTC","03"]];
+ const ecuB=Object.entries(Veh.ecus).filter(([k,e])=>e.h).map(([k,e])=>h("button",{onclick:()=>Term.send("ATSH"+e.h)},k));
+ const unl=h("input",{type:"checkbox",style:"width:auto;min-height:0",checked:Term.unlock,onchange:e=>{if(e.target.checked&&!confirm("Consentire comandi di scrittura/controllo? Possono modificare o bloccare centraline."))e.target.checked=false;Term.unlock=e.target.checked}});
+ body.append(h("div",{class:"sub"},live?"Collegato: i comandi sospendono per un attimo la lettura dei sensori.":"Non collegato all'auto: collegati dalla schermata principale."),out,
+  h("div",{class:"row",style:"margin-top:8px;flex-wrap:nowrap"},inp,h("button",{class:"pri",onclick:go},"Invia")),
+  h("label",null,"Comandi rapidi"),h("div",{class:"seg"},...quick.map(([l,c])=>h("button",{onclick:()=>Term.send(c)},l))),
+  ecuB.length?h("label",null,"Centralina (ATSH)"):null,ecuB.length?h("div",{class:"seg"},...ecuB):null,
+  h("label",{style:"margin-top:12px;text-transform:none;letter-spacing:0;display:flex;gap:8px;align-items:center;color:var(--o)"},unl,"Consenti comandi di scrittura/controllo (rischioso)"),
+  h("div",{class:"row",style:"margin-top:10px"},h("button",{onclick:()=>shareFile("terminale.txt",Term.log.map(x=>x[1]).join("\n"),"text/plain")},"Salva sessione"),h("button",{onclick:()=>{Term.log=[];draw()}},"Pulisci")));draw()})}
 
 /* ---------- collegamento ---------- */
 async function connect(all){
@@ -954,14 +1127,19 @@ async function afterLogin(){migrateV5();applyTheme();await Store.load();Veh.set(
  Trip.timer=setInterval(()=>{Pages.render(false);Alerts.check();if(Trip.lvlDirty){Trip.lvlDirty=false;savePrefs()}if(Link.on&&Veh.trip.dist>=0.05&&T()-(Trip._as||0)>30000){Trip._as=T();Store.upsert(tripRecord(Veh.trip))}if(Link.on)$("#stat").textContent=Link.mode==="sim"?"SIM · "+fmt(Live.hz,0)+" Hz":"live · "+fmt(Perf.rate,0)+" req/s · "+fmt(Perf.lat,0)+" ms"},250)}
 $("#btnConn").onclick=()=>connect(false);
 $("#btnMenu").onclick=openDrawer;
-document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrawer()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){if(!$("#sheet").classList.contains("hidden"))Nav.back();else closeDrawer()}});
+window.addEventListener("popstate",()=>Nav.pop());
+swipeBack($("#drawer"),closeDrawer,{dir:1,min:70});
+swipeBack($("#sheet"),()=>Nav.back(),{dir:1,min:90,target:()=>$("#sheet .in")||$("#sheet")});
+(function(){let x0=null,y0=0;document.addEventListener("touchstart",e=>{x0=null;if(e.touches.length===1&&e.touches[0].clientX>window.innerWidth-22&&!Nav.open()){x0=e.touches[0].clientX;y0=e.touches[0].clientY}},{passive:true});document.addEventListener("touchmove",e=>{if(x0==null)return;const dx=e.touches[0].clientX-x0,dy=e.touches[0].clientY-y0;if(dx<-50&&Math.abs(dx)>Math.abs(dy)*1.5){x0=null;openDrawer()}},{passive:true})})();
 $("#veh").onclick=openVehicles;
 document.addEventListener("visibilitychange",()=>{if(document.hidden)Trip._hid=T();else if(U.lockMin&&Trip._hid&&T()-Trip._hid>U.lockMin*60000&&Auth.cur&&!Auth.cur.guest){Auth.cur=null;openUserSheet(true)}});
-let tx0=null;document.addEventListener("touchstart",e=>{tx0=e.touches[0].clientX},{passive:true});
-document.addEventListener("touchend",e=>{if(tx0==null)return;const dx=e.changedTouches[0].clientX-tx0;tx0=null;if(Math.abs(dx)>90){const i=Pages.cur+(dx<0?1:-1);if(i>=0&&i<PAGE_DEF.length&&$("#sheet").classList.contains("hidden"))Pages.show(i)}},{passive:true});
+let tx0=null;let tx0s=0;document.addEventListener("touchstart",e=>{tx0=e.touches[0].clientX;tx0s=tx0},{passive:true});
+document.addEventListener("touchend",e=>{if(tx0==null)return;const dx=e.changedTouches[0].clientX-tx0;tx0=null;if(Math.abs(dx)>90&&!Nav.open()&&tx0s<window.innerWidth-22){const i=Pages.cur+(dx<0?1:-1);if(i>=0&&i<PAGE_DEF.length)Pages.show(i)}},{passive:true});
 if("serviceWorker" in navigator&&location.protocol==="https:"){navigator.serviceWorker.register("sw.js").catch(()=>{})}
 
 async function boot(){
+ Rec.init();
  const users=Auth.users();
  if(!users.length&&lsGet("ad.skipwelcome",false)){U=Auth.guest();await afterLogin();return}
  U=defaultPrefs();Veh.set(U.vehicle);Pages.build();applyTheme();await openUserSheet(true)}
