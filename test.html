@@ -1,0 +1,32 @@
+<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Test Bluetooth Bigster</title>
+<style>body{font-family:-apple-system,sans-serif;background:#0b0f14;color:#e6edf3;margin:0;padding:16px}
+button{font-size:20px;padding:14px 18px;border-radius:12px;border:0;background:#1f6feb;color:#fff;margin:6px 0;width:100%}
+pre{background:#151c25;padding:10px;border-radius:10px;white-space:pre-wrap;font-size:13px}</style></head><body>
+<h2>Test Bluetooth</h2>
+<pre id="info"></pre>
+<button id="go">Collega adattatore</button>
+<pre id="log"></pre>
+<script>
+const $=id=>document.getElementById(id);
+const log=t=>{$("log").textContent+=t+"\n"};
+$("info").textContent="Protocollo: "+location.protocol+"\nContesto sicuro: "+window.isSecureContext+"\nWeb Bluetooth: "+("bluetooth" in navigator)+"\nBrowser: "+navigator.userAgent;
+$("go").onclick=async()=>{
+ try{
+  if(!("bluetooth" in navigator)){log("Questo browser non ha Web Bluetooth.");return;}
+  const dev=await navigator.bluetooth.requestDevice({filters:[{namePrefix:"IOS-Vlink"}],optionalServices:[0x18f0]});
+  log("Scelto: "+dev.name);
+  const srv=await dev.gatt.connect(); const s=await srv.getPrimaryService(0x18f0);
+  const rx=await s.getCharacteristic(0x2af0), tx=await s.getCharacteristic(0x2af1);
+  let buf="";const dec=new TextDecoder();
+  await rx.startNotifications();
+  rx.addEventListener("characteristicvaluechanged",e=>{buf+=dec.decode(e.target.value.buffer)});
+  const send=async c=>{buf="";await tx.writeValueWithoutResponse(new TextEncoder().encode(c+"\r"));
+    for(let i=0;i<80&&!buf.includes(">");i++)await new Promise(r=>setTimeout(r,100));
+    log("> "+c+"\n"+buf.replace(/\r/g,"\n").replace(">","").trim())};
+  for(const c of ["ATZ","ATE0","ATH1","ATS0","ATSP0","0100","012F"])await send(c);
+  log("FATTO: se vedi le risposte dell'auto, il Bluetooth dal browser funziona.");
+  dev.gatt.disconnect();
+ }catch(e){log("ERRORE: "+e)}
+};
+</script></body></html>

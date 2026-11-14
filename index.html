@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Bigster</title>
+<style>
+:root{--bg:#07090d;--card:#111720;--card2:#18212c;--line:#263140;--fg:#eaf0f6;--mut:#7d8a9b;--g:#3fb950;--b:#58a6ff;--o:#e3a008;--r:#f85149;--p:#a371f7}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif;overscroll-behavior:none}
+body{display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left)}
+header{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--line)}
+#dot{width:12px;height:12px;border-radius:50%;background:var(--r)}
+#dot.on{background:var(--g)}
+#st{font-size:13px;color:var(--mut);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+button{font:inherit;color:var(--fg);background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:8px 14px}
+button.pri{background:#1f6feb;border-color:#1f6feb;font-weight:600}
+main{flex:1;position:relative;overflow:hidden}
+.page{position:absolute;inset:0;padding:10px 12px;display:none;overflow:auto;gap:10px;grid-auto-rows:min-content}
+.page.on{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px 14px;position:relative}
+.span2{grid-column:span 2}.spanall{grid-column:1/-1}
+.lab{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--mut)}
+.val{font-size:34px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.05}
+.val small{font-size:15px;font-weight:500;color:var(--mut);margin-left:3px}
+.xl{font-size:76px;font-weight:800;line-height:1}
+.bar{height:12px;border-radius:7px;background:var(--card2);overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;border-radius:7px;transition:width .4s}
+.chip{display:inline-block;border-radius:999px;padding:5px 14px;font-weight:700;font-size:17px;background:var(--card2);color:var(--mut)}
+.chip.g{background:#1f6f43;color:#fff}.chip.b{background:#1f4f8f;color:#fff}.chip.o{background:#8a5a0a;color:#fff}.chip.r{background:#8f2a2a;color:#fff}.chip.p{background:#5a3f94;color:#fff}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.row.sp{justify-content:space-between}
+nav{display:flex;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;border:0;border-radius:0;background:transparent;padding:14px 4px;font-weight:600;color:var(--mut);font-size:15px}
+nav button.on{color:var(--fg);box-shadow:inset 0 3px 0 var(--b)}
+svg{display:block;margin:0 auto}
+.dim{opacity:.5}
+.big-ev{font-size:22px;font-weight:800;letter-spacing:.06em}
+canvas{display:block;margin:0 auto;max-width:100%}
+.tbl{width:100%;border-collapse:collapse;font-size:16px}
+.tbl td{padding:7px 4px;border-bottom:1px solid var(--line)}
+.tbl td:last-child{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+</style>
+</head>
+<body>
+<header>
+  <span id="dot"></span><span id="st">non collegato</span>
+  <button id="demo">Demo</button>
+  <button class="pri" id="conn">Collega</button>
+</header>
+<main>
+
+<section class="page on" id="p0">
+  <div class="card span2" style="text-align:center">
+    <div class="lab">Velocità</div>
+    <svg id="spdSvg" width="230" height="150" viewBox="0 0 230 150"></svg>
+    <div class="xl" id="speed" style="margin-top:-72px">–</div><div class="lab" style="margin-top:4px">km/h</div>
+  </div>
+  <div class="card"><div class="lab">Modo guida</div><div style="margin:8px 0"><span class="chip p" id="mode">–</span></div><div class="lab" style="margin-top:6px">Marcia</div><div style="margin-top:6px"><span class="chip b" id="gear">–</span></div></div>
+  <div class="card"><div class="lab">Motore</div><div style="margin:8px 0"><span class="chip" id="ev">–</span></div><div class="lab" style="margin-top:6px">Giri</div><div class="val" id="rpm">–<small>rpm</small></div></div>
+  <div class="card spanall">
+    <div class="row sp"><div class="lab">Carburante</div><div class="lab" id="fuelNote"></div></div>
+    <div class="row sp" style="margin-top:6px"><div style="flex:1"><div class="row sp"><span class="chip o" id="gplChip">GPL</span><span class="val" id="gplV">–<small>%</small></span></div><div class="bar"><i id="gplBar" style="background:var(--o);width:0"></i></div></div>
+    <div style="width:14px"></div>
+    <div style="flex:1"><div class="row sp"><span class="chip b" id="benChip">Benzina</span><span class="val" id="benV">–<small>%</small></span></div><div class="bar"><i id="benBar" style="background:var(--b);width:0"></i></div></div></div>
+  </div>
+  <div class="card"><div class="lab">Pedale</div><div class="val" id="pedal">–<small>%</small></div><div class="bar"><i id="pedalBar" style="background:var(--g);width:0"></i></div></div>
+  <div class="card"><div class="lab">Consumo</div><div class="val" id="frate">–<small>L/h</small></div></div>
+</section>
+
+<section class="page" id="p1">
+  <div class="card span2" style="text-align:center">
+    <div class="lab">Batteria 48V</div>
+    <svg id="socSvg" width="200" height="130" viewBox="0 0 200 130"></svg>
+    <div class="val" id="soc" style="margin-top:-62px;font-size:44px">–<small>%</small></div>
+  </div>
+  <div class="card"><div class="lab">48V tensione</div><div class="val" id="v48">–<small>V</small></div></div>
+  <div class="card"><div class="lab">48V temperatura</div><div class="val" id="t48">–<small>°C</small></div></div>
+  <div class="card"><div class="lab">12V</div><div class="val" id="v12">–<small>V</small></div></div>
+  <div class="card"><div class="lab">Rail carburante</div><div class="val" id="rail">–<small>bar</small></div></div>
+  <div class="card"><div class="lab">Acqua</div><div class="val" id="cool">–<small>°C</small></div></div>
+  <div class="card"><div class="lab">Olio</div><div class="val" id="oil">–<small>°C</small></div></div>
+  <div class="card"><div class="lab">Esterna</div><div class="val" id="amb">–<small>°C</small></div></div>
+  <div class="card"><div class="lab">Quota GPS</div><div class="val" id="alt">–<small>m</small></div></div>
+</section>
+
+<section class="page" id="p2">
+  <div class="card span2" style="text-align:center">
+    <div class="lab">Accelerazione (laterale / longitudinale, unità raw)</div>
+    <canvas id="gm" width="240" height="240"></canvas>
+    <div class="row sp" style="margin-top:6px"><span class="lab">lat <b id="alat" style="color:var(--fg)">–</b></span><span class="lab">long <b id="alon" style="color:var(--fg)">–</b></span></div>
+  </div>
+  <div class="card"><div class="lab">ESC</div><div style="margin-top:10px"><span class="chip" id="esc">–</span></div></div>
+  <div class="card"><div class="lab">Hill Descent</div><div style="margin-top:10px"><span class="chip" id="hdc">–</span></div></div>
+  <div class="card"><div class="lab">Freno di stazionamento</div><div style="margin-top:10px"><span class="chip" id="park">–</span></div></div>
+  <div class="card"><div class="lab">Richiesta trazione 4x4</div><div class="val" id="awd">–</div><div class="bar"><i id="awdBar" style="background:var(--p);width:0"></i></div></div>
+  <div class="card"><div class="lab">Velocità GPS</div><div class="val" id="gspd">–<small>km/h</small></div></div>
+  <div class="card"><div class="lab">Quota GPS</div><div class="val" id="alt2">–<small>m</small></div></div>
+</section>
+
+<section class="page" id="p3">
+  <div class="card spanall">
+    <div class="row sp"><div class="lab">Viaggio</div><div class="row"><button id="rst">Azzera</button><button id="rec">Registra</button><button id="sav">Salva CSV</button></div></div>
+    <table class="tbl" style="margin-top:8px">
+      <tr><td>Distanza</td><td id="tDist">–</td></tr>
+      <tr><td>Durata</td><td id="tTime">–</td></tr>
+      <tr><td>In EV (tempo in movimento)</td><td id="tEv">–</td></tr>
+      <tr><td>Benzina: km · litri · L/100</td><td id="tBen">–</td></tr>
+      <tr><td>GPL: km · litri · L/100</td><td id="tGpl">–</td></tr>
+      <tr><td>Registrazione</td><td id="tRec">ferma</td></tr>
+    </table>
+  </div>
+</section>
+
+</main>
+<nav>
+  <button class="on" data-p="0">Guida</button>
+  <button data-p="1">Energia</button>
+  <button data-p="2">Dinamica</button>
+  <button data-p="3">Viaggio</button>
+</nav>
+
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+
+/* ---------- definizione sensori ---------- */
+const SENS=[
+ {id:"speed",ecu:"15",cmd:"010D",every:1,f:d=>d[0]},
+ {id:"rpm",ecu:"15",cmd:"010C",every:1,f:d=>(d[0]*256+d[1])/4},
+ {id:"pedal",ecu:"15",cmd:"0149",every:1,f:d=>d[0]*100/255},
+ {id:"alat",ecu:"2D",cmd:"224B0B",every:1,f:d=>d[0]-127},
+ {id:"alon",ecu:"2D",cmd:"224B07",every:1,f:d=>d[0]-127},
+ {id:"frate",ecu:"15",cmd:"015E",every:2,f:d=>(d[0]*256+d[1])/20},
+ {id:"mode",ecu:"15",cmd:"220442",every:3,f:d=>d[0]},
+ {id:"gear",ecu:"18",cmd:"222271",every:3,f:d=>d[0]},
+ {id:"ftype",ecu:"15",cmd:"0151",every:5,f:d=>d[0]},
+ {id:"awd",ecu:"15",cmd:"220299",every:5,f:d=>d[0]},
+ {id:"esc",ecu:"2D",cmd:"224B35",every:4,f:d=>d[0]},
+ {id:"hdc",ecu:"2D",cmd:"224B21",every:4,f:d=>d[0]},
+ {id:"park",ecu:"2D",cmd:"224D27",every:4,f:d=>d[0]},
+ {id:"soc",ecu:"92",cmd:"229104",every:6,f:d=>(d[0]*256+d[1])/100},
+ {id:"v48",ecu:"92",cmd:"229017",every:4,f:d=>(d[0]*256+d[1])/1000},
+ {id:"t48",ecu:"92",cmd:"229025",every:20,f:d=>d[0]-40},
+ {id:"level",ecu:"15",cmd:"012F",every:10,f:d=>d[0]*100/255},
+ {id:"v12",ecu:"15",cmd:"0142",every:10,f:d=>(d[0]*256+d[1])/1000},
+ {id:"cool",ecu:"15",cmd:"0105",every:15,f:d=>d[0]-40},
+ {id:"oil",ecu:"15",cmd:"015C",every:15,f:d=>d[0]-40},
+ {id:"rail",ecu:"15",cmd:"0123",every:10,f:d=>(d[0]*256+d[1])/10},
+ {id:"amb",ecu:"15",cmd:"0146",every:40,f:d=>d[0]-40},
+];
+const MODES={1:"AUTO",3:"ECO",4:"SNOW",5:"LOCK",7:"MUD/SAND"};
+const GEARS={1:"P",2:"R",3:"N",4:"D",5:"M"};
+
+/* ---------- stato ---------- */
+const S={v:{},lvl:{9:null,12:null},gps:{alt:null,spd:null},
+ trip:{dist:0,time:0,evTime:0,movTime:0,lit:{9:0,12:0},km:{9:0,12:0}},last:performance.now(),
+ rec:false,rows:[],connected:false,demo:false};
+
+/* ---------- Bluetooth ELM ---------- */
+const SVC=0x18f0,RX=0x2af0,TX=0x2af1;
+const E={dev:null,tx:null,buf:"",wait:null,cur:null,
+ onData(ev){E.buf+=new TextDecoder().decode(ev.target.value.buffer);if(E.buf.includes(">")&&E.wait){const w=E.wait;E.wait=null;w(E.buf)}},
+ async raw(c,to=3000){
+  E.buf="";const p=new Promise(res=>{E.wait=res;setTimeout(()=>{if(E.wait===res){E.wait=null;res(E.buf)}},to)});
+  await E.tx.writeValueWithoutResponse(new TextEncoder().encode(c+"\r"));
+  return (await p).replace(/\r/g,"\n").replace(/>/g,"").trim();
+ },
+ async setEcu(ecu){if(E.cur!==ecu){const r=await E.raw("ATSH18DA"+ecu+"F1");if(!r.includes("OK"))throw new Error("ATSH "+r);E.cur=ecu}},
+ parse(r,ecu,cmd){
+  const pre="18DAF1"+ecu;let fr=null;
+  for(const l of r.split("\n")){const t=l.trim().replace(/ /g,"");if(t.startsWith(pre)&&/^[0-9A-F]+$/.test(t)){fr=t.slice(pre.length);break}}
+  if(!fr||fr[0]!=="0")return null;
+  const n=parseInt(fr[1],16);const hex=fr.slice(2,2+2*n);const b=[];for(let i=0;i<hex.length;i+=2)b.push(parseInt(hex.slice(i,i+2),16));
+  if(b[0]===0x7F)return null;
+  const sid=parseInt(cmd.slice(0,2),16);if(b[0]!==sid+0x40)return null;
+  return b.slice(sid===1?2:3);
+ },
+ async connect(){
+  setStatus("ricerca adattatore...");
+  E.dev=await navigator.bluetooth.requestDevice({filters:[{namePrefix:"IOS-Vlink"},{namePrefix:"V-LINK"},{services:[SVC]}],optionalServices:[SVC]});
+  E.dev.addEventListener("gattserverdisconnected",()=>{S.connected=false;setStatus("scollegato, riprovo...");setTimeout(()=>E.reconnect(),2500)});
+  await E.open();
+ },
+ async open(){
+  const srv=await E.dev.gatt.connect();const s=await srv.getPrimaryService(SVC);
+  const rx=await s.getCharacteristic(RX);E.tx=await s.getCharacteristic(TX);
+  await rx.startNotifications();rx.addEventListener("characteristicvaluechanged",E.onData);
+  setStatus("inizializzo...");E.cur=null;
+  for(const c of["ATZ","ATE0","ATL0","ATH1","ATS0","ATSP7","ATST20"])await E.raw(c,5000);
+  S.connected=true;setStatus("collegato");$("dot").classList.add("on");poll();
+ },
+ async reconnect(){if(S.connected||!E.dev)return;try{await E.open()}catch(e){setStatus("riprovo...");setTimeout(()=>E.reconnect(),3000)}}
+};
+
+let cycle=0,polling=false;
+async function poll(){
+ if(polling)return;polling=true;
+ while(S.connected){
+  cycle++;
+  const act=SENS.filter(s=>cycle%s.every===0).sort((a,b)=>a.ecu.localeCompare(b.ecu));
+  for(const s of act){
+   if(!S.connected)break;
+   try{await E.setEcu(s.ecu);const r=await E.raw(s.cmd,2500);const d=E.parse(r,s.ecu,s.cmd);if(d&&d.length)S.v[s.id]=s.f(d)}catch(e){if(!S.connected)break}
+  }
+  tick();render();
+ }
+ polling=false;$("dot").classList.remove("on");
+}
+
+/* ---------- calcoli di viaggio ---------- */
+function tick(){
+ const now=performance.now();let dt=(now-S.last)/1000;S.last=now;if(dt>3)dt=3;
+ const v=S.v,t=S.trip,ft=v.ftype,spd=v.speed||0;
+ if(v.level!=null&&(ft===9||ft===12))S.lvl[ft]=v.level;
+ t.time+=dt;
+ const mov=spd>2;
+ if(mov){t.movTime+=dt;if((v.rpm||0)<1)t.evTime+=dt;}
+ const km=spd*dt/3600;t.dist+=km;
+ if(ft===9||ft===12){t.km[ft]+=km;t.lit[ft]+=(v.frate||0)*dt/3600}
+ if(S.rec){S.rows.push([Date.now()/1000,...SENS.map(s=>v[s.id]??"")])}
+}
+
+/* ---------- grafica ---------- */
+function arc(svgId,val,min,max,color,w,h,rad,thick){
+ const cx=w/2,cy=h-14,a0=Math.PI*1.0,a1=Math.PI*2.0;
+ const f=Math.max(0,Math.min(1,(val-min)/(max-min)));
+ const pt=(a)=>[cx+rad*Math.cos(a),cy+rad*Math.sin(a)];
+ const [x0,y0]=pt(a0),[x1,y1]=pt(a1),[xv,yv]=pt(a0+(a1-a0)*f);
+ $(svgId).innerHTML=`<path d="M${x0} ${y0}A${rad} ${rad} 0 0 1 ${x1} ${y1}" stroke="#18212c" stroke-width="${thick}" fill="none" stroke-linecap="round"/>`+
+  (f>0.005?`<path d="M${x0} ${y0}A${rad} ${rad} 0 0 1 ${xv} ${yv}" stroke="${color}" stroke-width="${thick}" fill="none" stroke-linecap="round"/>`:"");
+}
+const gmPts=[];
+function drawG(){
+ const c=$("gm"),x=c.getContext("2d"),w=c.width,h=c.height,cx=w/2,cy=h/2;x.clearRect(0,0,w,h);
+ x.strokeStyle="#263140";x.lineWidth=1.5;
+ for(const r of[40,80,115]){x.beginPath();x.arc(cx,cy,r,0,7);x.stroke()}
+ x.beginPath();x.moveTo(8,cy);x.lineTo(w-8,cy);x.moveTo(cx,8);x.lineTo(cx,h-8);x.stroke();
+ const sc=115/25;
+ gmPts.forEach((p,i)=>{x.fillStyle=`rgba(88,166,255,${(i+1)/gmPts.length*0.5})`;x.beginPath();x.arc(cx+p[0]*sc,cy-p[1]*sc,5,0,7);x.fill()});
+ const p=gmPts[gmPts.length-1];if(p){x.fillStyle="#58a6ff";x.beginPath();x.arc(cx+p[0]*sc,cy-p[1]*sc,10,0,7);x.fill()}
+}
+function chip(id,txt,cls){const e=$(id);e.textContent=txt;e.className="chip "+cls}
+const f1=(x,d=0)=>x==null?"–":x.toFixed(d);
+function setV(id,x,unit,d=0){$(id).innerHTML=(x==null?"–":x.toFixed(d))+"<small>"+unit+"</small>"}
+const fmtT=s=>{s=Math.floor(s);const h=Math.floor(s/3600),m=Math.floor(s%3600/60);return (h?h+"h ":"")+m+"m "+(s%60)+"s"};
+function render(){
+ const v=S.v,t=S.trip;
+ $("speed").textContent=v.speed==null?"–":Math.round(v.speed);
+ arc("spdSvg",v.speed||0,0,160,"#58a6ff",230,150,100,16);
+ chip("mode",MODES[v.mode]||(v.mode==null?"–":"?"+v.mode),"p");
+ chip("gear",GEARS[v.gear]||(v.gear==null?"–":"?"+v.gear),"b");
+ if(v.rpm!=null&&v.speed!=null){const ev=v.rpm<1;chip("ev",ev?(v.speed>2?"EV":"spento"):"TERMICO",ev?"g":"o")}
+ setV("rpm",v.rpm,"rpm");
+ const act=v.ftype;
+ $("gplChip").className="chip o"+(act===12?"":" dim");$("benChip").className="chip b"+(act===9?"":" dim");
+ const gl=S.lvl[12],bl=S.lvl[9];
+ $("gplV").innerHTML=(gl==null?"–":gl.toFixed(0))+"<small>%</small>";$("benV").innerHTML=(bl==null?"–":bl.toFixed(0))+"<small>%</small>";
+ $("gplBar").style.width=(gl||0)+"%";$("benBar").style.width=(bl||0)+"%";
+ $("gplV").style.opacity=act===12?1:.55;$("benV").style.opacity=act===9?1:.55;
+ $("fuelNote").textContent=act===12?"attivo: GPL · benzina = ultimo valore noto":act===9?"attivo: benzina · GPL = ultimo valore noto":"";
+ setV("pedal",v.pedal,"%");$("pedalBar").style.width=(v.pedal||0)+"%";
+ setV("frate",v.frate,"L/h",1);
+ // energia
+ arc("socSvg",v.soc||0,0,100,v.soc<20?"#f85149":"#3fb950",200,130,85,16);
+ setV("soc",v.soc,"%");setV("v48",v.v48,"V",1);setV("t48",v.t48,"°C");setV("v12",v.v12,"V",1);
+ setV("rail",v.rail,"bar");setV("cool",v.cool,"°C");setV("oil",v.oil,"°C");setV("amb",v.amb,"°C");
+ const alt=S.gps.alt;setV("alt",alt,"m");setV("alt2",alt,"m");
+ // dinamica
+ if(v.alat!=null&&v.alon!=null){gmPts.push([v.alat,v.alon]);if(gmPts.length>25)gmPts.shift();drawG();$("alat").textContent=Math.round(v.alat);$("alon").textContent=Math.round(v.alon)}
+ chip("esc",v.esc==null?"–":(v.esc===170?"SPENTO":"attivo"),v.esc===170?"r":"g");
+ chip("hdc",v.hdc==null?"–":(v.hdc?"ATTIVO":"off"),v.hdc?"o":"");
+ chip("park",v.park==null?"–":(v.park?"INSERITO":"libero"),v.park?"r":"");
+ $("awd").textContent=v.awd==null?"–":v.awd;$("awdBar").style.width=((v.awd||0)/5*100)+"%";
+ setV("gspd",S.gps.spd,"km/h");
+ // viaggio
+ $("tDist").textContent=t.dist.toFixed(2)+" km";$("tTime").textContent=fmtT(t.time);
+ $("tEv").textContent=t.movTime>0?(100*t.evTime/t.movTime).toFixed(0)+"%":"–";
+ for(const [k,id] of[[9,"tBen"],[12,"tGpl"]]){const km=t.km[k],l=t.lit[k];$(id).textContent=km.toFixed(1)+" · "+l.toFixed(2)+" · "+(km>0.3?(100*l/km).toFixed(1):"–")}
+ $("tRec").textContent=S.rec?("in corso, "+S.rows.length+" righe"):"ferma";
+}
+
+function setStatus(s){$("st").textContent=s}
+
+/* ---------- UI ---------- */
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>showPage(+b.dataset.p));
+function showPage(i){document.querySelectorAll(".page").forEach((p,k)=>p.classList.toggle("on",k===i));document.querySelectorAll("nav button").forEach((b,k)=>b.classList.toggle("on",k===i));window._pg=i}
+let tx0=null;document.addEventListener("touchstart",e=>{tx0=e.touches[0].clientX},{passive:true});
+document.addEventListener("touchend",e=>{if(tx0==null)return;const dx=e.changedTouches[0].clientX-tx0;tx0=null;if(Math.abs(dx)>80){const i=(window._pg||0)+(dx<0?1:-1);if(i>=0&&i<4)showPage(i)}},{passive:true});
+
+$("conn").onclick=async()=>{
+ try{
+  if(!("bluetooth" in navigator)){setStatus("Web Bluetooth non disponibile: apri in Bluefy");return}
+  startGps();wake();await E.connect();
+ }catch(e){setStatus("errore: "+e.message)}
+};
+$("rst").onclick=()=>{S.trip={dist:0,time:0,evTime:0,movTime:0,lit:{9:0,12:0},km:{9:0,12:0}};render()};
+$("rec").onclick=()=>{S.rec=!S.rec;if(S.rec)S.rows=[];$("rec").textContent=S.rec?"Ferma":"Registra"};
+$("sav").onclick=async()=>{
+ const head=["time",...SENS.map(s=>s.id)].join(",");const csv=head+"\n"+S.rows.map(r=>r.join(",")).join("\n");
+ const name="bigster_"+new Date().toISOString().slice(0,19).replace(/[:T]/g,"-")+".csv";
+ const file=new File([csv],name,{type:"text/csv"});
+ try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:name});return}}catch(e){}
+ const a=document.createElement("a");a.href=URL.createObjectURL(file);a.download=name;a.click();
+};
+function startGps(){if(!navigator.geolocation||S.gpsOn)return;S.gpsOn=true;navigator.geolocation.watchPosition(p=>{S.gps.alt=p.coords.altitude;S.gps.spd=p.coords.speed!=null?p.coords.speed*3.6:null},()=>{},{enableHighAccuracy:true,maximumAge:1000})}
+async function wake(){try{if(navigator.wakeLock)await navigator.wakeLock.request("screen")}catch(e){}}
+
+/* ---------- demo ---------- */
+$("demo").onclick=()=>{
+ if(S.demo){location.reload();return}
+ S.demo=true;$("demo").textContent="Esci demo";setStatus("DEMO (dati simulati)");$("dot").classList.add("on");
+ let t=0;setInterval(()=>{
+  t+=0.5;const sp=Math.max(0,60+50*Math.sin(t/8));const ev=sp<25||Math.sin(t/20)>0.6;
+  Object.assign(S.v,{speed:sp,rpm:ev?0:1200+sp*18,pedal:20+15*Math.sin(t/3),frate:ev?0:2+sp/12,mode:[1,3,4,7,5][Math.floor(t/30)%5],gear:4,ftype:Math.sin(t/60)>0?12:9,level:Math.sin(t/60)>0?33:82,
+   awd:[0,1,3,5,5][Math.floor(t/30)%5],esc:174,hdc:0,park:0,soc:50+25*Math.sin(t/25),v48:46+Math.sin(t/25),t48:25,v12:14.3,cool:80,oil:75,rail:250,amb:6,alat:127*0+8*Math.sin(t/4),alon:12*Math.sin(t/6)});
+  S.gps.alt=1540+10*Math.sin(t/30);S.gps.spd=sp;tick();render()},500);
+};
+render();drawG();
+</script>
+</body>
+</html>
