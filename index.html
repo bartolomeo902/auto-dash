@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Bigster v2</title>
+<title>Bigster v3</title>
 <style>
 :root{--bg:#07090d;--card:#111720;--card2:#18212c;--line:#263140;--fg:#eaf0f6;--mut:#7d8a9b;--g:#3fb950;--b:#58a6ff;--o:#e3a008;--r:#f85149;--p:#a371f7}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -45,9 +45,9 @@ canvas{display:block;margin:0 auto;max-width:100%}
 </head>
 <body>
 <header>
-  <span id="dot"></span><span id="st">v2 · non collegato</span>
+  <span id="dot"></span><span id="st">v3 · non collegato</span>
   <button id="demo">Demo</button>
-  <button class="pri" id="conn">Collega</button>
+  <button class="pri" id="conn">Collega</button><button id="conn2">Tutti</button>
 </header>
 <main>
 
@@ -160,7 +160,7 @@ const S={v:{},lvl:{9:null,12:null},gps:{alt:null,spd:null},
  rec:false,rows:[],connected:false,demo:false};
 
 /* ---------- Bluetooth ELM ---------- */
-const SVC=0x18f0,RX=0x2af0,TX=0x2af1;
+const SVC="000018f0-0000-1000-8000-00805f9b34fb",RX="00002af0-0000-1000-8000-00805f9b34fb",TX="00002af1-0000-1000-8000-00805f9b34fb";
 const E={dev:null,tx:null,buf:"",wait:null,cur:null,
  onData(ev){E.buf+=new TextDecoder().decode(ev.target.value.buffer);if(E.buf.includes(">")&&E.wait){const w=E.wait;E.wait=null;w(E.buf)}},
  async raw(c,to=3000){
@@ -178,23 +178,24 @@ const E={dev:null,tx:null,buf:"",wait:null,cur:null,
   const sid=parseInt(cmd.slice(0,2),16);if(b[0]!==sid+0x40)return null;
   return b.slice(sid===1?2:3);
  },
- async connect(){
+ async connect(all){
   setStatus("ricerca adattatore...");
-  try{
-   E.dev=await navigator.bluetooth.requestDevice({filters:[{namePrefix:"IOS-Vlink"},{namePrefix:"V-LINK"},{services:[SVC]}],optionalServices:[SVC]});
-  }catch(e){
-   dlog("filtro: "+(e&&e.name)+" "+(e&&e.message));
-   if(e&&e.name==="NotFoundError"&&/cancel|chosen/i.test(e.message||""))throw e;
+  const describe=e=>e===undefined?"undefined":(e&&(e.name||"")+" "+(e.message||"")).trim()||String(e);
+  if(all){
+   dlog("richiesta: tutti i dispositivi");
    E.dev=await navigator.bluetooth.requestDevice({acceptAllDevices:true,optionalServices:[SVC]});
+  }else{
+   dlog("richiesta: filtro nome/servizio");
+   E.dev=await navigator.bluetooth.requestDevice({filters:[{namePrefix:"IOS-Vlink"},{services:[SVC]}],optionalServices:[SVC]});
   }
   dlog("scelto: "+E.dev.name);
   E.dev.addEventListener("gattserverdisconnected",()=>{S.connected=false;setStatus("scollegato, riprovo...");setTimeout(()=>E.reconnect(),2500)});
   await E.open();
  },
  async open(){
-  const srv=await E.dev.gatt.connect();const s=await srv.getPrimaryService(SVC);
+  dlog("connessione GATT...");const srv=await E.dev.gatt.connect();dlog("GATT ok, servizio...");const s=await srv.getPrimaryService(SVC);dlog("servizio ok");
   const rx=await s.getCharacteristic(RX);E.tx=await s.getCharacteristic(TX);
-  await rx.startNotifications();rx.addEventListener("characteristicvaluechanged",E.onData);
+  await rx.startNotifications();rx.addEventListener("characteristicvaluechanged",E.onData);dlog("notifiche ok");
   setStatus("inizializzo...");E.cur=null;
   for(const c of["ATZ","ATE0","ATL0","ATH1","ATS0","ATSP7","ATST20"])await E.raw(c,5000);
   S.connected=true;setStatus("collegato");$("dot").classList.add("on");poll();
@@ -301,15 +302,20 @@ function showPage(i){document.querySelectorAll(".page").forEach((p,k)=>p.classLi
 let tx0=null;document.addEventListener("touchstart",e=>{tx0=e.touches[0].clientX},{passive:true});
 document.addEventListener("touchend",e=>{if(tx0==null)return;const dx=e.changedTouches[0].clientX-tx0;tx0=null;if(Math.abs(dx)>80){const i=(window._pg||0)+(dx<0?1:-1);if(i>=0&&i<4)showPage(i)}},{passive:true});
 
-$("conn").onclick=async()=>{
+async function doConnect(all){
  setStatus("tocco ricevuto");
  dlog("sicuro="+window.isSecureContext+" bluetooth="+("bluetooth" in navigator)+" geo="+("geolocation" in navigator));
  try{
   if(!("bluetooth" in navigator)){setStatus("Web Bluetooth non disponibile: apri la pagina in Bluefy");return}
-  await E.connect();
+  await E.connect(all);
   startGps();wake();
- }catch(e){setStatus("errore: "+(e&&e.name?e.name+" · ":"")+(e&&e.message||e))}
-};
+ }catch(e){
+  const m=e===undefined?"rifiutato (nessun dettaglio): scelta annullata o permesso negato":((e&&e.name?e.name+" · ":"")+(e&&e.message||e));
+  setStatus("errore: "+m);
+ }
+}
+$("conn").onclick=()=>doConnect(false);
+$("conn2").onclick=()=>doConnect(true);
 $("rst").onclick=()=>{S.trip={dist:0,time:0,evTime:0,movTime:0,lit:{9:0,12:0},km:{9:0,12:0}};render()};
 $("rec").onclick=()=>{S.rec=!S.rec;if(S.rec)S.rows=[];$("rec").textContent=S.rec?"Ferma":"Registra"};
 $("sav").onclick=async()=>{
