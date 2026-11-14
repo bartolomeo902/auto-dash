@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Bigster</title>
+<title>Bigster v2</title>
 <style>
 :root{--bg:#07090d;--card:#111720;--card2:#18212c;--line:#263140;--fg:#eaf0f6;--mut:#7d8a9b;--g:#3fb950;--b:#58a6ff;--o:#e3a008;--r:#f85149;--p:#a371f7}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -45,7 +45,7 @@ canvas{display:block;margin:0 auto;max-width:100%}
 </head>
 <body>
 <header>
-  <span id="dot"></span><span id="st">non collegato</span>
+  <span id="dot"></span><span id="st">v2 · non collegato</span>
   <button id="demo">Demo</button>
   <button class="pri" id="conn">Collega</button>
 </header>
@@ -111,6 +111,7 @@ canvas{display:block;margin:0 auto;max-width:100%}
       <tr><td>Registrazione</td><td id="tRec">ferma</td></tr>
     </table>
   </div>
+<div class="card spanall"><div class="lab">Diagnostica</div><pre id="dbg" style="white-space:pre-wrap;font-size:12px;color:#9fb0c3;margin:6px 0 0"></pre></div>
 </section>
 
 </main>
@@ -179,7 +180,14 @@ const E={dev:null,tx:null,buf:"",wait:null,cur:null,
  },
  async connect(){
   setStatus("ricerca adattatore...");
-  E.dev=await navigator.bluetooth.requestDevice({filters:[{namePrefix:"IOS-Vlink"},{namePrefix:"V-LINK"},{services:[SVC]}],optionalServices:[SVC]});
+  try{
+   E.dev=await navigator.bluetooth.requestDevice({filters:[{namePrefix:"IOS-Vlink"},{namePrefix:"V-LINK"},{services:[SVC]}],optionalServices:[SVC]});
+  }catch(e){
+   dlog("filtro: "+(e&&e.name)+" "+(e&&e.message));
+   if(e&&e.name==="NotFoundError"&&/cancel|chosen/i.test(e.message||""))throw e;
+   E.dev=await navigator.bluetooth.requestDevice({acceptAllDevices:true,optionalServices:[SVC]});
+  }
+  dlog("scelto: "+E.dev.name);
   E.dev.addEventListener("gattserverdisconnected",()=>{S.connected=false;setStatus("scollegato, riprovo...");setTimeout(()=>E.reconnect(),2500)});
   await E.open();
  },
@@ -281,7 +289,11 @@ function render(){
  $("tRec").textContent=S.rec?("in corso, "+S.rows.length+" righe"):"ferma";
 }
 
-function setStatus(s){$("st").textContent=s}
+const LOGS=[];
+function dlog(m){LOGS.push(new Date().toLocaleTimeString()+" "+m);if(LOGS.length>60)LOGS.shift();const e=$("dbg");if(e)e.textContent=LOGS.join("\n")}
+function setStatus(s){$("st").textContent=s;dlog(s)}
+window.addEventListener("error",e=>setStatus("errore JS: "+e.message));
+window.addEventListener("unhandledrejection",e=>setStatus("errore: "+(e.reason&&e.reason.message||e.reason)));
 
 /* ---------- UI ---------- */
 document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>showPage(+b.dataset.p));
@@ -290,10 +302,13 @@ let tx0=null;document.addEventListener("touchstart",e=>{tx0=e.touches[0].clientX
 document.addEventListener("touchend",e=>{if(tx0==null)return;const dx=e.changedTouches[0].clientX-tx0;tx0=null;if(Math.abs(dx)>80){const i=(window._pg||0)+(dx<0?1:-1);if(i>=0&&i<4)showPage(i)}},{passive:true});
 
 $("conn").onclick=async()=>{
+ setStatus("tocco ricevuto");
+ dlog("sicuro="+window.isSecureContext+" bluetooth="+("bluetooth" in navigator)+" geo="+("geolocation" in navigator));
  try{
-  if(!("bluetooth" in navigator)){setStatus("Web Bluetooth non disponibile: apri in Bluefy");return}
-  startGps();wake();await E.connect();
- }catch(e){setStatus("errore: "+e.message)}
+  if(!("bluetooth" in navigator)){setStatus("Web Bluetooth non disponibile: apri la pagina in Bluefy");return}
+  await E.connect();
+  startGps();wake();
+ }catch(e){setStatus("errore: "+(e&&e.name?e.name+" · ":"")+(e&&e.message||e))}
 };
 $("rst").onclick=()=>{S.trip={dist:0,time:0,evTime:0,movTime:0,lit:{9:0,12:0},km:{9:0,12:0}};render()};
 $("rec").onclick=()=>{S.rec=!S.rec;if(S.rec)S.rows=[];$("rec").textContent=S.rec?"Ferma":"Registra"};
