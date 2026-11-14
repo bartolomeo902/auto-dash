@@ -65,6 +65,12 @@ main{flex:1;position:relative;overflow:hidden}
 .th{display:flex;justify-content:space-around;align-items:flex-end;gap:4px}
 .th div{text-align:center;font-size:11px;color:var(--mut);letter-spacing:.06em;text-transform:uppercase}
 .th b{display:block;font-size:22px;color:var(--fg);font-variant-numeric:tabular-nums;margin-top:2px}
+.th>div{flex:1;min-width:0}
+.zbar{position:relative;margin:8px auto 4px;width:100%;max-width:66px;height:7px}
+.zb{display:flex;height:100%;border-radius:4px;overflow:hidden}.zb i{display:block;height:100%}
+.zbar .mk{position:absolute;top:-3px;bottom:-3px;width:3px;margin-left:-1.5px;background:var(--fg);border-radius:2px;box-shadow:0 0 0 1.5px var(--card)}
+.zs{display:block;font-style:normal;font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;margin:2px 0 3px}
+.zs.b{color:var(--b)}.zs.g{color:var(--g)}.zs.o{color:var(--o)}.zs.r{color:var(--r)}
 .kd{display:inline-block;margin-left:8px;border-radius:8px;padding:2px 10px;font-size:13px;font-weight:800;background:var(--r);color:#fff;visibility:hidden}
 .kd.on{visibility:visible;animation:bl .5s infinite alternate}
 @keyframes bl{from{opacity:1}to{opacity:.45}}
@@ -211,28 +217,49 @@ const PROFILES=[
 
 /* ---------- cifratura e utenti ---------- */
 const Auth={
- enc:new TextEncoder(),dec:new TextDecoder(),
- async key(pw,salt){const m=await crypto.subtle.importKey("raw",Auth.enc.encode(pw),"PBKDF2",false,["deriveKey"]);return crypto.subtle.deriveKey({name:"PBKDF2",salt,iterations:150000,hash:"SHA-256"},m,{name:"AES-GCM",length:256},false,["encrypt","decrypt"])},
- async seal(key,obj){const iv=crypto.getRandomValues(new Uint8Array(12));const ct=new Uint8Array(await crypto.subtle.encrypt({name:"AES-GCM",iv},key,Auth.enc.encode(JSON.stringify(obj))));return{iv:b64(iv),ct:b64(ct)}},
- async open(key,box){const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:unb64(box.iv)},key,unb64(box.ct));return JSON.parse(Auth.dec.decode(pt))},
+ enc:new TextEncoder(),dec:new TextDecoder(),cur:null,
  users:()=>lsGet("ad.users",[]),
- cur:null,
+ B32:"0123456789ABCDEFGHJKMNPQRSTVWXYZ",
+ async kdf(secret,salt){const m=await crypto.subtle.importKey("raw",Auth.enc.encode(secret),"PBKDF2",false,["deriveKey"]);return crypto.subtle.deriveKey({name:"PBKDF2",salt,iterations:150000,hash:"SHA-256"},m,{name:"AES-GCM",length:256},false,["encrypt","decrypt"])},
+ async sealRaw(key,u8){const iv=crypto.getRandomValues(new Uint8Array(12));return{iv:b64(iv),ct:b64(new Uint8Array(await crypto.subtle.encrypt({name:"AES-GCM",iv},key,u8)))}},
+ async openRaw(key,box){return new Uint8Array(await crypto.subtle.decrypt({name:"AES-GCM",iv:unb64(box.iv)},key,unb64(box.ct)))},
+ async seal(key,obj){return Auth.sealRaw(key,Auth.enc.encode(JSON.stringify(obj)))},
+ async open(key,box){return JSON.parse(Auth.dec.decode(await Auth.openRaw(key,box)))},
+ async dekKey(raw){return crypto.subtle.importKey("raw",raw,"AES-GCM",false,["encrypt","decrypt"])},
+ newRecovery(){const by=crypto.getRandomValues(new Uint8Array(20));let bits=0,val=0,out="";for(const x of by){val=(val<<8)|x;bits+=8;while(bits>=5){out+=Auth.B32[(val>>>(bits-5))&31];bits-=5}}return out.match(/.{1,4}/g).join("-")},
+ norm:s=>String(s||"").toUpperCase().replace(/[^0-9A-Z]/g,"").replace(/O/g,"0").replace(/[IL]/g,"1"),
+ async wrapFor(secret,raw){const salt=crypto.getRandomValues(new Uint8Array(16));const kek=await Auth.kdf(secret,salt);return{salt:b64(salt),box:await Auth.sealRaw(kek,raw)}},
+ async unwrapWith(secret,w){const kek=await Auth.kdf(secret,unb64(w.salt));return Auth.openRaw(kek,w.box)},
+ async _persist(u){const us=Auth.users().map(x=>x.id===u.id?u:x);lsSet("ad.users",us)},
  async create(name,pw){
   name=name.trim();if(!name)throw new Error("Nome mancante");if(pw.length<4)throw new Error("Password: almeno 4 caratteri");
   const us=Auth.users();if(us.some(u=>u.name.toLowerCase()===name.toLowerCase()))throw new Error("Nome già usato");
-  const id="u"+T().toString(36),salt=crypto.getRandomValues(new Uint8Array(16));const key=await Auth.key(pw,salt);
-  const data=defaultPrefs();const check=await Auth.seal(key,{ok:1});
-  us.push({id,name,salt:b64(salt),check});lsSet("ad.users",us);lsSet("ad.d."+id,await Auth.seal(key,data));
-  Auth.cur={id,name,key,guest:false};return data},
+  const id="u"+T().toString(36),raw=crypto.getRandomValues(new Uint8Array(32)),dek=await Auth.dekKey(raw),rec=Auth.newRecovery();
+  const u={id,name,v:2,pw:await Auth.wrapFor(pw,raw),rec:await Auth.wrapFor(Auth.norm(rec),raw)};
+  const data=defaultPrefs();us.push(u);lsSet("ad.users",us);lsSet("ad.d."+id,await Auth.seal(dek,data));
+  Auth.cur={id,name,dek,raw,guest:false,recovery:rec};return data},
  async login(id,pw){
   const u=Auth.users().find(x=>x.id===id);if(!u)throw new Error("Utente non trovato");
-  const key=await Auth.key(pw,unb64(u.salt));
-  try{await Auth.open(key,u.check)}catch(e){throw new Error("Password errata")}
-  const box=lsGet("ad.d."+id,null);const data=box?await Auth.open(key,box):defaultPrefs();
-  Auth.cur={id,name:u.name,key,guest:false};return data},
- guest(){Auth.cur={id:"guest",name:"Ospite",key:null,guest:true};return Object.assign(defaultPrefs(),lsGet("ad.guest",{}))},
- async save(){if(!Auth.cur)return;if(Auth.cur.guest){lsSet("ad.guest",U);return}lsSet("ad.d."+Auth.cur.id,await Auth.seal(Auth.cur.key,U))},
- async changePw(old,nw){const u=Auth.users().find(x=>x.id===Auth.cur.id);const ok=await Auth.key(old,unb64(u.salt)).then(k=>Auth.open(k,u.check)).then(()=>true,()=>false);if(!ok)throw new Error("Password attuale errata");if(nw.length<4)throw new Error("Password: almeno 4 caratteri");const salt=crypto.getRandomValues(new Uint8Array(16));const key=await Auth.key(nw,salt);u.salt=b64(salt);u.check=await Auth.seal(key,{ok:1});const us=Auth.users().map(x=>x.id===u.id?u:x);lsSet("ad.users",us);Auth.cur.key=key;await Auth.save()},
+  if(!u.v){ // formato v6 iniziale: chiave derivata direttamente dalla password -> migrazione
+   const key=await Auth.kdf(pw,unb64(u.salt));try{await Auth.open(key,u.check)}catch(e){throw new Error("Password errata")}
+   const box=lsGet("ad.d."+id,null);const data=box?await Auth.open(key,box):defaultPrefs();
+   const raw=crypto.getRandomValues(new Uint8Array(32)),dek=await Auth.dekKey(raw),rec=Auth.newRecovery();
+   const nu={id:u.id,name:u.name,v:2,pw:await Auth.wrapFor(pw,raw),rec:await Auth.wrapFor(Auth.norm(rec),raw)};
+   lsSet("ad.d."+id,await Auth.seal(dek,data));await Auth._persist(nu);
+   Auth.cur={id,name:u.name,dek,raw,guest:false,recovery:rec};return data}
+  let raw;try{raw=await Auth.unwrapWith(pw,u.pw)}catch(e){throw new Error("Password errata")}
+  const dek=await Auth.dekKey(raw);const box=lsGet("ad.d."+id,null);const data=box?await Auth.open(dek,box):defaultPrefs();
+  Auth.cur={id,name:u.name,dek,raw,guest:false};return data},
+ guest(){Auth.cur={id:"guest",name:"Ospite",dek:null,guest:true};return Object.assign(defaultPrefs(),lsGet("ad.guest",{}))},
+ async save(){if(!Auth.cur)return;if(Auth.cur.guest){lsSet("ad.guest",U);return}lsSet("ad.d."+Auth.cur.id,await Auth.seal(Auth.cur.dek,U))},
+ async changePw(old,nw){const u=Auth.users().find(x=>x.id===Auth.cur.id);let raw;try{raw=await Auth.unwrapWith(old,u.pw)}catch(e){throw new Error("Password attuale errata")}if(nw.length<4)throw new Error("Password: almeno 4 caratteri");u.pw=await Auth.wrapFor(nw,raw);await Auth._persist(u)},
+ async recover(id,recKey,nw){
+  const u=Auth.users().find(x=>x.id===id);if(!u||!u.v)throw new Error("Per questo utente non esiste una chiave di recupero");if(nw.length<4)throw new Error("Password: almeno 4 caratteri");
+  let raw;try{raw=await Auth.unwrapWith(Auth.norm(recKey),u.rec)}catch(e){throw new Error("Chiave di recupero non valida")}
+  const rec=Auth.newRecovery();u.pw=await Auth.wrapFor(nw,raw);u.rec=await Auth.wrapFor(Auth.norm(rec),raw);await Auth._persist(u);
+  const dek=await Auth.dekKey(raw);const box=lsGet("ad.d."+id,null);const data=box?await Auth.open(dek,box):defaultPrefs();
+  Auth.cur={id,name:u.name,dek,raw,guest:false,recovery:rec};return data},
+ async newRecoveryKey(pw){const u=Auth.users().find(x=>x.id===Auth.cur.id);let raw;try{raw=await Auth.unwrapWith(pw,u.pw)}catch(e){throw new Error("Password errata")}const rec=Auth.newRecovery();u.rec=await Auth.wrapFor(Auth.norm(rec),raw);await Auth._persist(u);return rec},
  remove(id){lsSet("ad.users",Auth.users().filter(u=>u.id!==id));try{localStorage.removeItem("ad.d."+id)}catch(e){}},
 };
 function defaultPrefs(){return{vehicle:"dacia-bigster-hg150",theme:"auto",sound:true,alertsOn:true,lockMin:0,prices:{},lvl:{},trips:{},custom:[],kd:86}}
@@ -379,7 +406,17 @@ const Alerts={active:new Map(),audio:null,
  beep(){try{const A=window.AudioContext||window.webkitAudioContext;if(!A)return;Alerts.audio=Alerts.audio||new A();const o=Alerts.audio.createOscillator(),g=Alerts.audio.createGain();o.connect(g);g.connect(Alerts.audio.destination);o.frequency.value=880;g.gain.value=.12;o.start();o.stop(Alerts.audio.currentTime+.25)}catch(e){}}};
 
 /* ---------- widget ---------- */
-const COLORS={cool:[[0,"#4aa3ff"],[60,"#4aa3ff"],[80,"#34d058"],[100,"#34d058"],[108,"#f2a516"],[118,"#ff5d52"]],oil:[[0,"#4aa3ff"],[50,"#4aa3ff"],[80,"#34d058"],[115,"#34d058"],[125,"#f2a516"],[138,"#ff5d52"]],t48:[[0,"#4aa3ff"],[12,"#4aa3ff"],[20,"#34d058"],[40,"#34d058"],[47,"#f2a516"],[56,"#ff5d52"]],amb:[[-15,"#a78bfa"],[0,"#4aa3ff"],[15,"#34d058"],[28,"#f2a516"],[38,"#ff5d52"]],iat:[[-20,"#4aa3ff"],[20,"#34d058"],[45,"#f2a516"],[70,"#ff5d52"]]};
+const TH=[
+ {id:"cool",name:"Acqua",min:0,max:130,a:75,b:100,hot:108},
+ {id:"oil",name:"Olio",min:0,max:150,a:80,b:115,hot:130},
+ {id:"t48",name:"Batt.",min:0,max:60,a:12,b:40,hot:50},
+ {id:"iat",name:"Aspir.",min:-20,max:90,a:5,b:45,hot:65},
+ {id:"amb",name:"Esterna",min:-15,max:45,a:3,b:28,hot:36},
+];
+const tStops=c=>[[c.min,"#3b82f6"],[c.a,"#3b82f6"],[c.a+(c.b-c.a)*.12,"#34d058"],[c.b,"#34d058"],[c.b+(c.hot-c.b)*.4,"#facc15"],[c.b+(c.hot-c.b)*.75,"#fb923c"],[c.hot,"#ef4444"],[c.max,"#dc2626"]];
+const tState=(c,v)=>v==null?["–",""]:v<c.a?["bassa","b"]:v<=c.b?["ideale","g"]:v<c.hot?["alta","o"]:["critica","r"];
+const zbarHTML=(c,v)=>{const R=c.max-c.min,p=x=>(x-c.min)/R*100;const m=v==null?null:clamp(p(v),0,100);
+ return`<div class="zbar"><div class="zb"><i style="width:${p(c.a)}%;background:#3b82f6"></i><i style="width:${p(c.b)-p(c.a)}%;background:#34d058"></i><i style="width:${p(c.hot)-p(c.b)}%;background:linear-gradient(90deg,#facc15,#fb923c)"></i><i style="width:${100-p(c.hot)}%;background:#ef4444"></i></div>${m==null?"":`<span class="mk" style="left:${m}%"></span>`}</div>`};
 const hex2=c=>[1,3,5].map(i=>parseInt(c.slice(i,i+2),16));
 function colorAt(v,st){if(v<=st[0][0])return st[0][1];if(v>=st[st.length-1][0])return st[st.length-1][1];for(let i=0;i<st.length-1;i++){const[a,ca]=st[i],[b,cb]=st[i+1];if(v>=a&&v<=b){const f=(v-a)/(b-a),A=hex2(ca),B=hex2(cb);return"rgb("+A.map((x,k)=>Math.round(x+(B[k]-x)*f)).join(",")+")"}}}
 const any=(...ids)=>ids.some(i=>Veh.has(i));
@@ -433,9 +470,8 @@ const W={
  v12:()=>{const v=h("div",{class:"val"}),i=h("i"),p=h("div",{class:"lab",style:"margin-top:4px"}),chg=h("span",{class:"chip g",style:"font-size:11px;padding:2px 8px;margin-left:4px;visibility:hidden"},"in carica"),cv=h("canvas",{class:"spark",width:200,height:28});
   const root=h("section",{class:"card"},h("div",{class:"lab"},"Batteria 12V",chg),v,h("div",{class:"bar"},i),p,cv);
   return{root,need:["v12"],update(){const x=V("v12");setHTML(v,valHTML(x,"V",1));if(x==null)return;const c=x>13.2;chg.style.visibility=c?"visible":"hidden";const pc=c?clamp((x-13.2)/1.8*100,0,100):clamp((x-11.8)/.9*100,0,100);i.style.width=pc+"%";i.style.background=c?"var(--g)":(pc<30?"var(--r)":"var(--b)");setTxt(p,c?"alternatore/DC-DC attivo":"carica stimata "+Math.round(pc)+"%");sparkDraw(cv,"v12")}}},
- thermos:()=>{const box=h("div",{class:"th"});const root=h("section",{class:"card cAll"},h("div",{class:"lab",style:"margin-bottom:8px"},"Temperature"),box);
-  const ids=[["cool","Acqua",0,120],["oil","Olio",0,140],["t48","Batt.",0,60],["iat","Aspir.",-20,80],["amb","Esterna",-15,40]];
-  return{root,need:["cool","oil","t48","amb","iat"],update(){setHTML(box,ids.filter(([id])=>Veh.has(id)).map(([id,n,mn,mx])=>`<div>${thermoSVG(V(id),mn,mx,COLORS[id])}<b>${V(id)==null?"–":Math.round(V(id))+"°"}</b>${n}</div>`).join(""))}}},
+thermos:()=>{const box=h("div",{class:"th"});const root=h("section",{class:"card cAll"},h("div",{class:"row sp",style:"margin-bottom:8px"},h("div",{class:"lab"},"Temperature"),h("div",{class:"lab",style:"text-transform:none;letter-spacing:0"},"barra: blu bassa · verde ideale · giallo/arancio alta · rosso critica")),box);
+  return{root,need:TH.map(c=>c.id),update(){setHTML(box,TH.filter(c=>Veh.has(c.id)).map(c=>{const v=V(c.id),[txt,cls]=tState(c,v);return`<div>${thermoSVG(v,c.min,c.max,tStops(c))}<b>${v==null?"–":Math.round(v)+"°"}</b><em class="zs ${cls}">${txt}</em>${zbarHTML(c,v)}${c.name}</div>`}).join(""))}}},
  rail:()=>tileW("rail","Rail carburante","bar",0,{spark:true}),
  alt:()=>{const v=h("div",{class:"val"});const root=h("section",{class:"card"},h("div",{class:"lab"},"Quota GPS"),v);return{root,need:[],always:true,update(){setHTML(v,valHTML(GPS.alt,"m"))}}},
  engineCard:()=>{const valve=svg(130,120,""),maf=svg(130,120,"");const thr=h("div",{class:"val"}),thrw=h("div",{class:"lab"}),mv=h("div",{class:"val"}),ld=h("div",{class:"val",style:"font-size:26px"}),lb=h("i");
@@ -521,15 +557,29 @@ function openVehicles(){openSheet("Auto e profili",(body,close)=>{
 function importProfile(close){openSheet("Importa profilo",(body,cl)=>{const ta=h("textarea",{placeholder:'{"id":"mia-auto","name":"La mia auto","proto":"6","ecus":{"ECM":{"h":"7E0","r":"7E8"}},"sensors":[{"id":"speed","ecu":"ECM","cmd":"010D","every":1,"f":"d[0]"}],"fuels":["benzina"]}'});const err=h("div",{class:"sub",style:"color:var(--r)"});
  body.append(ta,err,h("button",{class:"pri",style:"margin-top:10px",onclick:async()=>{try{const p=JSON.parse(ta.value);if(!p.id||!p.name||!Array.isArray(p.sensors)||!p.ecus)throw new Error("Servono id, name, ecus e sensors");p.short=p.short||p.name;p.verified=false;p.fuels=p.fuels||["benzina"];p.proto=p.proto||"0";U.custom=(U.custom||[]).filter(x=>x.id!==p.id);U.custom.push(p);await savePrefs();cl();toast("Profilo importato");if(close)close();openVehicles()}catch(e){err.textContent=e.message}}},"Salva profilo"))})}
 
+function showRecovery(key,why){return new Promise(res=>{openSheet("Chiave di recupero",(body,close)=>{
+ const s=$("#sheet");s._locked=true;const x=body.parentNode.querySelector('button[aria-label="chiudi"]');if(x)x.remove();
+ const chk=h("input",{type:"checkbox",style:"width:auto;min-height:0",id:"recChk"});const go=h("button",{class:"pri",disabled:true,onclick:()=>{s._locked=false;close();res()}},"Continua");
+ chk.addEventListener("change",()=>{go.disabled=!chk.checked});
+ body.append(h("div",{class:"lab",style:"text-transform:none;letter-spacing:0;margin:8px 0"},(why||"")+"Se dimentichi la password, questa chiave è l'unico modo per riavere i tuoi dati. Salvala in un posto sicuro (Note protette, gestore di password). Non verrà più mostrata."),
+  h("div",{class:"item",style:"justify-content:center"},h("code",{id:"recKey",style:"font:700 19px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.08em;text-align:center;word-break:break-all"},key)),
+  h("div",{class:"row",style:"margin-top:12px"},h("button",{onclick:async()=>{try{await navigator.clipboard.writeText(key);toast("Chiave copiata")}catch(e){toast("Copia non riuscita: selezionala a mano")}}},"Copia"),h("button",{onclick:async()=>{try{await navigator.share({title:"Chiave di recupero Auto Dash",text:key})}catch(e){}}},"Condividi")),
+  h("label",{style:"display:flex;gap:10px;align-items:center;text-transform:none;letter-spacing:0;font-size:14px;margin-top:16px;color:var(--fg)"},chk,"Ho salvato la chiave di recupero"),h("div",{style:"margin-top:12px"},go))})})}
+
 function openUserSheet(first){const done=new Promise(res=>{openSheet(first?"Benvenuto":"Utente",(body,close)=>{
  const s=$("#sheet");s._locked=!!first;
  const users=Auth.users();const err=h("div",{class:"sub",style:"color:var(--r);margin-top:8px"});
- const enter=async(fn)=>{try{U=await fn();U=Object.assign(defaultPrefs(),U);s._locked=false;close();await afterLogin();res()}catch(e){err.textContent=e.message}};
+ const enter=async(fn)=>{try{U=await fn();U=Object.assign(defaultPrefs(),U);s._locked=false;close();await afterLogin();res();if(Auth.cur&&Auth.cur.recovery){const k=Auth.cur.recovery;Auth.cur.recovery=null;await showRecovery(k,Auth.cur._why||"")}}catch(e){err.textContent=e.message}};
  const loginBox=()=>{body.replaceChildren();body.append(h("div",{class:"lab",style:"text-transform:none;letter-spacing:0"},"Accedi al tuo profilo: preferenze, prezzi e viaggi sono salvati sul telefono e protetti dalla password."));
   const sel=h("select",null,...users.map(u=>h("option",{value:u.id},u.name)));const pw=h("input",{type:"password",placeholder:"Password",autocomplete:"current-password"});
   const go=()=>enter(()=>Auth.login(sel.value,pw.value));pw.addEventListener("keydown",e=>{if(e.key==="Enter")go()});
-  body.append(h("label",null,"Utente"),sel,h("label",null,"Password"),pw,err,h("div",{class:"row",style:"margin-top:12px"},h("button",{class:"pri",onclick:go},"Accedi"),h("button",{onclick:createBox},"Nuovo utente"),h("button",{onclick:()=>enter(async()=>Auth.guest())},"Ospite")))};
- const createBox=()=>{body.replaceChildren();body.append(h("div",{class:"lab",style:"text-transform:none;letter-spacing:0"},"Crea un profilo utente. Se dimentichi la password i dati non sono recuperabili."));
+  body.append(h("label",null,"Utente"),sel,h("label",null,"Password"),pw,err,h("div",{class:"row",style:"margin-top:12px"},h("button",{class:"pri",onclick:go},"Accedi"),h("button",{onclick:createBox},"Nuovo utente"),h("button",{onclick:()=>enter(async()=>Auth.guest())},"Ospite")),h("div",{style:"margin-top:10px"},h("button",{class:"ghost",onclick:recoverBox},"Password dimenticata?")))};
+ const recoverBox=()=>{body.replaceChildren();body.append(h("div",{class:"lab",style:"text-transform:none;letter-spacing:0"},"Inserisci la chiave di recupero che hai salvato alla creazione del profilo e scegli una nuova password. I tuoi dati restano."));
+  const sel=h("select",null,...users.map(u=>h("option",{value:u.id},u.name)));const rk=h("input",{placeholder:"XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX",autocapitalize:"characters",autocomplete:"off",spellcheck:"false"});
+  const p1=h("input",{type:"password",placeholder:"Nuova password (min. 4)",autocomplete:"new-password"}),p2=h("input",{type:"password",placeholder:"Ripeti nuova password",autocomplete:"new-password"});
+  const go=()=>{if(p1.value!==p2.value){err.textContent="Le password non coincidono";return}enter(async()=>{const d=await Auth.recover(sel.value,rk.value,p1.value);Auth.cur._why="Password reimpostata. Ho generato una nuova chiave di recupero (la vecchia non vale più). ";return d})};
+  body.append(h("label",null,"Utente"),sel,h("label",null,"Chiave di recupero"),rk,h("label",null,"Nuova password"),p1,p2,err,h("div",{class:"row",style:"margin-top:12px"},h("button",{class:"pri",onclick:go},"Reimposta e accedi"),h("button",{onclick:loginBox},"Indietro")))};
+ const createBox=()=>{body.replaceChildren();body.append(h("div",{class:"lab",style:"text-transform:none;letter-spacing:0"},"Crea un profilo utente. Dopo la creazione ti mostrerò una chiave di recupero da conservare."));
   const nm=h("input",{placeholder:"Nome",autocomplete:"username"}),p1=h("input",{type:"password",placeholder:"Password (min. 4)",autocomplete:"new-password"}),p2=h("input",{type:"password",placeholder:"Ripeti password",autocomplete:"new-password"});
   const go=()=>{if(p1.value!==p2.value){err.textContent="Le password non coincidono";return}enter(()=>Auth.create(nm.value,p1.value))};
   body.append(h("label",null,"Nome"),nm,h("label",null,"Password"),p1,p2,err,h("div",{class:"row",style:"margin-top:12px"},h("button",{class:"pri",onclick:go},"Crea e accedi"),users.length?h("button",{onclick:loginBox},"Indietro"):h("button",{onclick:()=>enter(async()=>Auth.guest())},"Continua come ospite")))};
@@ -544,7 +594,8 @@ function openSettings(){openSheet("Impostazioni",(body,close)=>{
   h("label",null,"Soglia kickdown pedale (grezzo %)"),(()=>{const i=h("input",{type:"number",value:U.kd||86,onchange:()=>{U.kd=parseFloat(i.value)||86;savePrefs()}});return i})(),
   h("label",null,"Collegamento"),h("div",{class:"row"},h("button",{onclick:()=>{close();connect(true)}},"Mostra tutti i dispositivi Bluetooth"),h("button",{onclick:()=>{close();demo()}},"Avvia simulazione")))};
  const usr=p=>{p.append(h("div",{class:"item"},h("div",null,h("b",null,Auth.cur.name),h("div",{class:"sub"},Auth.cur.guest?"Ospite: dati non protetti":"Dati cifrati con la tua password"))));
-  if(!Auth.cur.guest){const o=h("input",{type:"password",placeholder:"Password attuale"}),n=h("input",{type:"password",placeholder:"Nuova password"}),e=h("div",{class:"sub"});p.append(h("label",null,"Cambia password"),o,n,e,h("button",{style:"margin-top:8px",onclick:async()=>{try{await Auth.changePw(o.value,n.value);e.style.color="var(--g)";e.textContent="Password aggiornata";o.value=n.value=""}catch(x){e.style.color="var(--r)";e.textContent=x.message}}},"Aggiorna password"))}
+  if(!Auth.cur.guest){const o=h("input",{type:"password",placeholder:"Password attuale"}),n=h("input",{type:"password",placeholder:"Nuova password"}),e=h("div",{class:"sub"});p.append(h("label",null,"Cambia password"),o,n,e,h("button",{style:"margin-top:8px",onclick:async()=>{try{await Auth.changePw(o.value,n.value);e.style.color="var(--g)";e.textContent="Password aggiornata";o.value=n.value=""}catch(x){e.style.color="var(--r)";e.textContent=x.message}}},"Aggiorna password"));
+   const rp=h("input",{type:"password",placeholder:"Password attuale"}),re=h("div",{class:"sub"});p.append(h("label",null,"Chiave di recupero"),h("div",{class:"sub"},"Generare una nuova chiave invalida la precedente."),rp,re,h("button",{style:"margin-top:8px",onclick:async()=>{try{const k=await Auth.newRecoveryKey(rp.value);rp.value="";re.textContent="";close();await showRecovery(k,"Nuova chiave generata. ")}catch(x){re.style.color="var(--r)";re.textContent=x.message}}},"Genera nuova chiave"))}
   p.append(h("div",{class:"row",style:"margin-top:14px"},h("button",{onclick:async()=>{if(Link.on)Link.stop();Auth.cur=null;close();U=defaultPrefs();await openUserSheet(true)}},Auth.cur.guest?"Accedi / crea utente":"Esci"),!Auth.cur.guest?h("button",{class:"danger",onclick:async()=>{if(confirm("Eliminare questo utente e i suoi dati?")){Auth.remove(Auth.cur.id);Auth.cur=null;close();U=defaultPrefs();await openUserSheet(true)}}},"Elimina utente"):null))};
  const alr=p=>{p.append(h("label",null,"Avvisi"),h("div",{class:"row"},h("label",{style:"margin:0;text-transform:none;letter-spacing:0;display:flex;gap:8px;align-items:center"},h("input",{type:"checkbox",style:"width:auto;min-height:0",checked:U.alertsOn,onchange:e=>{U.alertsOn=e.target.checked;savePrefs()}}),"Mostra avvisi"),h("label",{style:"margin:0;text-transform:none;letter-spacing:0;display:flex;gap:8px;align-items:center"},h("input",{type:"checkbox",style:"width:auto;min-height:0",checked:U.sound,onchange:e=>{U.sound=e.target.checked;savePrefs()}}),"Suono")));
   p.append(h("label",null,"Soglie del profilo attivo"),...(Veh.p.alerts||[]).map(a=>h("div",{class:"item"},h("div",null,a.label,h("div",{class:"sub"},a.id)),h("b",null,a.hi!=null?"> "+a.hi:"< "+a.lo))))};
