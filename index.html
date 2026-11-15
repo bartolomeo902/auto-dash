@@ -165,6 +165,14 @@ nav button{min-width:54px;font-size:11px;padding:10px 2px 12px}
 #btnDemo{min-height:36px;padding:4px 10px;font-size:14px;color:var(--acc);border:1px solid var(--line)}
 #btnConn{padding:8px 12px}
 .fgrid{display:grid;gap:14px;margin-top:8px}.fcol{min-width:0}.fhd{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:nowrap;min-height:40px}.fcol .chip{font-size:14px;padding:5px 10px;white-space:nowrap}.fcol .chip svg{width:1em;height:1em}.fcol .val{font-size:28px;white-space:nowrap;line-height:1}
+.nd{font-size:9px;color:var(--mut);font-weight:600;opacity:.75;letter-spacing:.02em}
+.mcard .val{font-size:30px}.mcard .kv{font-size:12px}
+.egrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:10px;margin-top:8px}.ecol .bar{margin:6px 0}
+.pedrow{display:flex;justify-content:center;gap:34px;margin-top:8px}.pdl{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--mut)}.pdl b{font-size:16px;color:var(--fg)}
+.pbar{width:46px;height:96px;border-radius:12px;background:var(--card2);border:1px solid var(--line);position:relative;overflow:hidden}.pbar i{position:absolute;left:0;right:0;bottom:0;transition:height .15s}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.chips .chip{font-size:15px;padding:5px 12px}
+.sbig{font-size:64px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1;letter-spacing:-.03em}.sbig small{font-size:16px;color:var(--mut);margin-left:4px;font-weight:600}
+.ebat{display:grid;grid-template-columns:1fr;gap:6px}
 </style>
 </head>
 <body>
@@ -241,7 +249,7 @@ const STD=[ // id, cmd, every, formula, unit, dec, min, max, label
  ["hv","019A",2,"({V:(d[2]*256+d[3])/64,I:sg16(d[4],d[5])/10})","",0,0,0,"Batteria alta tensione"],
 ];
 /* Temperature: p=1 in primo piano; lim=[min,max] consentiti; smin/smax = scala del termometro */
-const TM={cool:{p:1,lim:[75,105],smin:-20,smax:130},oil:{p:1,lim:[75,125],smin:-20,smax:150},amb:{p:1,lim:null,smin:-30,smax:50},iat:{p:0,lim:[-20,60],smin:-30,smax:90},cat1:{p:0,lim:null,smin:0,smax:1000},cat2:{p:0,lim:null,smin:0,smax:1000},manif:{p:0,lim:[-20,90],smin:-30,smax:120}};
+const TM={cool:{p:1,lim:[75,105],smin:-20,smax:130},oil:{p:1,lim:[75,125],smin:-20,smax:150},amb:{p:1,lim:null,smin:-30,smax:50},iat:{p:1,lim:[-20,60],smin:-30,smax:90},cat1:{p:0,lim:null,smin:0,smax:1000},cat2:{p:0,lim:null,smin:0,smax:1000},manif:{p:0,lim:[-20,90],smin:-30,smax:120}};
 /* exp = mappatura condivisa online, non verificata sull'auto; sw = richiede cambio di protocollo CAN (più lenta) */
 const X=s=>({...s,exp:true}),XS=s=>({...s,exp:true,sw:true});
 const TYRE=(ecu)=>["fl","fr","rl","rr"].flatMap((w,i)=>[XS({id:"tp_"+w,ecu,cmd:"22630"+i,every:40,f:"((d[0]*256+d[1])>=1023?null:(d[0]*256+d[1])*0.0075)",unit:"bar",dec:2,label:"Pressione "+w.toUpperCase()}),XS({id:"tt_"+w,ecu,cmd:"22631"+i,every:40,f:"(d[0]===127||d[0]>=254?null:d[0]-30)",unit:"°C",label:"Gomma "+w.toUpperCase(),temp:{p:0,lim:null,smin:-20,smax:90}})]);
@@ -270,8 +278,18 @@ const PROFILES=[
  {id:"dacia-bigster-hg150",name:"Dacia Bigster Hybrid-G 150 4x4",short:"Bigster",brand:"Dacia",verified:true,hybrid:true,proto:"7",
   notes:"Profilo validato su questa auto: modo guida, marcia, ESC, HDC, freno di stazionamento, batteria 48V, accelerazioni (raw). Velocità ruote, sterzo, pressione e interruttore freno verificati il 15/11. TPMS indiretto: l'auto mostra solo lo stato, non le pressioni.",
   fuels:["benzina","gpl"],
-  ecus:{ECM:ECU29("15"),TCM:ECU29("18"),ESP:ECU29("2D"),DMCM:ECU29("55"),BMS:ECU29("92")},
-  sensors:[...std("ECM").filter(s=>s.id!=="soc"),
+  ecus:{ECM:ECU29("15"),TCM:ECU29("18"),ESP:ECU29("2D"),DMCM:ECU29("55"),BMS:ECU29("92"),DD:ECU29("DD")},
+  tank:{benzina:50,gpl:50},cap48:.85,
+  sensors:[...std("ECM").filter(s=>s.id!=="soc").map(s=>s.id==="cat1"||s.id==="cat2"?{...s,temp:undefined}:s),
+   {id:"tqreq",ecu:"ECM",cmd:"0161",every:2,f:"d[0]-125",unit:"%",label:"Coppia richiesta"},{id:"tqact",ecu:"ECM",cmd:"0162",every:2,f:"d[0]-125",unit:"%",label:"Coppia effettiva"},{id:"tqref",ecu:"ECM",cmd:"0163",every:60,f:"d[0]*256+d[1]",unit:"Nm",label:"Coppia di riferimento"},
+   {id:"fuelgs",ecu:"ECM",cmd:"019D",every:3,f:"(d[0]*256+d[1])/50",unit:"g/s",dec:2,label:"Carburante"},{id:"gear_a",ecu:"ECM",cmd:"01A4",every:3,f:"d[1]>>4",label:"Marcia effettiva"},
+   {id:"tt_in",ecu:"ECM",cmd:"0175",every:8,f:"(d[3]*256+d[4])/10-40",unit:"°C",label:"Turbina ingresso",temp:{p:0,lim:null,smin:0,smax:1000}},{id:"tt_out",ecu:"ECM",cmd:"0175",every:8,f:"(d[5]*256+d[6])/10-40",unit:"°C",label:"Turbina uscita",temp:{p:0,lim:null,smin:0,smax:1000}},
+   {id:"cact",ecu:"ECM",cmd:"0177",every:10,f:"((d[1]-40)+(d[2]-40))/2",unit:"°C",label:"Aria compressore",temp:{p:0,lim:null,smin:-20,smax:150}},
+   {id:"egt",ecu:"ECM",cmd:"0178",every:8,f:"((d[1]*256+d[2])/10-40+(d[3]*256+d[4])/10-40)/2",unit:"°C",label:"Gas di scarico",temp:{p:0,lim:null,smin:0,smax:1000}},
+   {id:"gpf_in",ecu:"ECM",cmd:"017C",every:10,f:"(d[1]*256+d[2])/10-40",unit:"°C",label:"Filtro part. ingr.",temp:{p:0,lim:null,smin:0,smax:900}},{id:"gpf_out",ecu:"ECM",cmd:"017C",every:10,f:"(d[3]*256+d[4])/10-40",unit:"°C",label:"Filtro part. usc.",temp:{p:0,lim:null,smin:0,smax:900}},
+   {id:"rpm_s",ecu:"TCM",cmd:"22211B",every:2,f:"sg16(d[0],d[1])",unit:"rpm",label:"Giri starter 48V"},{id:"rpm_e",ecu:"DD",cmd:"220121",every:2,f:"sg16(d[0],d[1])",unit:"rpm",label:"Giri motore el. post."},
+   {id:"cat",ecu:"ECM",cmd:null,label:"Catalizz. (media)",temp:{p:1,lim:null,smin:0,smax:900}},{id:"t12",ecu:"ECM",cmd:null,label:"Batt. 12V",temp:{p:1,lim:[-20,60],smin:-30,smax:80}},
+   {id:"egr",ecu:"ECM",cmd:null,label:"EGR",temp:{p:0,lim:null,smin:0,smax:600}},{id:"trail",ecu:"ECM",cmd:null,label:"Carb. rail",temp:{p:0,lim:null,smin:-20,smax:100}},{id:"ttcm",ecu:"TCM",cmd:null,label:"Cambio TCM",temp:{p:0,lim:null,smin:0,smax:140}},
    {id:"mode",ecu:"ECM",cmd:"220442",every:3,f:"d[0]",label:"Modo guida",enum:{1:"AUTO",3:"ECO",4:"SNOW",5:"LOCK",7:"MUD/SAND"}},
    {id:"gear",ecu:"TCM",cmd:"222271",every:3,f:"d[0]",label:"Marcia",enum:{1:"P",2:"R",3:"N",4:"D",5:"M"}},
    {id:"awd",ecu:"ECM",cmd:"220299",every:5,f:"d[0]",label:"Richiesta 4x4",max:5},
@@ -437,7 +455,7 @@ const Veh={p:null,S:{},ecus:{},
  fuelOf(code){return Veh.fuels.find(f=>f.codes.includes(code))||Veh.fuels[0]},
  lvl(){return(U.lvl&&U.lvl[Veh.p.id])||(U.lvl[Veh.p.id]={})},
  prices(){return Object.fromEntries(Veh.fuels.map(f=>[f.key,f.price]))}};
-const newTrip=()=>({id:"t"+T().toString(36)+Math.floor(Math.random()*46656).toString(36),start:T(),dist:0,time:0,evTime:0,movTime:0,lit:{},km:{},energyOut:0,energyIn:0,vmax:0,altMin:null,altMax:null,kmEv:0,asc:0,desc:0,_aRef:null,sim:false,ser:{t:[],v:[],p:[],f:[],s:[],a:[]},_s:0});
+const newTrip=()=>({id:"t"+T().toString(36)+Math.floor(Math.random()*46656).toString(36),start:T(),dist:0,time:0,evTime:0,movTime:0,lit:{},km:{},energyOut:0,energyIn:0,eIce:0,eEm:0,iceT:0,vmax:0,altMin:null,altMax:null,kmEv:0,asc:0,desc:0,_aRef:null,sim:false,ser:{t:[],v:[],p:[],f:[],s:[],a:[]},_s:0});
 
 /* ---------- dati live, storico, qualità ---------- */
 const Live={v:{},t:{},n:0,hz:0,lat:0,_c:0,_t0:T(),dirty:new Set(),
@@ -520,6 +538,8 @@ const Trip={last:performance.now(),
   const hv=v.hv;if(hv&&hv.V!=null){let P=hv.V*hv.I/1000;Sign.learn(P,spd,v.pedal);if(Veh.inv())P=-P;Live.hvP=P;if(P>0)t.energyOut+=P*dt/3600;else t.energyIn+=-P*dt/3600}
   t.vmax=Math.max(t.vmax,spd);const alt=GPS.alt;if(alt!=null){t.altMin=t.altMin==null?alt:Math.min(t.altMin,alt);t.altMax=t.altMax==null?alt:Math.max(t.altMax,alt);if(t._aRef==null)t._aRef=alt;else if(Math.abs(alt-t._aRef)>=3){if(alt>t._aRef)t.asc+=alt-t._aRef;else t.desc+=t._aRef-alt;t._aRef=alt}}
   t._s+=dt;if(t._s>=5&&t.ser.t.length<3000){t._s=0;const r=(x,d=0)=>x==null?null:+x.toFixed(d);t.ser.t.push(Math.round(t.time));t.ser.v.push(Math.round(spd));t.ser.p.push(r(Live.hvP,1));t.ser.f.push(r(fr,1));t.ser.s.push(r(v.soc,0));t.ser.a.push(r(alt,0))}
+  {const dv=Dv();if(dv.Pice!=null)t.eIce+=dv.Pice*dt/3600;if(Veh.p.hybrid&&dv.F.Pe>0)t.eEm+=dv.F.Pe*dt/3600;if((v.rpm||0)>=1)t.iceT+=dt;if(Live.hvP!=null)Hist.add("hvP",Live.hvP);
+   if(ft&&(t.km[ft.key]||0)>=3&&(t.lit[ft.key]||0)>=.3){U.kml=U.kml||{};const kv=t.km[ft.key]/t.lit[ft.key];if(Math.abs((U.kml[ft.key]||0)-kv)>.3){U.kml[ft.key]=kv;Trip.lvlDirty=true}}}
   Veh.win.push({t:now,km,l:lit,kwh:(hv&&hv.V!=null?Live.hvP*dt/3600:0)});while(Veh.win.length&&now-Veh.win[0].t>10000)Veh.win.shift();
   Incl.tick(dt);
   Live.ft=ft;
@@ -541,15 +561,17 @@ const Sim={tm:null,t:0,
   const vi=Math.round(V*64),ii=Math.round(I*10)&0xffff;
   const ch={speed,rpm:ev?0:900+speed*18+thr*4,pedal:14.5+Math.max(0,thr-10)*0.9,thr,load:ev?0:thr*.9,maf:ev?0:1.5+thr*.9,frate:ev?0:1.5+speed/14,
    cool:62+28*(0.5+0.5*Math.sin(t/70)),oil:70+18*(0.5+0.5*Math.sin(t/90)),iat:30,amb:6,v12:ev?12.6:14.3,level:fuelIdx?32:81,ftype:fu.codes[fu.codes.length-1],
+   tqact:ev?0:Math.round(clamp(thr*.6,0,60)),tqreq:ev?0:Math.round(clamp(thr*.6+5,0,65)),tqref:236,fuelgs:ev?0:+((1.5+speed/14)*.208).toFixed(2),gear_a:speed<4?0:speed<22?1:speed<45?2:speed<75?3:4,
+   tt_in:ev?120:Math.round(380+thr*4),tt_out:ev?110:Math.round(340+thr*3.5),cact:Math.round(30+thr*.35),egt:ev?90:Math.round(300+thr*4),gpf_in:ev?80:Math.round(250+thr*2),gpf_out:ev?70:Math.round(230+thr*2),
+   rpm_e:hy?Math.round(speed*104):0,rpm_s:ev?0:Math.round((900+speed*18+thr*4)*2.006),
    soc:clamp(55+30*Math.sin(t/35),4,98),rail:170+thr*1.2,hv:{V,I},mode:[1,3,4,7,5][Math.floor(t/25)%5],gear:4,awd:[0,1,3,5,5][Math.floor(t/25)%5],
    esc:Math.floor(t/70)%2?170:174,hdc:Math.floor(t/50)%3===0?1:0,park:0,alat:clamp(9*Math.sin(t/4),-20,20),alon:clamp(acc*3,-24,24),v48:V,t48:24+14*(0.5+0.5*Math.sin(t/60))};
-  const HYB=new Set(["soc","hv","v48","t48"]);let changed=false;for(const id of Object.keys(Veh.S)){const s=Veh.S[id];if(id in ch&&(hy||!HYB.has(id))){s.dead=false;Live.put(id,ch[id])}else if(!s.dead){s.dead=true;changed=true}}if(changed)Pages.refreshVisibility();
+  const HYB=new Set(["soc","hv","v48","t48","rpm_e","rpm_s"]);let changed=false;for(const id of Object.keys(Veh.S)){const s=Veh.S[id];if(id in ch&&(hy||!HYB.has(id))){s.dead=false;Live.put(id,ch[id])}else if(!s.dead){s.dead=true;changed=true}}if(changed)Pages.refreshVisibility();
   {const al=Math.cos(t/9)*52/9,tot=clamp(al*90+(ev?-20:60),-250,600),r=clamp(.08+.1*ch.awd,0,.6),lat=clamp(ch.alat/20*.15,-.3,.3),qq=(x)=>Math.round(x);
    Live.put("tq_fl",qq(tot*(1-r)*(.5+lat)));Live.put("tq_fr",qq(tot*(1-r)*(.5-lat)));Live.put("tq_rl",qq(tot*r*(.5+lat)));Live.put("tq_rr",qq(tot*r*(.5-lat)));
    for(const k of["fl","fr","rl","rr"])Live.put("ws_"+k,speed*(1+(k[1]==="l"?-1:1)*ch.alat*.004));
    const br=al<-1.2?clamp(-al*25,0,100):0;Live.put("brk",Math.round(br));Live.put("abs",br>60&&Math.sin(t*3)>.5?1:0)}
-  if(hy){Live.put("rpm_e",ev||P>0?Math.round(speed*(ev?52:30)+(P>0?200:0)):0);Live.put("rpm_s",ev?0:Math.round(P*60+(Math.sin(t)>.9?300:0)))}
-  for(const w of["fl","fr","rl","rr"]){const f=w[0]==="f"?2.4:2.3;Live.put("tp_"+w,+(f+.05*Math.sin(t/20)+(w==="rr"?-0.1:0)).toFixed(2));Live.put("tt_"+w,Math.round(22+Math.min(18,speed/8)))}
+    for(const w of["fl","fr","rl","rr"]){const f=w[0]==="f"?2.4:2.3;Live.put("tp_"+w,+(f+.05*Math.sin(t/20)+(w==="rr"?-0.1:0)).toFixed(2));Live.put("tt_"+w,Math.round(22+Math.min(18,speed/8)))}
   Live.put("steer",+(280*Math.sin(t/5)).toFixed(0));
   Live.hz=2;S_alt=1540+14*Math.sin(t/30);GPS.alt=S_alt;GPS.spd=speed;tick()}};
 let S_alt=null;
@@ -669,7 +691,7 @@ const TLEG=[["gelo ≤4","#e0f2fe"],["5–20","#2563eb"],["21–40","#38bdf8"],[
 const tempWidget=primary=>()=>{const ids=Object.values(Veh.S).filter(s=>s.temp&&!!s.temp.p===primary).map(s=>s.id);const box=h("div",{class:"tgrid"});
  const leg=primary?h("div",{class:"legend"},...TLEG.map(([t,c])=>h("span",null,h("i",{style:"background:"+c}),t)),h("span",null,"· lineette nella colonnina = minimo e massimo consentiti")):null;
  const root=h("section",{class:"card cAll"},h("div",{class:"lab",style:"margin-bottom:6px"},primary?"Temperature principali":"Altre temperature del veicolo"),leg,box);
- return{root,need:ids,update(){box.innerHTML=ids.filter(i=>Veh.has(i)).map(id=>{const s=Veh.S[id],m=s.temp,v=V(id),[st,cls]=tStatus(m,v);return`<div class="tcol${primary?"":" sm"}">${thermoSVG2(v,m,primary?120:78,primary?16:12)}<b>${v==null?"–":Math.round(v)+"°"}</b><em class="tstat" style="color:${cls==="b"?"var(--b)":cls==="r"?"var(--r)":"var(--mut)"}">${st||"&nbsp;"}</em>${esc(s.label)}</div>`}).join("")}}};
+ return{root,need:ids,update(){box.innerHTML=ids.filter(i=>Veh.has(i)).map(id=>{const s=Veh.S[id],m=s.temp,v=V(id),[st,cls]=tStatus(m,v);return`<div class="tcol${primary?"":" sm"}">${thermoSVG2(v,m,primary?120:78,primary?16:12)}<b>${v==null?"<span class=\"nd\">n/d</span>":Math.round(v)+"°"}</b><em class="tstat" style="color:${cls==="b"?"var(--b)":cls==="r"?"var(--r)":"var(--mut)"}">${st||"&nbsp;"}</em>${esc(s.label)}</div>`}).join("")}}};
 function battPbSVG(p,chg,txt){const x=p==null?0:clamp(p,0,100),col=p==null?"var(--line)":battColor(x),bx=14,by=34,bw=212,bh=92,iw=bw-14,ih=bh-14,fh=ih*x/100;
  let s=`<svg viewBox="0 0 240 140" style="width:100%;max-width:340px;height:auto" role="img" aria-label="batteria al piombo ${p==null?"non disponibile":Math.round(x)+" per cento"}">`;
  s+=`<rect x="46" y="20" width="36" height="16" rx="3" fill="#d33"/><rect x="158" y="20" width="36" height="16" rx="3" fill="var(--fg)"/><text x="64" y="16" text-anchor="middle" font-size="15" font-weight="800" fill="#d33">+</text><text x="176" y="16" text-anchor="middle" font-size="17" font-weight="800" fill="var(--fg)">−</text>`;
@@ -769,6 +791,8 @@ function tripView(t){
  s+=`<div class="g3">`+fuels.map(f=>{const km=t.km[f.key]||0,l=t.lit[f.key]||0,c=cf[f.key];return`<div class="fc" style="--c:var(--${f.color})"><div class="lab" style="color:var(--${f.color})">${icoHTML(f.icon)} ${f.name}</div><div class="big">${l>.01&&km>.05?fmt(Math.min(99,km/l),1):"–"}<small>km/l</small></div><div class="kv"><span>Distanza</span><b>${fmt(km,1)} km</b></div><div class="kv"><span>Consumato</span><b>${fmt(l,2)} L</b></div><div class="kv"><span>Speso</span><b>${fmt(c,2)} €</b></div><div class="kv"><span>Costo</span><b>${km>.3?fmt(c/km*100,1)+" €/100 km":"–"}</b></div><div class="kv"><span>Prezzo</span><b>${fmt(f.price,3)} €/L</b></div></div>`}).join("");
  if(hy)s+=`<div class="fc" style="--c:var(--y)"><div class="lab" style="color:var(--y)">${icoHTML("bolt")} Elettrico</div><div class="big">${t.movTime>0?fmt(100*t.evTime/t.movTime,0):"–"}<small>% in EV</small></div><div class="kv"><span>Solo EV</span><b>${fmt(kmE,1)} km</b></div><div class="kv"><span>Erogata</span><b>${fmt(t.energyOut,2)} kWh</b></div><div class="kv"><span>Rigenerata</span><b>${fmt(t.energyIn,2)} kWh</b></div><div class="kv"><span>Consumo</span><b>${t.dist>.3?fmt(t.energyOut/t.dist*100,1)+" kWh/100 km":"–"}</b></div></div>`;
  return s+`</div>`}
+function splitAP(D){if(D.any&&Math.abs(D.f)+Math.abs(D.r)>1)return fmt(100*Math.abs(D.f)/(Math.abs(D.f)+Math.abs(D.r)),0)+" / "+fmt(100*Math.abs(D.r)/(Math.abs(D.f)+Math.abs(D.r)),0);
+ const d=Dv();if(Veh.p.hybrid&&d.Pice!=null){const pe=Math.max(0,d.F.Pe),pi=Math.max(0,d.Pice);if(pe+pi>.3)return"≈ "+fmt(100*pi/(pe+pi),0)+" / "+fmt(100*pe/(pe+pi),0)}return NDH}
 function dtData(){const w={},tp={},tt={};let any=false;for(const k of["fl","fr","rl","rr"]){const x=V("tq_"+k);w[k]=x==null?null:x;if(x!=null)any=true;tp[k]=V("tp_"+k);tt[k]=V("tt_"+k)}
  return{w,tp,tt,any,f:any?(w.fl||0)+(w.fr||0):null,r:any?(w.rl||0)+(w.rr||0):null,brk:V("brk")!=null?V("brk"):(V("brkp")!=null?Math.min(100,Math.max(0,V("brkp"))):null),abs:V("abs")==null?null:V("abs"),awd:V("awd"),steer:V("steer"),sp:V("speed")||0,ws:{fl:V("ws_fl"),fr:V("ws_fr"),rl:V("ws_rl"),rr:V("ws_rr")},lock:lockOf()}}
 const tqCol=n=>n==null?"var(--card2)":n<-5?"#38bdf8":n<135?"#34d058":n<270?"#f5c518":"#ef4444";
@@ -799,7 +823,7 @@ function dtSVG(D){const g=carGeom(Veh.p),c=g.c,F=engFlows(),brk=D.brk||0,abs=!!D
   const rot=w[0]==="f"&&D.steer!=null?clamp(D.steer/15,-35,35):0;
   s+=`<g${abs?' class="absb"':""}><g transform="rotate(${rot.toFixed(1)} ${x.toFixed(1)} ${y.toFixed(1)})">`+wheelRect(wg,x,y,tqCol(tq),brk>5?"#ef4444":"var(--fg)",(2.5+brk/18).toFixed(1))+`</g></g>`;
   s+=`<text x="${tx}" y="${y-10}" text-anchor="${anc}" font-size="12" font-weight="800" fill="${tq==null?"var(--mut)":"var(--fg)"}">${tq==null?"n/d":Math.round(tq)+" Nm"}</text>`+
-   `<text x="${tx}" y="${y+5}" text-anchor="${anc}" font-size="11.5" font-weight="700" fill="${tpCol(pr)}">${pr==null?"– bar":fmt(pr,1)+" bar"}</text>`+
+   `<text x="${tx}" y="${y+5}" text-anchor="${anc}" font-size="${pr==null?8.5:11.5}" font-weight="700" fill="${tpCol(pr)}">${pr==null?"gomma n/d":fmt(pr,1)+" bar"}</text>`+
    `<text x="${tx}" y="${y+19}" text-anchor="${anc}" font-size="10" fill="var(--mut)">${tt!=null?fmt(tt,0)+"°C":""}${tt!=null&&sl!=null?" · ":""}${sl!=null?(sl>=0?"+":"")+sl.toFixed(0)+"%":""}</text>`}
  return s+"</g></svg>"}
 function dtChart(b,any){const W0=320,H0=96,n=b.f.length;if(!any&&b.b.every(x=>x==null)||n<2)return`<div class="lab" style="text-transform:none;letter-spacing:0">Il grafico di coppia, freno e ABS compare con i dati.</div>`;
@@ -807,6 +831,19 @@ function dtChart(b,any){const W0=320,H0=96,n=b.f.length;if(!any&&b.b.every(x=>x=
  const line=(arr,y,col)=>{const pts=arr.map((v,i)=>v==null?null:X(i)+","+y(v)).filter(Boolean);return pts.length>1?`<polyline fill="none" stroke="${col}" stroke-width="2" points="${pts.join(" ")}"/>`:""};
  const bars=b.a.map((v,i)=>v?`<rect x="${X(i)}" y="2" width="3" height="${H0-4}" fill="#f97316" opacity=".5"/>`:"").join("");
  return`<div class="lg2" style="margin-bottom:4px"><span><i style="background:var(--acc)"></i>coppia ant.</span><span><i style="background:#a855f7"></i>coppia post.</span><span><i style="background:#ef4444"></i>freno</span><span><i style="background:#f97316"></i>ABS</span></div><svg viewBox="0 0 ${W0} ${H0}" style="width:100%;height:auto" role="img" aria-label="grafico dinamico"><line x1="4" x2="${W0-4}" y1="${Yt(0)}" y2="${Yt(0)}" stroke="var(--line)" stroke-dasharray="3 3"/>${bars}${line(b.f,Yt,"var(--acc)")}${line(b.r,Yt,"#a855f7")}${line(b.b,Yb,"#ef4444")}</svg>`}
+const NDH='<span class="nd">n/d</span>';
+const nv=(x,d=0,u="")=>x==null||!isFinite(x)?NDH:fmt(x,d)+(u?"<small>"+u+"</small>":"");
+const kvH=(l,v)=>`<div class="kv"><span>${l}</span><b>${v}</b></div>`;
+const WHEEL_RPM=8.13,KWH_L={benzina:3,gpl:2.2,diesel:3.5};
+function Dv(){const rpm=V("rpm"),ref=V("tqref")!=null?V("tqref"):(Veh.p.tqRef||null),ta=V("tqact"),tr=V("tqreq"),sp=V("speed")||0;
+ const nmA=ta!=null&&ref?ta/100*ref:null,nmR=tr!=null&&ref?tr/100*ref:null,P=nmA!=null&&rpm!=null?Math.max(0,nmA)*rpm*Math.PI/30/1000:null;
+ const wr=k=>V("ws_"+k)==null?null:V("ws_"+k)*WHEEL_RPM;
+ return{rpm,nmA,nmR,Pice:P,wr:{fl:wr("fl"),fr:wr("fr"),rl:wr("rl"),rr:wr("rr")},F:engFlows(),sp}}
+const tankL=f=>(U.tank&&U.tank[f.key])||(Veh.p.tank&&Veh.p.tank[f.key])||50;
+const cap48=()=>U.cap48||Veh.p.cap48||.85;
+function fuelRes(f){const l=Veh.lvl()[f.key];if(!l)return{pct:null,lit:null,km:null,kml:null};const lit=l.v/100*tankL(f),t=Veh.trip,km=t.km[f.key]||0,li=t.lit[f.key]||0;let kml=null;
+ if(km>=2&&li>=.15)kml=km/li;else if(U.kml&&U.kml[f.key])kml=U.kml[f.key];return{pct:l.v,lit,km:kml?lit*kml:null,kml}}
+function derive(){const a=V("cat1"),b=V("cat2"),c=a!=null&&b!=null?(a+b)/2:(a!=null?a:b);if(c!=null){Live.v.cat=c;Live.t.cat=T()}}
 function sparkDraw(cv,id,color){
  if(!cv.getContext)return;const a=Hist.get(id);const c=cv.getContext("2d");if(!c)return;const w=cv.width,hh=cv.height;c.clearRect(0,0,w,hh);if(a.length<2)return;
  const mn=Math.min(...a),mx=Math.max(...a),r=(mx-mn)||1;c.strokeStyle=color||"#4da3ff";c.lineWidth=2;c.lineJoin="round";c.beginPath();
@@ -818,6 +855,25 @@ function tileW(id,label,unit,dec,opts={}){
  return{root,need:[id],update(){const x=V(id);setHTML(val,valHTML(x,unit,dec));if(bar){const i=bar.firstChild;i.style.width=clamp(((x||0)-opts.bar[0])/(opts.bar[1]-opts.bar[0])*100,0,100)+"%";i.style.background=opts.barColor?opts.barColor(x):"var(--acc)"}if(cv)sparkDraw(cv,id,opts.sparkColor)}}}
 
 const W={
+ driveIce:()=>{const root=h("section",{class:"card mcard"});
+  return{root,need:["rpm"],update(){const d=Dv(),ft=Live.ft||Veh.fuels[0],t=Veh.trip,on=d.rpm!=null&&d.rpm>=1,km=t.km[ft.key]||0,li=t.lit[ft.key]||0,avg=li>.05&&km>.2?km/li:null,fr=Live.fr,inst=fr>.2&&d.sp>2?Math.min(99,d.sp/fr):null;
+   setHTML(root,`<div class="lab" style="color:var(--${ft.color})">${icoHTML(ft.icon)} Motore termico</div><div class="val">${on?fmt(d.rpm,0):"–"}<small>rpm</small></div>`+kvH("Erogato (viaggio)",d.Pice==null?NDH:fmt(t.eIce,2)+"<small>kWh</small>")+kvH("Potenza ora",nv(d.Pice,1,"kW"))+kvH("Resa media",nv(avg,1,"km/l"))+kvH("Resa ora",nv(inst,1,"km/l")))}}},
+ driveEm:()=>{const root=h("section",{class:"card mcard"});
+  return{root,need:["rpm"],update(){const hy=!!Veh.p.hybrid;root.classList.toggle("hidden",!hy);if(!hy)return;const d=Dv(),t=Veh.trip,re=V("rpm_e"),Pe=d.F.Pe;
+   setHTML(root,`<div class="lab" style="color:var(--y)">${icoHTML("bolt")} Motore el. posteriore</div><div class="val">${re!=null?fmt(re,0)+"<small>rpm</small>":NDH}</div>`+kvH("Erogato (viaggio)","≈ "+fmt(t.eEm,2)+"<small>kWh</small>")+kvH("Potenza ora","≈ "+fmt(Pe,1)+"<small>kW</small>")+kvH("Stato",Pe>.3?"trazione":Pe<-.3?"rigenera":"fermo"))}}},
+ driveEnergy:()=>{const root=h("section",{class:"card cAll"});
+  return{root,need:["level"],update(){const cols=Veh.fuels.map(f=>{const r=fuelRes(f);return`<div class="ecol"><div class="lab" style="color:var(--${f.color})">${icoHTML(f.icon)} ${f.name}</div><div class="bar"><i style="width:${r.pct||0}%;background:var(--${f.color})"></i></div>${kvH("residuo",nv(r.pct,0,"%")+" · "+nv(r.lit,1,"L"))}${kvH("autonomia",r.km!=null?"~"+fmt(r.km,0)+"<small>km</small>":NDH)}</div>`});
+   if(Veh.p.hybrid){const s=V("soc");cols.push(`<div class="ecol"><div class="lab" style="color:var(--y)">${icoHTML("bolt")} Batteria 48V</div><div class="bar"><i style="width:${s||0}%;background:${s==null?"var(--line)":battColor(s)}"></i></div>${kvH("carica",nv(s,0,"%"))}${kvH("energia",s==null?NDH:"~"+fmt(s/100*cap48(),2)+"<small>kWh</small>")}</div>`)}
+   setHTML(root,`<div class="lab">Energia residua · autonomia sulla resa media del viaggio</div><div class="egrid">${cols.join("")}</div>`)}}},
+ pedals:()=>{const root=h("section",{class:"card cAll"});
+  return{root,need:[],always:true,update(){const bp=V("brkp"),b=bp!=null?clamp(bp/80*100,0,100):(V("brk")!=null?clamp(V("brk"),0,100):(V("brksw")!=null?(V("brksw")?100:0):null)),pr=V("pedal"),a=pr==null?null:clamp((pr-14.5)/85.5*100,0,100);
+   const bar=(l,x,c)=>`<div class="pdl"><div class="pbar"><i style="height:${x==null?0:clamp(x,0,100)}%;background:${c}"></i></div><b>${x==null?NDH:fmt(x,0)+"%"}</b><span>${l}</span></div>`;
+   setHTML(root,`<div class="lab">Pedali (posizione relativa)</div><div class="pedrow">${bar("Freno",b,"var(--r)")}${bar("Acceleratore",a,"var(--g)")}</div>`)}}},
+ driveState:()=>{const root=h("section",{class:"card cAll"});
+  return{root,need:[],always:true,update(){const sp=V("speed"),sm=Veh.S.mode,sg=Veh.S.gear,m=V("mode"),g=V("gear"),rpm=V("rpm"),hy=!!Veh.p.hybrid,ft=Live.ft||Veh.fuels[0];
+   const mt=m==null?null:(sm&&sm.enum&&sm.enum[m])||"?"+m,gt=g==null?null:(sg&&sg.enum&&sg.enum[g])||"?"+g;
+   let act;if(rpm==null)act=`<span class="chip">${NDH}</span>`;else if(rpm<1)act=hy&&(sp||0)>2?`<span class="chip y">${icoHTML("bolt")} EV</span>`:`<span class="chip">fermo</span>`;else act=`<span class="chip ${ft.color}">${icoHTML(ft.icon)} ${ft.name}</span>`;
+   setHTML(root,`<div class="row sp" style="align-items:flex-end"><div class="sbig">${sp==null?"–":fmt(sp,0)}<small>km/h</small></div><div class="lab">velocità</div></div><div class="chips">${mt!=null?`<span class="chip p">${mt}</span>`:""}${gt!=null?`<span class="chip b">${gt}</span>`:""}${act}</div>`)}}},
  speedArc:()=>{const box=svg(230,150,"");const num=h("div",{class:"xl",style:"margin-top:-78px"},"–");const root=h("section",{class:"card c2",style:"text-align:center"},h("div",{class:"lab"},"Velocità"),box,num,h("div",{class:"lab",style:"margin-top:6px"},"km/h"));
   return{root,need:["speed"],update(){const v=V("speed");setTxt(num,v==null?"–":String(Math.round(v)));arcSVG(box,v||0,0,Math.max(160,Veh.p.vmax||160),"var(--acc)",230,150,100,16)}}},
  modeGear:()=>{const m=h("span",{class:"chip p"},"–"),g=h("span",{class:"chip b"},"–");const root=h("section",{class:"card"},h("div",{class:"lab"},"Modo guida"),h("div",{style:"margin:8px 0"},m),h("div",{class:"lab",style:"margin-top:6px"},"Marcia"),h("div",{style:"margin-top:6px"},g));
@@ -846,33 +902,47 @@ const W={
    if(!hy){eb.classList.add("hidden");return}eb.classList.remove("hidden");eb.style.setProperty("--c","var(--y)");eb.classList.toggle("off",!elOn);
    let big2="–",sub2="";if(hvv&&hvv.V!=null&&P!=null){big2=valHTML(P,"kW",1);const k100=wk>.05?we/wk*100:null;sub2=(P>.3?"eroga":P<-.3?"rigenera":"fermo")+(k100!=null?" · "+fmt(k100,1)+" kWh/100 km":"")}else if(elOn){big2="EV"}
    setHTML(eb,`<div class="lab" style="color:var(--y)">${icoHTML("bolt")} Elettrico</div><div class="val">${big2}</div><div class="lab" style="margin-top:4px;text-transform:none;letter-spacing:0">${sub2}</div>`)}}},
- battHybrid:()=>{const box=h("div",{style:"text-align:center"}),sub=h("div",{class:"lab",style:"text-align:center;text-transform:none;letter-spacing:0;margin-top:4px"});
-  const root=h("section",{class:"card c2"},h("div",{class:"lab",style:"color:var(--y)"},ico("bolt")," Batteria ibrida (48V)"),box,sub);
-  return{root,need:["soc"],update(){const x=V("soc"),P=Live.hvP,hv=V("hv");setHTML(box,battSVG(x,P!=null&&P<-.3,x==null?"–":Math.round(x)+"%"));setTxt(sub,[hv&&hv.V!=null?fmt(hv.V,1)+" V":"",P!=null?(P>.3?"eroga ":P<-.3?"si ricarica ":"ferma ")+fmt(Math.abs(P),1)+" kW":""].filter(Boolean).join(" · "))}}},
- batt12:()=>{const box=h("div",{style:"text-align:center"}),sub=h("div",{class:"lab",style:"text-align:center;text-transform:none;letter-spacing:0;margin-top:4px"});
-  const root=h("section",{class:"card c2"},h("div",{class:"lab"},"Batteria 12V (piombo / AGM)"),box,sub);
-  return{root,need:["v12"],update(){const x=V("v12");if(x==null){setHTML(box,battPbSVG(null,false,"–"));setTxt(sub,"");return}const s12=V("soc12"),pc=s12!=null?clamp(s12,0,100):batt12Pct(x),chg=x>13.2;setHTML(box,battPbSVG(pc,chg,Math.round(pc)+"%"));setTxt(sub,fmt(x,1)+" V · "+(chg?"in carica (alternatore / DC-DC)":s12!=null?"carica letta dall'auto":"stima dalla tensione a riposo"))}}},
+ battHybrid:()=>{const box=h("div",{style:"text-align:center"}),info=h("div",{class:"ebat"}),c1=h("canvas",{class:"spark",width:200,height:28}),c2=h("canvas",{class:"spark",width:200,height:28});
+  const root=h("section",{class:"card cAll"},h("div",{class:"lab",style:"color:var(--y)"},ico("bolt")," Batteria ibrida (48V)"),box,info,h("div",{class:"lab",style:"margin-top:8px"},"tensione"),c1,h("div",{class:"lab",style:"margin-top:6px"},"potenza: salita = scarica, discesa = ricarica"),c2);
+  return{root,need:["soc"],update(){const x=V("soc"),P=Live.hvP,hv=V("hv"),vv=V("v48")!=null?V("v48"):(hv&&hv.V!=null?hv.V:null),I=hv&&hv.I!=null?(Veh.inv()?-hv.I:hv.I):null,vr=vv!=null&&I!=null?vv+I*.03:null;
+   setHTML(box,battSVG(x,P!=null&&P<-.3,x==null?"–":Math.round(x)+"%"));
+   setHTML(info,kvH("Tensione",nv(vv,1,"V"))+kvH("Stima a riposo",vr==null?NDH:"≈ "+fmt(vr,1)+"<small>V</small>")+kvH("Stato",P==null?NDH:P>.3?"in scarica "+fmt(P,1)+" kW":P<-.3?"in carica "+fmt(-P,1)+" kW":"ferma")+kvH("Energia residua",x==null?NDH:"≈ "+fmt(x/100*cap48(),2)+"<small>kWh</small>")+kvH("Stato di salute (SoH)",NDH));
+   sparkDraw(c1,V("v48")!=null?"v48":"hvP","#f5c518");sparkDraw(c2,"hvP",P!=null&&P<0?"#34d058":"#ef4444")}}},
+ batt12:()=>{const box=h("div",{style:"text-align:center"}),info=h("div",{class:"ebat"}),cv=h("canvas",{class:"spark",width:200,height:28});
+  const root=h("section",{class:"card cAll"},h("div",{class:"lab"},"Batteria 12V (piombo / AGM)"),box,info,h("div",{class:"lab",style:"margin-top:8px"},"tensione"),cv);
+  return{root,need:["v12"],update(){const x=V("v12");if(x==null){setHTML(box,battPbSVG(null,false,"–"));setHTML(info,"");return}const s12=V("soc12"),pc=s12!=null?clamp(s12,0,100):batt12Pct(x),chg=x>13.2,rest=chg?x-1.1:x;
+   setHTML(box,battPbSVG(pc,chg,Math.round(pc)+"%"));
+   setHTML(info,kvH("Tensione",fmt(x,1)+"<small>V</small>")+kvH("Stima a riposo","≈ "+fmt(rest,1)+"<small>V</small>")+kvH("Stato",chg?"in carica (alternatore / DC-DC)":x<12.4?"in scarica":"a riposo")+kvH("Carica",s12!=null?"letta dall'auto":"stimata dalla tensione")+kvH("Stato di salute (SoH)",NDH));sparkDraw(cv,"v12","#6aa8ff")}}},
+ fuelInst:()=>{const root=h("section",{class:"card cAll"});
+  return{root,need:["frate","maf"],update(){const fr=Live.fr,sp=V("speed")||0,ft=Live.ft||Veh.fuels[0],kml=fr>.2&&sp>2?Math.min(99,sp/fr):null,l100=sp>2&&fr>0?fr/sp*100:null,kw=fr!=null?fr*(KWH_L[ft.key]||3):null;
+   setHTML(root,`<div class="lab" style="color:var(--${ft.color})">${icoHTML(ft.icon)} Consumo istantaneo</div><div class="row sp" style="align-items:flex-end"><div class="val">${kml==null?"–":fmt(kml,1)}<small>km/l</small></div><div class="val" style="font-size:26px">${l100==null?"–":fmt(l100,1)}<small>L/100 km</small></div></div>`+kvH("Carburante",nv(fr,1,"L/h")+" · "+(fr==null?NDH:fmt(fr/3600,5)+"<small>L/s</small>"))+kvH("Potenza stimata dal consumo",kw==null?NDH:fmt(kw,1)+"<small>kW</small> · "+fmt(kw*1.36,0)+"<small>CV</small>")+`<div class="lab" style="text-transform:none;letter-spacing:0;margin-top:4px">${ft.name}: ${KWH_L[ft.key]||3} kWh per litro (ipotesi)</div>`)}}},
  v48:()=>tileW("v48","Tensione batteria ibrida","V",1,{spark:true,sparkColor:"#f5c518"}),
 
  tempsPrimary:tempWidget(true),
  tempsSecondary:tempWidget(false),
  rail:()=>tileW("rail","Rail carburante","bar",0,{spark:true}),
  engines:()=>{const fsvg=h("div"),cT=h("div",{class:"fc"}),cE=h("div",{class:"fc"}),cS=h("div",{class:"fc"});
-  const root=h("section",{class:"card cAll"},h("div",{class:"lab"},"Motori e flussi di energia"),fsvg,h("div",{class:"row3"},cT,cE,cS),h("div",{class:"lab",style:"text-transform:none;letter-spacing:0;margin-top:10px"},"Il pacco 48V alimenta motore posteriore, avviamento e DC/DC insieme: la ripartizione è una stima (termico acceso → avviamento/generatore; termico spento in movimento → motore elettrico). I giri dei motori elettrici compaiono solo se l'auto li fornisce."));
-  return{root,need:["rpm"],update(){const F=engFlows(),hy=!!Veh.p.hybrid;setHTML(fsvg,flowSVG(F));const ft=F.ft,re=V("rpm_e"),rs=V("rpm_s");
-   cT.style.setProperty("--c","var(--"+ft.color+")");cT.style.opacity=F.iceOn?1:.5;
-   setHTML(cT,`<div class="lab" style="color:var(--${ft.color})">${icoHTML(ft.icon)} Termico</div><div class="big">${F.iceOn?fmt(F.rpm,0):"–"}<small>rpm</small></div><div class="kv"><span>${ft.name}</span><b>${F.iceOn&&F.fr!=null?fmt(F.fr,1)+" L/h":"spento"}</b></div><div class="kv"><span>carico</span><b>${V("load")!=null&&F.iceOn?fmt(V("load"),0)+"%":"–"}</b></div>`);
+  const root=h("section",{class:"card cAll"},h("div",{class:"lab"},"Motori e flussi di energia"),fsvg,h("div",{class:"row3"},cT,cE,cS),h("div",{class:"lab",style:"text-transform:none;letter-spacing:0;margin-top:10px"},"Il pacco 48V alimenta motore posteriore, avviamento e DC/DC insieme: la ripartizione dei kW è una stima. Rosso = contribuisce alla trazione, verde = ricarica la batteria. n/d = non ancora letto dall'auto."));
+  const col=x=>x>.3?"var(--r)":x<-.3?"var(--g)":"var(--fg)";
+  return{root,need:["rpm"],update(){const F=engFlows(),D=Dv(),hy=!!Veh.p.hybrid;setHTML(fsvg,flowSVG(F));const ft=F.ft,re=V("rpm_e"),rs=V("rpm_s");
+   cT.style.setProperty("--c","var(--"+ft.color+")");cT.style.opacity=F.iceOn?1:.55;
+   setHTML(cT,`<div class="lab" style="color:var(--${ft.color})">${icoHTML(ft.icon)} Termico</div><div class="big">${F.iceOn?fmt(F.rpm,0):"–"}<small>rpm</small></div>`+kvH("Potenza",nv(D.Pice,1,"kW"))+kvH("Nm richiesti",nv(D.nmR,0))+kvH("Nm effettivi",nv(D.nmA,0))+kvH("Nm alle ruote",NDH)+kvH("Ruote ant. rpm",nv(D.wr.fl,0)+" / "+nv(D.wr.fr,0)));
    cE.classList.toggle("hidden",!hy);cS.classList.toggle("hidden",!hy);
-   if(hy){const hv=V("hv");cE.style.setProperty("--c","var(--y)");cS.style.setProperty("--c","var(--y)");cE.style.opacity=Math.abs(F.Pe)>.3?1:.5;cS.style.opacity=(Math.abs(F.Ps)>.3||F.crank)?1:.5;
-    setHTML(cE,`<div class="lab" style="color:var(--y)">${icoHTML("bolt")} Elettrico</div><div class="big">${re!=null?fmt(re,0)+"<small>rpm</small>":fmt(F.Pe,1)+"<small>kW</small>"}</div><div class="kv"><span>${re!=null?"potenza":"stato"}</span><b>${re!=null?fmt(F.Pe,1)+" kW":F.Pe>.3?"trazione":F.Pe<-.3?"rigenera":"fermo"}</b></div><div class="kv"><span>pacco</span><b>${hv&&hv.V!=null?fmt(hv.V,0)+"V "+fmt(Veh.inv()?-hv.I:hv.I,0)+"A":"–"}</b></div>`);
-    setHTML(cS,`<div class="lab" style="color:var(--y)">${icoHTML("gear")} Avviamento</div><div class="big" style="font-size:22px">${rs!=null?fmt(rs,0)+"<small>rpm</small>":F.crank?"AVVIO":Math.abs(F.Ps)>.3?(F.Ps>0?"assiste":"ricarica"):"riposo"}</div><div class="kv"><span>potenza</span><b>${fmt(F.Ps,1)} kW</b></div><div class="kv"><span>stato</span><b>${F.crank?"AVVIO":Math.abs(F.Ps)>.3?(F.Ps>0?"assiste":"ricarica"):"riposo"}</b></div>`)}}}},
+   if(hy){cE.style.setProperty("--c","var(--y)");cS.style.setProperty("--c","var(--y)");cE.style.opacity=Math.abs(F.Pe)>.3?1:.55;cS.style.opacity=(Math.abs(F.Ps)>.3||F.crank)?1:.55;
+    setHTML(cE,`<div class="lab" style="color:var(--y)">${icoHTML("bolt")} Elettrico post.</div><div class="big">${re!=null?fmt(re,0):"–"}<small>rpm</small></div>`+kvH("Potenza","<span style=\"color:"+col(F.Pe)+"\">"+fmt(F.Pe,1)+"</span><small>kW</small>")+kvH("Stato",F.Pe>.3?"trazione":F.Pe<-.3?"rigenera":"fermo")+kvH("Marcia (1ª/2ª)",NDH)+kvH("Nm richiesti / effettivi",NDH+" / "+NDH)+kvH("Nm alle ruote",NDH)+kvH("Ruote post. rpm",nv(D.wr.rl,0)+" / "+nv(D.wr.rr,0)));
+    setHTML(cS,`<div class="lab" style="color:var(--y)">${icoHTML("gear")} Avviamento 48V</div><div class="big">${rs!=null?fmt(rs,0):"–"}<small>rpm</small></div>`+kvH("Potenza","<span style=\"color:"+col(F.Ps)+"\">"+fmt(F.Ps,1)+"</span><small>kW</small>")+kvH("Stato",F.crank?"AVVIO":F.Ps>.3?"assiste":F.Ps<-.3?"ricarica":"riposo"))}}}},
+ dct:()=>{const root=h("section",{class:"card cAll mcard"});
+  return{root,need:["gear_a"],update(){const ga=V("gear_a"),g=V("gear"),sg=Veh.S.gear,gt=g==null?null:(sg&&sg.enum&&sg.enum[g])||"?"+g;
+   setHTML(root,`<div class="lab">Cambio a doppia frizione (6 marce)</div><div class="row sp" style="align-items:flex-end"><div class="val">${ga==null?"–":ga===0?"N":ga}<small>marcia</small></div><div class="chips" style="margin:0">${gt?`<span class="chip b">${gt}</span>`:""}</div></div>`+kvH("Frizioni (pari / dispari)",NDH+" / "+NDH))}}},
  engineCard:()=>{const valve=svg(130,120,""),maf=svg(130,120,"");const thr=h("div",{class:"val"}),thrw=h("div",{class:"lab"}),mv=h("div",{class:"val"}),ld=h("div",{class:"val",style:"font-size:26px"}),lb=h("i");
-  const root=h("section",{class:"card c2"},h("div",{class:"lab"},"Motore termico"),h("div",{class:"row sp",style:"align-items:flex-end;margin-top:6px"},h("div",{style:"text-align:center"},valve,thr,thrw),h("div",{style:"text-align:center"},maf,mv,h("div",{class:"lab"},"debimetro"))),h("div",{class:"row sp",style:"margin-top:10px"},h("div",{class:"lab"},"Carico motore"),ld),h("div",{class:"bar"},lb));
-  return{root,need:["thr","maf","load"],update(){const t=V("thr"),m=V("maf"),a=(t==null?0:t)/100*90;
+  const root=h("section",{class:"card c2"},h("div",{class:"lab"},"Motore termico"),h("div",{class:"row sp",style:"align-items:flex-end;margin-top:6px"},h("div",{style:"text-align:center"},valve,thr,thrw),h("div",{style:"text-align:center"},maf,mv,h("div",{class:"lab"},"carburante"))),h("div",{class:"row sp",style:"margin-top:10px"},h("div",{class:"lab"},"Carico motore"),ld),h("div",{class:"bar"},lb));const ex=h("div",{style:"margin-top:10px"});root.append(ex);
+  return{root,need:["thr","maf","load"],update(){const t=V("thr"),m=V("fuelgs")!=null?V("fuelgs")*5:V("maf"),a=(t==null?0:t)/100*90;
    valve.innerHTML=`<line x1="6" x2="124" y1="16" y2="16" stroke="var(--line)" stroke-width="4"/><line x1="6" x2="124" y1="104" y2="104" stroke="var(--line)" stroke-width="4"/><g transform="rotate(${a} 65 60)"><rect x="61" y="18" width="8" height="84" rx="3" fill="var(--acc)"/></g><circle cx="65" cy="60" r="7" fill="var(--fg)"/><path d="M10 60h16m-6-6l6 6-6 6" stroke="var(--mut)" stroke-width="2" fill="none" opacity="${t>50?1:.45}"/>`;
    const f=m==null?0:Math.min(1,m/90),n=Math.ceil(f*4);let ar="";for(let i=0;i<4;i++)ar+=`<path d="M${24+i*4} ${26+i*20}h26m-6-6l6 6-6 6" stroke="${i<n?"var(--acc)":"var(--line)"}" stroke-width="3" fill="none"/>`;
    maf.innerHTML=`<rect x="6" y="10" width="118" height="100" rx="12" fill="none" stroke="var(--line)" stroke-width="4"/>${ar}<rect x="82" y="2" width="18" height="30" rx="4" fill="var(--card2)"/><line x1="91" x2="91" y1="32" y2="86" stroke="${f>.02?"var(--o)":"var(--line)"}" stroke-width="3"/>`;
-   setHTML(thr,valHTML(t,"%"));setTxt(thrw,t==null?"":(t<15?"farfalla quasi chiusa":t>70?"farfalla aperta":"farfalla in apertura"));setHTML(mv,valHTML(m,"g/s",1));setHTML(ld,valHTML(V("load"),"%"));lb.style.width=(V("load")||0)+"%";lb.style.background="var(--o)"}}},
+   setHTML(thr,valHTML(t,"%"));setTxt(thrw,t==null?"":(t<15?"farfalla quasi chiusa":t>70?"farfalla aperta":"farfalla in apertura"));setHTML(mv,V("fuelgs")!=null?valHTML(V("fuelgs"),"g/s",2):valHTML(V("maf"),"g/s",1));
+   {const tr=Veh.trip,fu=Veh.fuels.map(f=>{const r=fuelRes(f);return`<span style="color:var(--${f.color})">${icoHTML(f.icon)}</span> ${r.lit==null?NDH:fmt(r.lit*(KWH_L[f.key]||3),0)+"<small>kWh</small>"}`}).join(" · "),ton=tr.iceT||0,tot=Math.max(tr.time,1);
+    setHTML(ex,kvH("Energia residua nei serbatoi",fu)+kvH("Termico acceso / spento (viaggio)",fmt(ton/60,1)+" / "+fmt((tot-ton)/60,1)+"<small>min</small> · "+fmt(100*ton/tot,0)+"%"))}setHTML(ld,valHTML(V("load"),"%"));lb.style.width=(V("load")||0)+"%";lb.style.background="var(--o)"}}},
  gmeter:()=>{const cv=h("canvas",{width:240,height:240,style:"margin:0 auto"});const la=h("b",null,"–"),lo=h("b",null,"–");const pts=[];
   const root=h("section",{class:"card c2",style:"text-align:center"},h("div",{class:"lab"},"Accelerazione (laterale / longitudinale)"),cv,h("div",{class:"row sp",style:"margin-top:6px"},h("span",{class:"lab"},"lat ",la),h("span",{class:"lab"},"long ",lo)));
   const draw=()=>{if(!cv.getContext)return;const x=cv.getContext("2d");if(!x)return;const w=240,hh=240,cx=w/2,cy=hh/2,css=getComputedStyle(document.documentElement);x.clearRect(0,0,w,hh);x.strokeStyle=css.getPropertyValue("--line")||"#243040";x.lineWidth=1.5;for(const r of[40,80,115]){x.beginPath();x.arc(cx,cy,r,0,7);x.stroke()}x.beginPath();x.moveTo(8,cy);x.lineTo(w-8,cy);x.moveTo(cx,8);x.lineTo(cx,hh-8);x.stroke();const sc=115/25;
@@ -884,7 +954,7 @@ const W={
   return{root,need:[],always:true,update(){const D=dtData();
    if(T()-buf.t>=250){buf.t=T();buf.f.push(D.f);buf.r.push(D.r);buf.b.push(D.brk);buf.a.push(D.abs?1:0);if(buf.f.length>120)for(const k of["f","r","b","a"])buf[k].shift()}
    setHTML(svgb,dtSVG(D));
-   setHTML(stats,`<div><span class="lab">Asse anteriore</span><b>${D.any?fmt(D.f,0)+" Nm":"n/d"}</b></div><div><span class="lab">Asse posteriore</span><b>${D.any?fmt(D.r,0)+" Nm":"n/d"}</b></div><div><span class="lab">Ripartizione</span><b>${D.any&&Math.abs(D.f)+Math.abs(D.r)>1?fmt(100*Math.abs(D.f)/(Math.abs(D.f)+Math.abs(D.r)),0)+" / "+fmt(100*Math.abs(D.r)/(Math.abs(D.f)+Math.abs(D.r)),0):"n/d"}</b></div><div><span class="lab">Freno</span><b>${D.brk==null?"n/d":fmt(D.brk,0)+"%"}</b></div><div><span class="lab">ABS</span><b style="color:${D.abs?"var(--r)":"inherit"}">${D.abs==null?"n/d":D.abs?"ATTIVO":"inattivo"}</b></div><div><span class="lab">Sterzo</span><b>${D.steer==null?"n/d":(D.steer>0?"◀ ":D.steer<0?"▶ ":"")+fmt(Math.abs(D.steer),0)+"°"}</b></div><div><span class="lab">Lock 4x4</span><b>${D.lock==null?"n/d":D.lock?"ATTIVO":"no"}</b></div>`);
+   setHTML(stats,`<div><span class="lab">Asse anteriore</span><b>${D.any?fmt(D.f,0)+" Nm":"n/d"}</b></div><div><span class="lab">Asse posteriore</span><b>${D.any?fmt(D.r,0)+" Nm":"n/d"}</b></div><div><span class="lab">Trazione ant. / post.</span><b>${splitAP(D)}</b></div><div><span class="lab">Sx / Dx ant.</span><b>${D.any&&D.w.fl!=null&&D.w.fr!=null&&Math.abs(D.w.fl)+Math.abs(D.w.fr)>1?fmt(100*Math.abs(D.w.fl)/(Math.abs(D.w.fl)+Math.abs(D.w.fr)),0)+" / "+fmt(100*Math.abs(D.w.fr)/(Math.abs(D.w.fl)+Math.abs(D.w.fr)),0):NDH}</b></div><div><span class="lab">Sx / Dx post.</span><b>${D.any&&D.w.rl!=null&&D.w.rr!=null&&Math.abs(D.w.rl)+Math.abs(D.w.rr)>1?fmt(100*Math.abs(D.w.rl)/(Math.abs(D.w.rl)+Math.abs(D.w.rr)),0)+" / "+fmt(100*Math.abs(D.w.rr)/(Math.abs(D.w.rl)+Math.abs(D.w.rr)),0):NDH}</b></div><div><span class="lab">Temp. freni</span><b>${NDH}</b></div><div><span class="lab">Anomalie gomme</span><b>${NDH}</b></div><div><span class="lab">Freno</span><b>${D.brk==null?"n/d":fmt(D.brk,0)+"%"}</b></div><div><span class="lab">ABS</span><b style="color:${D.abs?"var(--r)":"inherit"}">${D.abs==null?"n/d":D.abs?"ATTIVO":"inattivo"}</b></div><div><span class="lab">Sterzo</span><b>${D.steer==null?"n/d":(D.steer>0?"◀ ":D.steer<0?"▶ ":"")+fmt(Math.abs(D.steer),0)+"°"}</b></div><div><span class="lab">Lock 4x4</span><b>${D.lock==null?"n/d":D.lock?"ATTIVO":"no"}</b></div>`);
    setHTML(chart,dtChart(buf,D.any));
    setTxt(note,D.any?(Link.mode==="sim"?"Dati simulati.":""):"Coppia per ruota, ABS e freni non sono ancora decodificati su questa auto: i campi mostrano n/d. Il lock 4x4 e la richiesta di trazione sono letti davvero dall'auto.")}}},
  flags:()=>{const esc=h("span",{class:"chip"},"–"),hdc=h("span",{class:"chip"},"–"),park=h("span",{class:"chip"},"–");
@@ -927,7 +997,8 @@ const W={
   const root=h("section",{class:"card cAll"},h("div",{class:"row sp"},h("div",{class:"lab"},"Viaggio in corso"),h("div",{class:"row"},rst,rec,sav)),box,rs);
   return{root,need:[],always:true,update(){setHTML(box,tripView(Veh.trip));setTxt(rs,Trip.rec?"Registrazione in corso: "+Trip.rows.length+" righe":"")}}},
  prices:()=>{const root=h("section",{class:"card cAll"},h("div",{class:"lab"},"Prezzi carburante (€/litro) · media nazionale Mimit 14/11/2026"));const inps=Veh.fuels.map(f=>{const i=h("input",{type:"number",step:"0.001",value:f.price,"aria-label":"prezzo "+f.name,onchange:()=>{const v=parseFloat(i.value);if(v>0){f.price=v;U.prices[f.key]=v;savePrefs()}}});return h("div",{style:"flex:1;min-width:120px"},h("label",null,f.name),i)});
-  root.append(h("div",{class:"row",style:"align-items:flex-end"},...inps),h("div",{class:"lab",style:"margin-top:8px;text-transform:none;letter-spacing:0"},"Il consumo di GPL è quello dichiarato dalla centralina: può essere sottostimato."));
+  const caps=Veh.fuels.map(f=>{const i=h("input",{type:"number",step:"1",value:tankL(f),"aria-label":"capacità "+f.name,onchange:()=>{const v=parseFloat(i.value);if(v>0){U.tank=U.tank||{};U.tank[f.key]=v;savePrefs()}}});return h("div",{style:"flex:1;min-width:120px"},h("label",null,"Serbatoio "+f.name+" (L)"),i)});
+  root.append(h("div",{class:"row",style:"align-items:flex-end"},...inps),h("div",{class:"row",style:"align-items:flex-end;margin-top:6px"},...caps),h("div",{class:"lab",style:"margin-top:8px;text-transform:none;letter-spacing:0"},"Il consumo di GPL è quello dichiarato dalla centralina: può essere sottostimato."));
   return{root,need:[],always:true,update(){}}},
  history:()=>{
   const HFs=HF;const seg=h("div",{class:"seg",style:"margin-top:8px"});const btns={};[["0","Oggi"],["7","7 giorni"],["30","30 giorni"],["all","Tutto"]].forEach(([k,l])=>{btns[k]=h("button",{onclick:()=>{HF.preset=k;upd(true)}},l);seg.append(btns[k])});
@@ -947,17 +1018,17 @@ const W={
  diag:()=>{const root=h("section",{class:"card cAll"},h("div",{class:"lab"},"Diagnostica"),h("pre",{class:"dbg",id:"dbg"},LOG.join("\n")));return{root,need:[],always:true,update(){}}},
 };
 const PAGE_DEF=[
- {id:"drive",title:"Guida",icon:'<circle cx="12" cy="12" r="9"/><path d="M12 12l4-4M7 16h10"/>',widgets:["speedArc","modeGear","engineState","consumi","fuels","hybrid","pedal"]},
- {id:"energy",title:"Energia",icon:IC.bolt,widgets:["battHybrid","batt12","v48","rail"]},
+ {id:"drive",title:"Guida",icon:'<circle cx="12" cy="12" r="9"/><path d="M12 12l4-4M7 16h10"/>',widgets:["driveIce","driveEm","driveEnergy","pedals","driveState"]},
+ {id:"energy",title:"Energia",icon:IC.bolt,widgets:["battHybrid","batt12","fuelInst","rail"]},
  {id:"temp",title:"Temp.",icon:IC.therm,widgets:["tempsPrimary","tempsSecondary"]},
- {id:"engine",title:"Motori",icon:IC.engine,widgets:["engines","engineCard"]},
+ {id:"engine",title:"Motori",icon:IC.engine,widgets:["engines","dct","engineCard"]},
  {id:"dyn",title:"Dinamica",icon:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 3v18M3 12h18"/>',widgets:["drivetrain","gmeter","incl","flags","awd","gps","altChart"]},
  {id:"trip",title:"Viaggio",icon:'<path d="M4 19l5-14 4 8 3-4 4 10z"/>',widgets:["trip","prices","diag"]},
  {id:"hist",title:"Storico",icon:IC.clock,widgets:["history"]},
 ];
 
 /* ---------- pagine ---------- */
-const USES={batt12:["soc12"],engineState:["speed"],consumi:["speed","rpm","ftype","level"],fuels:["ftype"],engines:["speed","rpm","frate","maf","hv","load","ftype","level","soc","rpm_e","rpm_s"],drivetrain:["speed","awd","alat","alon","mode","tp_fl","tp_fr","tp_rl","tp_rr","ws_fl","ws_fr","ws_rl","ws_rr","steer","brkp","brksw"],incl:["speed","alat","alon"],trip:["speed","rpm","frate","maf","hv","ftype","level","soc"],battHybrid:["hv"]};
+const USES={batt12:["soc12"],driveIce:["rpm","speed","tqact","tqreq","tqref","frate","maf","ftype"],driveEm:["rpm_e","hv"],driveEnergy:["level","ftype","soc"],pedals:["pedal","brkp","brksw"],fuelInst:["speed","frate"],engineState:["speed"],consumi:["speed","rpm","ftype","level"],fuels:["ftype"],engines:["speed","rpm","frate","maf","hv","load","ftype","level","soc","rpm_e","rpm_s"],drivetrain:["speed","awd","alat","alon","mode","tp_fl","tp_fr","tp_rl","tp_rr","ws_fl","ws_fr","ws_rl","ws_rr","steer","brkp","brksw"],incl:["speed","alat","alon"],trip:["speed","rpm","frate","maf","hv","ftype","level","soc"],battHybrid:["hv"]};
 const Pages={cur:0,built:[],
  build(){
   const root=$("#pages"),tabs=$("#tabs");root.replaceChildren();tabs.replaceChildren();Pages.built=[];
@@ -970,7 +1041,7 @@ const Pages={cur:0,built:[],
  renderSoon(){if(Pages._pend)return;Pages._pend=true;const run=()=>{Pages._pend=false;Pages._lt=T();try{Pages.render(false)}catch(e){}};const wait=Math.max(0,34-(T()-(Pages._lt||0)));if(wait>0)setTimeout(()=>requestAnimationFrame(run),wait);else requestAnimationFrame(run)},
  show(i){Pages.cur=i;Pages.built.forEach((p,k)=>{p.el.classList.toggle("on",k===i);p.btn.classList.toggle("on",k===i)});Pages.render(true)},
  render(force){
-  const pg=Pages.built[Pages.cur];if(!pg)return;const live=Link.on;
+  const pg=Pages.built[Pages.cur];if(!pg)return;try{derive()}catch(e){}const live=Link.on;
   for(const w of pg.ws){if(w.root.classList.contains("hidden"))continue;
    const now=T();const touched=force||w.always||w.need.some(i=>Live.dirty.has(i))||!w._t||now-w._t>1000;if(!touched)continue;w._t=now;
    try{w.update()}catch(e){dlog("widget "+w.name+": "+e.message)}
@@ -1008,7 +1079,7 @@ function openTrip(t){openSheet("Viaggio del "+new Date(t.start).toLocaleDateStri
 const fmtT=s=>{s=Math.floor(s);const hh=Math.floor(s/3600),m=Math.floor(s%3600/60);return(hh?hh+"h ":"")+m+"m "+(s%60)+"s"};
 function tripRecord(t){let cost=0;const costF={};Veh.fuels.forEach(f=>{costF[f.key]=+((t.lit[f.key]||0)*f.price).toFixed(3);cost+=costF[f.key]});
  return{id:t.id,veh:Veh.p.id,start:t.start,end:T(),sim:!!t.sim,time:Math.round(t.time),dist:+t.dist.toFixed(3),mov:Math.round(t.movTime),ev:Veh.p.hybrid&&t.movTime>0?Math.round(100*t.evTime/t.movTime):null,
-  km:t.km,lit:t.lit,costF,kmEv:+(t.kmEv||0).toFixed(3),asc:Math.round(t.asc||0),desc:Math.round(t.desc||0),eOut:+t.energyOut.toFixed(3),eIn:+t.energyIn.toFixed(3),cost:+cost.toFixed(2),vmax:Math.round(t.vmax),vavg:t.movTime>0?Math.round(t.dist/(t.movTime/3600)):0,altMin:t.altMin==null?null:Math.round(t.altMin),altMax:t.altMax==null?null:Math.round(t.altMax),ser:t.ser}}
+  km:t.km,lit:t.lit,costF,kmEv:+(t.kmEv||0).toFixed(3),asc:Math.round(t.asc||0),desc:Math.round(t.desc||0),eOut:+t.energyOut.toFixed(3),eIn:+t.energyIn.toFixed(3),eIce:+(t.eIce||0).toFixed(3),eEm:+(t.eEm||0).toFixed(3),iceT:Math.round(t.iceT||0),cost:+cost.toFixed(2),vmax:Math.round(t.vmax),vavg:t.movTime>0?Math.round(t.dist/(t.movTime/3600)):0,altMin:t.altMin==null?null:Math.round(t.altMin),altMax:t.altMax==null?null:Math.round(t.altMax),ser:t.ser}}
 const Store={trips:[],
  key:()=>"ad.t."+(Auth.cur?Auth.cur.id:"guest"),
  async load(){Store.trips=[];const box=lsGet(Store.key(),null);if(!box)return;try{Store.trips=(Auth.cur&&!Auth.cur.guest)?await Auth.open(Auth.cur.dek,box):box}catch(e){dlog("storico non leggibile")}if(!Array.isArray(Store.trips))Store.trips=[]},
