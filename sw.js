@@ -1,5 +1,5 @@
-const C="autodash-0.10";
-const SHELL=["./","./index.html","./manifest.webmanifest","./icon.svg","./icon-192.png"];
+const C="autodash-0.10b";
+const SHELL=["./","./index.html","./manifest.webmanifest","./assets/icon.svg","./assets/icon-192.png"];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()))});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
 self.addEventListener("fetch",e=>{

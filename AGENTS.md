@@ -6,7 +6,7 @@ Versione attuale: 0.10 (non stabile). Sito: https://bartolomeo902.github.io/auto
 
 ## Struttura
 - `index.html`: TUTTO il codice (HTML, CSS, JS), nessuna build, nessuna libreria esterna.
-- `sw.js`: service worker (rete prima, cache dopo; cambia il nome `const C=` per forzare l'aggiornamento).
+- `assets/`: icone. `sw.js`: service worker (rete prima, cache dopo; cambia il nome `const C=` per forzare l'aggiornamento).
 - `tests/run.js`: suite jsdom (450 controlli). Si lancia con `npm install` (una volta) e `npm test`.
 - `docs/MAPPATURA_BIGSTER.md`: segnali decodificati sulla Bigster, con DID, formule e stato di verifica.
 - `.claude/commands/`: comandi rapidi per Claude Code (`/prova`, `/nuovo-profilo`, `/nuovo-sensore`).
