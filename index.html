@@ -697,19 +697,11 @@ const SX=1.3,SY=.84;
 function carGeom(p){const c=CARS[p&&p.id]||CARS["generic-obd2"],k=80,kx=k*SX,ky=k*SY,L=c.L*ky,W=c.W*kx,wb=c.wb*ky,hl=L/2,hw=W/2,yF=-hl+c.of*ky,yR=yF+wb;
  return{c,k,kx,ky,L,W,wb,hl,hw,yF,yR,xw:hw-.14*kx,ww:.235*kx,wh:.7*k*.95}}
 const carBox=(g,px)=>`${(-(g.hw+px)).toFixed(1)} ${(-(g.hl+14)).toFixed(1)} ${(2*(g.hw+px)).toFixed(1)} ${(g.L+28).toFixed(1)}`;
-function carBodySVG(g){const c=g.c,k=g.ky,hl=g.hl,hw=g.hw,boxy=c.style==="boxy",nose=hw*(boxy?.82:.64),tail=hw*(boxy?.84:.7);
- const yWs=g.yF+.10*k,yWt=yWs+(boxy?.5:.62)*k,rg={suv:.30,hatch:.34,boxy:.22,wagon:.16,sedan:.95}[c.style]||.3,yRb=hl-rg*k,yRt=yRb-(c.style==="sedan"?.45:.55)*k,f=n=>n.toFixed(1);
- let s=`<path d="M${f(-nose)} ${f(-hl)}Q0 ${f(-hl-7)} ${f(nose)} ${f(-hl)}C${f(hw*.96)} ${f(-hl+5)} ${f(hw)} ${f(-hl+.45*k)} ${f(hw)} ${f(-hl+.75*k)}L${f(hw)} ${f(hl-.7*k)}C${f(hw)} ${f(hl-.3*k)} ${f(tail*1.08)} ${f(hl-3)} ${f(tail)} ${f(hl)}Q0 ${f(hl+4)} ${f(-tail)} ${f(hl)}C${f(-tail*1.08)} ${f(hl-3)} ${f(-hw)} ${f(hl-.3*k)} ${f(-hw)} ${f(hl-.7*k)}L${f(-hw)} ${f(-hl+.75*k)}C${f(-hw)} ${f(-hl+.45*k)} ${f(-hw*.96)} ${f(-hl+5)} ${f(-nose)} ${f(-hl)}Z" fill="var(--card2)" stroke="var(--mut)" stroke-width="2.5"/>`;
- s+=`<path d="M${f(-hw*.3)} ${f(-hl+6)}L${f(-hw*.42)} ${f(yWs)}M${f(hw*.3)} ${f(-hl+6)}L${f(hw*.42)} ${f(yWs)}" stroke="var(--line)" stroke-width="1.5" fill="none"/>`;
- s+=`<rect x="${f(-hw*.62)}" y="${f(yWt)}" width="${f(hw*1.24)}" height="${f(yRt-yWt)}" rx="10" fill="var(--card)" stroke="var(--line)" stroke-width="1.5"/>`;
- if(c.rails)s+=`<path d="M${f(-hw*.5)} ${f(yWt+8)}V${f(yRt-8)}M${f(hw*.5)} ${f(yWt+8)}V${f(yRt-8)}" stroke="var(--mut)" stroke-width="2.2" stroke-linecap="round" opacity=".7"/>`;
- s+=`<path d="M${f(-hw*.76)} ${f(yWs)}L${f(hw*.76)} ${f(yWs)}L${f(hw*.62)} ${f(yWt)}L${f(-hw*.62)} ${f(yWt)}Z" fill="var(--bg)" opacity=".92" stroke="var(--line)"/>`;
- s+=`<path d="M${f(-hw*.62)} ${f(yRt)}L${f(hw*.62)} ${f(yRt)}L${f(hw*.7)} ${f(yRb)}L${f(-hw*.7)} ${f(yRb)}Z" fill="var(--bg)" opacity=".92" stroke="var(--line)"/>`;
- for(const sd of[-1,1])s+=`<rect x="${f(sd*hw*.8-hw*.06)}" y="${f(yWs+.12*k)}" width="${f(hw*.12)}" height="${f(yRb-yWs-.25*k)}" rx="4" fill="var(--bg)" opacity=".8"/><ellipse cx="${f(sd*(hw+5))}" cy="${f(yWs+.02*k)}" rx="5" ry="8" fill="var(--card2)" stroke="var(--mut)" stroke-width="2"/>`;
- s+=`<path d="M${f(-hw*.66)} ${f(-hl+4)}H${f(-hw*.34)}M${f(hw*.34)} ${f(-hl+4)}H${f(hw*.66)}" stroke="#ffe08a" stroke-width="4" stroke-linecap="round"/><path d="M${f(-hw*.62)} ${f(hl-3)}H${f(-hw*.3)}M${f(hw*.3)} ${f(hl-3)}H${f(hw*.62)}" stroke="#ef4444" stroke-width="4" stroke-linecap="round"/>`;
- return s}
+function carBodySVG(g){const hl=g.hl,hw=g.hw,st=g.c.style,f=n=>n.toFixed(1),rf=hw*({boxy:.34,hatch:.6,wagon:.5}[st]||.52),rr=hw*({boxy:.34,hatch:.5,wagon:.42}[st]||.46);
+ return `<path d="M${f(-hw+rf)} ${f(-hl)}H${f(hw-rf)}Q${f(hw)} ${f(-hl)} ${f(hw)} ${f(-hl+rf)}V${f(hl-rr)}Q${f(hw)} ${f(hl)} ${f(hw-rr)} ${f(hl)}H${f(-hw+rr)}Q${f(-hw)} ${f(hl)} ${f(-hw)} ${f(hl-rr)}V${f(-hl+rf)}Q${f(-hw)} ${f(-hl)} ${f(-hw+rf)} ${f(-hl)}Z" fill="var(--card)" stroke="var(--mut)" stroke-width="2.5"/>`}
 const wheelXY=g=>({fl:[-g.xw,g.yF],fr:[g.xw,g.yF],rl:[-g.xw,g.yR],rr:[g.xw,g.yR]});
-const wheelRect=(g,x,y,fill,stroke,sw)=>`<rect x="${(x-g.ww/2).toFixed(1)}" y="${(y-g.wh/2).toFixed(1)}" width="${g.ww.toFixed(1)}" height="${g.wh.toFixed(1)}" rx="5" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/><path d="M${(x-g.ww/2+3).toFixed(1)} ${(y-g.wh/2+9).toFixed(1)}H${(x+g.ww/2-3).toFixed(1)}M${(x-g.ww/2+3).toFixed(1)} ${(y+g.wh/2-9).toFixed(1)}H${(x+g.ww/2-3).toFixed(1)}" stroke="rgba(0,0,0,.28)" stroke-width="1.5"/>`;
+const wheelRect=(g,x,y,fill,stroke,sw)=>`<rect x="${(x-g.ww/2).toFixed(1)}" y="${(y-g.wh/2).toFixed(1)}" width="${g.ww.toFixed(1)}" height="${g.wh.toFixed(1)}" rx="5" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
+const wheelsOut=g=>{const wW=g.ww*1.35,wH=g.wh*1.25,wx=g.hw+wW/2+3;return{wW,wH,wx,wg:{ww:wW,wh:wH},xa:wx-wW/2,wl:{fl:[-wx,g.yF],fr:[wx,g.yF],rl:[-wx,g.yR],rr:[wx,g.yR]}}};
 const symG=(n,x,y,sc,col)=>`<g transform="translate(${x-12*sc} ${y-12*sc}) scale(${sc})" stroke="${col}" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${IC[n]}</g>`;
 const lockOf=()=>{const m=Veh.S&&Veh.S.mode;if(!m||!m.enum)return null;return V("mode")==null?undefined:Number(V("mode"))===5};
 const CMP={
@@ -729,18 +721,20 @@ function engFlows(){const rpm=V("rpm"),sp=V("speed")||0,hy=!!Veh.p.hybrid,P=Live
  return{rpm,sp,hy,iceOn,ev,crank,P,ft,fr:Live.fr,Pe:hy&&!iceOn?Pp:0,Ps:hy&&iceOn?Pp:0}}
 const flowP=(id,d,on,col,rev,w)=>`<path data-f="${id}" d="${d}" fill="none" stroke="var(--line)" stroke-width="3" stroke-linecap="round"/>`+(on?`<path data-f="${id}" d="${d}" class="fl${rev?" rv":""}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/>`:"");
 function flowSVG(F){const g=carGeom(Veh.p),th=.3,cT="var(--"+F.ft.color+")",cY="var(--y)",wd=(x,m)=>(3+Math.min(5,Math.abs(x)/m*5)).toFixed(1),mx=Veh.p.hvMax||15,xw=g.xw,ww=g.ww,yF=g.yF,yR=g.yR,hw=g.hw,k=g.ky;
- const iceY=yF-.5*k,sgY=yF+.62*k,batY=(yF+yR)/2-.12*k,emY=yR-.55*k,tkY=yR-1.0*k,hy=F.hy,ft=F.ft,ix=-hw*.2,tx=-hw*.5,sx=hw*.36;
- let s=`<svg viewBox="${carBox(g,16)}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;max-height:calc(100dvh - 290px);display:block;margin:6px auto" role="img" aria-label="flussi di energia tra i motori"><g>`;
+ const WO=wheelsOut(g),xa=WO.xa,iceY=yF-.5*k,sgY=yF+.62*k,batY=(yF+yR)/2-.12*k,emY=yR-.55*k,tkY=yR-1.0*k,hy=F.hy,ft=F.ft,ix=-hw*.2,tx=-hw*.5,sx=hw*.36;
+ let s=`<svg viewBox="${carBox(g,WO.wW+16)}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;max-height:calc(100dvh - 290px);display:block;margin:6px auto" role="img" aria-label="flussi di energia tra i motori"><g>`;
  s+=carBodySVG(g);
- const wl=wheelXY(g),drv=F.sp>2;
- for(const w in wl){const front=w[0]==="f",on=front?F.iceOn&&drv:(hy&&Math.abs(F.Pe)>th);s+=wheelRect(g,wl[w][0],wl[w][1],on?(front?"color-mix(in srgb,"+cT+" 55%,var(--card2))":"color-mix(in srgb,"+cY+" 55%,var(--card2))"):"var(--card2)","var(--fg)",2)}
+ const wl=WO.wl,drv=F.sp>2;
+ for(const w in wl){const front=w[0]==="f",on=front?F.iceOn&&drv:(hy&&Math.abs(F.Pe)>th);s+=wheelRect(WO.wg,wl[w][0],wl[w][1],on?(front?"color-mix(in srgb,"+cT+" 55%,var(--card2))":"color-mix(in srgb,"+cY+" 55%,var(--card2))"):"var(--card2)","var(--fg)",2)}
  s+=flowP("fuel",`M${tx} ${tkY-12}V${iceY}H${ix-20}`,F.iceOn,cT,false,wd(F.fr||0,8));
- s+=flowP("ice-w",`M${ix} ${iceY+12}V${yF}H0M${-xw+ww/2} ${yF}H${xw-ww/2}`,F.iceOn&&drv,cT,false,5);
+ s+=`<path d="M${-xa} ${yF}H${xa}" stroke="var(--mut)" stroke-width="7" stroke-linecap="round" fill="none" opacity=".75"/>`;
+ s+=flowP("ice-w",`M${ix} ${iceY+12}V${yF}H0M0 ${yF}H${-xa}M0 ${yF}H${xa}`,F.iceOn&&drv,cT,false,5);
  if(hy){const asst=F.Ps>th||F.crank,chrg=F.Ps<-th&&!F.crank;
   s+=flowP("ice-sg",`M${ix+20} ${iceY}H${sx}V${sgY-12}`,F.iceOn&&(asst||chrg)||F.crank,cY,asst,wd(F.Ps,mx));
   s+=flowP("bat-sg",`M17 ${batY}H${sx}V${sgY+12}`,Math.abs(F.Ps)>th||F.crank,cY,chrg,wd(F.Ps,mx));
   s+=flowP("bat-em",`M0 ${batY+11}V${emY-10}`,Math.abs(F.Pe)>th,cY,F.Pe<-th,wd(F.Pe,mx));
-  s+=flowP("em-w",`M0 ${emY+10}V${yR}M${-xw+ww/2} ${yR}H${xw-ww/2}`,Math.abs(F.Pe)>th,cY,F.Pe<-th,wd(F.Pe,mx))}
+  s+=`<path d="M${-xa} ${yR}H${xa}" stroke="var(--mut)" stroke-width="7" stroke-linecap="round" fill="none" opacity=".75"/>`;
+  s+=flowP("em-w",`M0 ${emY+10}V${yR}M0 ${yR}H${-xa}M0 ${yR}H${xa}`,Math.abs(F.Pe)>th,cY,F.Pe<-th,wd(F.Pe,mx))}
  const lv=V("level");
  s+=comp("engine",ix,iceY,cT,F.iceOn,F.iceOn?fmt(F.rpm,0)+" rpm":"spento",0,"Motore termico");
  s+=comp("tank",tx,tkY,cT,F.iceOn,lv!=null?fmt(lv,0)+"%":"–",lv!=null?lv/100:0,"Serbatoio "+ft.name);
@@ -775,7 +769,7 @@ function dtData(){const w={},tp={},tt={};let any=false;for(const k of["fl","fr",
 const tqCol=n=>n==null?"var(--card2)":n<-5?"#38bdf8":n<135?"#34d058":n<270?"#f5c518":"#ef4444";
 const tpCol=b=>b==null?"var(--mut)":b<1.8?"var(--r)":b<2.0?"var(--o)":b<=3.4?"var(--g)":"var(--o)";
 function dtSVG(D){const g=carGeom(Veh.p),c=g.c,F=engFlows(),brk=D.brk||0,abs=!!D.abs,yF=g.yF,yR=g.yR,k=g.ky,th=.3;
- const wW=g.ww*1.35,wH=g.wh*1.25,wx=g.hw+wW/2+3,wg={ww:wW,wh:wH},px=wW+62,cT="var(--"+F.ft.color+")",cY="var(--y)";
+ const WO=wheelsOut(g),wW=WO.wW,wx=WO.wx,wg=WO.wg,px=wW+62,cT="var(--"+F.ft.color+")",cY="var(--y)";
  const wl={fl:[-wx,yF],fr:[wx,yF],rl:[-wx,yR],rr:[wx,yR]};
  let s=`<svg viewBox="${carBox(g,px)}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;max-height:calc(100dvh - 290px);display:block;margin:6px auto" role="img" aria-label="schema trasmissione"><g>`+carBodySVG(g);
  const base=(d)=>`<path d="${d}" stroke="var(--mut)" stroke-width="7" stroke-linecap="round" fill="none" opacity=".75"/>`,iceY=yF-.5*k,eY=yR-.55*k,fwd=c.drv==="fwd";
@@ -907,11 +901,11 @@ const W={
   const root=h("section",{class:"card c2"},h("div",{class:"lab"},"Richiesta trazione integrale"),box,lbl,seg,h("div",{class:"row sp lab",style:"margin-top:4px"},h("span",null,"Solo anteriore"),h("span",null,"4x4 pieno")));
   const NAMES=["Solo anteriore","Posteriore in attesa","Aiuto leggero","Aiuto medio","Aiuto forte","4x4 al massimo"];
   return{root,need:["awd"],update(){const x=V("awd"),n=x==null?0:clamp(Math.round(x),0,5),g=carGeom(Veh.p),sc=.5;
-   const wl=wheelXY(g);let s=`<svg viewBox="${(-(g.hw*sc+10)).toFixed(1)} ${(-g.L*sc/2-8).toFixed(1)} ${(2*(g.hw*sc+10)).toFixed(1)} ${(g.L*sc+16).toFixed(1)}" style="height:150px;width:auto" role="img" aria-label="trazione"><g transform="scale(${sc})">`+carBodySVG(g);
-   s+=`<path d="M${-g.xw} ${g.yF}H${g.xw}" stroke="var(--acc)" stroke-width="7" stroke-linecap="round"/>`;
-   const ra=x==null?0:n/5;s+=`<path d="M${-g.xw} ${g.yR}H${g.xw}" stroke="var(--p)" stroke-width="7" stroke-linecap="round" opacity="${(.15+.85*ra).toFixed(2)}"/>`;
-   if(g.c.drv==="shaft")s+=`<path d="M0 ${g.yF}V${g.yR}" stroke="var(--p)" stroke-width="6" opacity="${(.15+.85*ra).toFixed(2)}"/>`;
-   for(const w in wl)s+=wheelRect(g,wl[w][0],wl[w][1],w[0]==="f"?"var(--acc)":"color-mix(in srgb,var(--p) "+Math.round(20+80*ra)+"%,var(--card2))","var(--fg)",3);
+   const WO=wheelsOut(g),wl=WO.wl,xa=WO.xa,ra=x==null?0:n/5,bw=g.hw+WO.wW+10;let s=`<svg viewBox="${(-bw*sc).toFixed(1)} ${(-g.L*sc/2-8).toFixed(1)} ${(2*bw*sc).toFixed(1)} ${(g.L*sc+16).toFixed(1)}" style="height:150px;width:auto" role="img" aria-label="trazione"><g transform="scale(${sc})">`+carBodySVG(g);
+   s+=`<path d="M${-xa} ${g.yF}H${xa}" stroke="var(--acc)" stroke-width="8" stroke-linecap="round"/>`;
+   s+=`<path d="M${-xa} ${g.yR}H${xa}" stroke="var(--p)" stroke-width="8" stroke-linecap="round" opacity="${(.15+.85*ra).toFixed(2)}"/>`;
+   if(g.c.drv==="shaft")s+=`<path d="M0 ${g.yF}V${g.yR}" stroke="var(--p)" stroke-width="7" opacity="${(.15+.85*ra).toFixed(2)}"/>`;
+   for(const w in wl)s+=wheelRect(WO.wg,wl[w][0],wl[w][1],w[0]==="f"?"var(--acc)":"color-mix(in srgb,var(--p) "+Math.round(20+80*ra)+"%,var(--card2))","var(--fg)",3);
    setHTML(box,s+"</g></svg>");setTxt(lbl,x==null?"–":NAMES[n]);
    seg.innerHTML=[1,2,3,4,5].map(i=>`<i style="flex:1;border-radius:6px;background:${x!=null&&i<=n?"var(--p)":"var(--card2)"}"></i>`).join("")}}},
  gps:()=>{const s=h("div",{class:"val"});const root=h("section",{class:"card"},h("div",{class:"lab"},"Velocità GPS"),s);
