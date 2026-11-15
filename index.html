@@ -774,22 +774,32 @@ function dtData(){const w={},tp={},tt={};let any=false;for(const k of["fl","fr",
  return{w,tp,tt,any,f:any?(w.fl||0)+(w.fr||0):null,r:any?(w.rl||0)+(w.rr||0):null,brk:V("brk")!=null?V("brk"):(V("brkp")!=null?Math.min(100,Math.max(0,V("brkp"))):null),abs:V("abs")==null?null:V("abs"),awd:V("awd"),sp:V("speed")||0,ws:{fl:V("ws_fl"),fr:V("ws_fr"),rl:V("ws_rl"),rr:V("ws_rr")},lock:lockOf()}}
 const tqCol=n=>n==null?"var(--card2)":n<-5?"#38bdf8":n<135?"#34d058":n<270?"#f5c518":"#ef4444";
 const tpCol=b=>b==null?"var(--mut)":b<1.8?"var(--r)":b<2.0?"var(--o)":b<=3.4?"var(--g)":"var(--o)";
-function dtSVG(D){const g=carGeom(Veh.p),c=g.c,brk=D.brk||0,abs=!!D.abs,xw=g.xw,ww=g.ww,yF=g.yF,yR=g.yR,k=g.ky,wl=wheelXY(g),side=g.hw+66;
- let s=`<svg viewBox="${carBox(g,82)}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;max-height:calc(100dvh - 290px);display:block;margin:6px auto" role="img" aria-label="schema trasmissione"><g>`+carBodySVG(g);
- const ln=(d,col,w)=>`<path d="${d}" stroke="${col||"var(--mut)"}" stroke-width="${w||5}" stroke-linecap="round" fill="none"/>`,iceY=yF-.5*k;
- s+=ln(`M${-xw+ww/2} ${yF}H${xw-ww/2}`);
- s+=ln(`M0 ${iceY+12}V${yF-9}`)+comp("engine",0,iceY,"var(--mut)",false,null,0,"Motore termico");
+function dtSVG(D){const g=carGeom(Veh.p),c=g.c,F=engFlows(),brk=D.brk||0,abs=!!D.abs,yF=g.yF,yR=g.yR,k=g.ky,th=.3;
+ const wW=g.ww*1.35,wH=g.wh*1.25,wx=g.hw+wW/2+3,wg={ww:wW,wh:wH},px=wW+62,cT="var(--"+F.ft.color+")",cY="var(--y)";
+ const wl={fl:[-wx,yF],fr:[wx,yF],rl:[-wx,yR],rr:[wx,yR]};
+ let s=`<svg viewBox="${carBox(g,px)}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;max-height:calc(100dvh - 290px);display:block;margin:6px auto" role="img" aria-label="schema trasmissione"><g>`+carBodySVG(g);
+ const base=(d)=>`<path d="${d}" stroke="var(--mut)" stroke-width="7" stroke-linecap="round" fill="none" opacity=".75"/>`,iceY=yF-.5*k,eY=yR-.55*k,fwd=c.drv==="fwd";
+ const neg=w=>D.w[w]!=null&&D.w[w]<-5;
+ const front=D.any?(D.f>5||D.f<-5):(F.iceOn&&F.sp>2),frontRev=D.any?D.f<-5:false;
+ const rear=D.any?(D.r>5||D.r<-5):(c.drv==="emotor"?Math.abs(F.Pe)>th:c.drv==="shaft"&&F.iceOn&&F.sp>2&&(D.awd||0)>0),rearRev=D.any?D.r<-5:(c.drv==="emotor"&&F.Pe<-th);
+ const xa=wx-wW/2;
+ s+=base(`M${-xa} ${yF}H${xa}`);
+ if(!fwd)s+=base(`M${-xa} ${yR}H${xa}`);else s+=`<path d="M${-xa} ${yR}H${xa}" stroke="var(--line)" stroke-width="3" stroke-dasharray="4 5" fill="none"/>`;
+ s+=flowP("ice-da",`M0 ${iceY+12}V${yF-9}`,F.iceOn||front,cT,frontRev,5);
+ s+=flowP("da-fl",`M0 ${yF}H${-xa}`,front,cT,frontRev||neg("fl"),5)+flowP("da-fr",`M0 ${yF}H${xa}`,front,cT,frontRev||neg("fr"),5);
+ if(!fwd){
+  if(c.drv==="shaft")s+=base(`M0 ${yF+9}V${yR-9}`)+flowP("shaft",`M0 ${yF+9}V${yR-9}`,rear,cT,rearRev,5);
+  else s+=flowP("em-dp",`M0 ${eY+11}V${yR-9}`,rear,cY,rearRev,5);
+  const rc=c.drv==="shaft"?cT:cY;
+  s+=flowP("dp-rl",`M0 ${yR}H${-xa}`,rear,rc,rearRev||neg("rl"),5)+flowP("dp-rr",`M0 ${yR}H${xa}`,rear,rc,rearRev||neg("rr"),5)}
+ s+=comp("engine",0,iceY,cT,F.iceOn,null,0,"Motore termico");
  s+=comp("diff",0,yF,"var(--fg)",true,null,0,"Differenziale anteriore (DA)");
- if(c.drv==="fwd"){s+=`<path d="M${-xw+ww/2} ${yR}H${xw-ww/2}" stroke="var(--line)" stroke-width="3" stroke-dasharray="4 5" fill="none"/>`}
- else{s+=ln(`M${-xw+ww/2} ${yR}H${xw-ww/2}`);
-  if(c.drv==="shaft")s+=ln(`M0 ${yF+9}V${yR-9}`);
-  else{const eY=yR-.55*k;s+=ln(`M0 ${eY+10}V${yR-9}`,"var(--y)")+comp("emotor",0,eY,"var(--y)",true,null,0,"Motore elettrico posteriore")}
-  s+=comp("diff",0,yR,"var(--fg)",true,null,0,"Differenziale posteriore (DP)")}
- if(c.drv!=="fwd"&&D.lock!==null){const on=D.lock===true,my=(yF+yR)/2-.1*k;s+=`<circle cx="0" cy="${my}" r="19" fill="${on?"var(--p)":"var(--card)"}" stroke="${on?"var(--p)":"var(--line)"}" stroke-width="2.5"/>`+symG(on?"lockc":"locko",0,my,1.05,on?"#fff":"var(--mut)")+`<text x="0" y="${my+32}" text-anchor="middle" font-size="9.5" font-weight="800" fill="${on?"var(--p)":"var(--mut)"}" stroke="var(--card2)" stroke-width="3" paint-order="stroke">4x4 LOCK ${D.lock===undefined?"?":on?"ATTIVO":"no"}</text>`}
- for(const w in wl){const[x,y]=wl[w],tq=D.w[w],sl=D.ws[w]!=null&&D.sp>5?(D.ws[w]-D.sp)/D.sp*100:null,sd=x<0?-1:1,tx=sd*(g.hw+12),anc=sd<0?"end":"start",pr=D.tp[w],tt=D.tt[w];
-  s+=`<g${abs?' class="absb"':""}>`+wheelRect(g,x,y,tqCol(tq),brk>5?"#ef4444":"var(--fg)",(2.5+brk/18).toFixed(1))+`</g>`;
-  s+=`<text x="${tx}" y="${y-9}" text-anchor="${anc}" font-size="12.5" font-weight="800" fill="${tq==null?"var(--mut)":"var(--fg)"}">${tq==null?"n/d":Math.round(tq)+" Nm"}</text>`+
-   `<text x="${tx}" y="${y+6}" text-anchor="${anc}" font-size="11.5" font-weight="700" fill="${tpCol(pr)}">${pr==null?"– bar":fmt(pr,1)+" bar"}</text>`+
+ if(!fwd){if(c.drv==="emotor")s+=comp("emotor",0,eY,cY,Math.abs(F.Pe)>th,null,0,"Motore elettrico posteriore");s+=comp("diff",0,yR,"var(--fg)",true,null,0,"Differenziale posteriore (DP)")}
+ if(!fwd&&D.lock!==null){const on=D.lock===true,my=(yF+yR)/2-.1*k;s+=`<circle cx="0" cy="${my}" r="19" fill="${on?"var(--p)":"var(--card)"}" stroke="${on?"var(--p)":"var(--line)"}" stroke-width="2.5"/>`+symG(on?"lockc":"locko",0,my,1.05,on?"#fff":"var(--mut)")+`<text x="0" y="${my+32}" text-anchor="middle" font-size="9.5" font-weight="800" fill="${on?"var(--p)":"var(--mut)"}" stroke="var(--card2)" stroke-width="3" paint-order="stroke">4x4 LOCK ${D.lock===undefined?"?":on?"ATTIVO":"no"}</text>`}
+ for(const w in wl){const[x,y]=wl[w],tq=D.w[w],sl=D.ws[w]!=null&&D.sp>5?(D.ws[w]-D.sp)/D.sp*100:null,sd=x<0?-1:1,tx=x+sd*(wW/2+6),anc=sd<0?"end":"start",pr=D.tp[w],tt=D.tt[w];
+  s+=`<g${abs?' class="absb"':""}>`+wheelRect(wg,x,y,tqCol(tq),brk>5?"#ef4444":"var(--fg)",(2.5+brk/18).toFixed(1))+`</g>`;
+  s+=`<text x="${tx}" y="${y-10}" text-anchor="${anc}" font-size="12" font-weight="800" fill="${tq==null?"var(--mut)":"var(--fg)"}">${tq==null?"n/d":Math.round(tq)+" Nm"}</text>`+
+   `<text x="${tx}" y="${y+5}" text-anchor="${anc}" font-size="11.5" font-weight="700" fill="${tpCol(pr)}">${pr==null?"– bar":fmt(pr,1)+" bar"}</text>`+
    `<text x="${tx}" y="${y+19}" text-anchor="${anc}" font-size="10" fill="var(--mut)">${tt!=null?fmt(tt,0)+"°C":""}${tt!=null&&sl!=null?" · ":""}${sl!=null?(sl>=0?"+":"")+sl.toFixed(0)+"%":""}</text>`}
  return s+"</g></svg>"}
 function dtChart(b,any){const W0=320,H0=96,n=b.f.length;if(!any&&b.b.every(x=>x==null)||n<2)return`<div class="lab" style="text-transform:none;letter-spacing:0">Il grafico di coppia, freno e ABS compare con i dati.</div>`;
