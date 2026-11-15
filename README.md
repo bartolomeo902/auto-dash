@@ -1,4 +1,4 @@
-# Auto Dash
+# Auto Dash 0.10 (versione di sviluppo)
 
 Dashboard OBD-II per Web Bluetooth (adattatore ELM327 BLE, es. Vgate iCar Pro). Si apre in Bluefy su iPhone.
 

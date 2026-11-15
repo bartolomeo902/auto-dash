@@ -126,9 +126,12 @@ nav button{min-width:54px;font-size:11px;padding:10px 2px 12px}
 .sum b{display:block;font-size:20px;font-variant-numeric:tabular-nums}
 .scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:40;opacity:0;transition:opacity .2s}
 .scrim.show{opacity:1}
-.drawer{position:fixed;top:0;bottom:0;right:0;width:min(84vw,320px);background:var(--bg2);border-left:1px solid var(--line);z-index:45;transform:translateX(104%);touch-action:pan-y;overscroll-behavior:contain;transition:transform .25s ease;display:flex;flex-direction:column;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);visibility:hidden}
+.drawer{padding-top:0!important;position:fixed;top:0;bottom:0;right:0;width:min(84vw,320px);background:var(--bg2);border-left:1px solid var(--line);z-index:45;transform:translateX(104%);touch-action:pan-y;overscroll-behavior:contain;transition:transform .25s ease;display:flex;flex-direction:column;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);visibility:hidden}
 .drawer.open{transform:none;visibility:visible}
-.dr-head{padding:20px 16px;display:flex;gap:12px;align-items:center;border-bottom:1px solid var(--line)}
+.dr-head{padding:calc(16px + env(safe-area-inset-top)) 16px 16px;display:flex;gap:12px;align-items:center;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;width:100%;min-height:0;text-align:left}
+.dr-head svg{stroke:var(--mut);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.dr-bottom{border-top:1px solid var(--line);padding:4px 0 6px}.dr-ver{font-size:11px;color:var(--mut);padding:2px 18px 4px}
+.avbtn{position:relative;padding:0;border:0;background:transparent;min-height:0;border-radius:50%;flex:none}.avcam{position:absolute;right:-2px;bottom:-2px;width:28px;height:28px;border-radius:50%;background:var(--card2);border:2px solid var(--bg2);display:flex;align-items:center;justify-content:center}.avcam svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .avatar{width:56px;height:56px;border-radius:50%;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px;overflow:hidden;flex:none}
 .avatar img{width:100%;height:100%;object-fit:cover;display:block}
 .avatar.lg{width:84px;height:84px;font-size:32px}
@@ -159,6 +162,9 @@ nav button{min-width:54px;font-size:11px;padding:10px 2px 12px}
 .warnbox{background:var(--obg);color:var(--o);border:1px solid var(--o);border-radius:12px;padding:10px 12px;font-size:13px;margin:8px 0}
 @media (max-width:440px) and (min-height:760px){.page{gap:10px;padding:10px}.xl{font-size:clamp(72px,25vw,110px)}.card{--pad:15px}nav button{padding-top:12px}}
 @media (orientation:landscape) and (max-height:480px){nav button{padding:4px 2px 5px}nav button svg{width:18px;height:18px}.page{padding:8px;gap:8px}}
+#btnDemo{min-height:36px;padding:4px 10px;font-size:14px;color:var(--acc);border:1px solid var(--line)}
+#btnConn{padding:8px 12px}
+.fgrid{display:grid;gap:14px;margin-top:8px}.fcol{min-width:0}.fhd{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:nowrap;min-height:40px}.fcol .chip{font-size:14px;padding:5px 10px;white-space:nowrap}.fcol .chip svg{width:1em;height:1em}.fcol .val{font-size:28px;white-space:nowrap;line-height:1}
 </style>
 </head>
 <body>
@@ -166,6 +172,7 @@ nav button{min-width:54px;font-size:11px;padding:10px 2px 12px}
   <span id="dot" role="status" aria-label="stato collegamento"></span>
   <button id="veh" class="ghost" aria-label="scegli auto">Auto</button>
   <span id="stat">non collegato</span>
+  <button id="btnDemo" class="ghost" aria-label="avvia la demo">Demo</button>
   <button id="btnConn" class="pri">Collega</button>
   <button id="btnMenu" class="ghost" aria-label="menu" style="padding:8px 10px">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
@@ -189,6 +196,7 @@ nav button{min-width:54px;font-size:11px;padding:10px 2px 12px}
 /* ---------- util ---------- */
 const $=(q,r=document)=>r.querySelector(q);
 const h=(tag,a,...kids)=>{a=a||{};const e=document.createElement(tag);for(const[k,v]of Object.entries(a)){if(k==="class")e.className=v;else if(k==="html")e.innerHTML=v;else if(k.startsWith("on"))e.addEventListener(k.slice(2),v);else if(v!==false&&v!=null)e.setAttribute(k,v===true?"":v)}for(const c of kids.flat()){if(c==null||c===false)continue;e.append(c.nodeType?c:document.createTextNode(c))}return e};
+const VER="0.10";
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const sg16=(a,b)=>{let v=a*256+b;return v>=32768?v-65536:v};
 const fmt=(x,d=0)=>x==null||!isFinite(x)?"–":Number(x).toFixed(d);
@@ -477,8 +485,8 @@ async function readSensor(s){
  else{s.fail=(s.fail||0)+1;Perf.note(t1-t0,false);if(s.fail>=4&&!s.dead){s.dead=true;dlog(s.id+": non supportato");Pages.refreshVisibility()}}}
 const Link={on:false,mode:null,polling:false,paused:false,reading:false,
  async hold(fn){Link.paused=true;try{while(Link.reading)await new Promise(r=>setTimeout(r,20));return await fn()}finally{Link.paused=false}},
- start(mode){Link.on=true;Link.mode=mode;if(mode==="ble"&&U.advLog)Rec.start();Veh.trip.sim=(mode==="sim");$("#dot").classList.add("on");$("#btnConn").textContent="Scollega";if(mode==="ble")Link.poll();else Sim.start()},
- stop(){const was=Link.on;const pr=was?finishTrip():Promise.resolve();if(Rec.on)Rec.stop();Link.on=false;Link.mode=null;Sim.stop();$("#dot").classList.remove("on");$("#btnConn").textContent="Collega";setStatus("non collegato");try{ELM.dev&&ELM.dev.gatt&&ELM.dev.gatt.connected&&ELM.dev.gatt.disconnect()}catch(e){}return pr},
+ start(mode){Link.on=true;Link.mode=mode;if(mode==="ble"&&U.advLog)Rec.start();Veh.trip.sim=(mode==="sim");$("#dot").classList.add("on");$("#btnConn").textContent="Scollega";$("#btnDemo").classList.add("hidden");if(mode==="ble")Link.poll();else Sim.start()},
+ stop(){const was=Link.on;const pr=was?finishTrip():Promise.resolve();if(Rec.on)Rec.stop();Link.on=false;Link.mode=null;Sim.stop();$("#dot").classList.remove("on");$("#btnConn").textContent="Collega";$("#btnDemo").classList.remove("hidden");setStatus("non collegato");try{ELM.dev&&ELM.dev.gatt&&ELM.dev.gatt.connected&&ELM.dev.gatt.disconnect()}catch(e){}return pr},
  async poll(){
   if(Link.polling)return;Link.polling=true;let lt=0;
   while(Link.on&&Link.mode==="ble"){
@@ -575,7 +583,7 @@ const Rec={on:false,buf:[],n:0,db:null,mem:[],_s:0,
  async all(){await Rec.flush();if(!Rec.db)return[...Rec.mem];return new Promise(r=>{try{const q=Rec.db.transaction("l").objectStore("l").getAll();q.onsuccess=()=>r(q.result.concat(Rec.mem));q.onerror=()=>r([...Rec.mem])}catch(e){r([...Rec.mem])}})},
  async count(){await Rec.flush();if(!Rec.db)return Rec.mem.length;return new Promise(r=>{try{const q=Rec.db.transaction("l").objectStore("l").count();q.onsuccess=()=>r(q.result+Rec.mem.length);q.onerror=()=>r(Rec.mem.length)}catch(e){r(Rec.mem.length)}})},
  async clear(){Rec.buf=[];Rec.mem=[];Rec.n=0;if(Rec.db)await new Promise(r=>{try{const tx=Rec.db.transaction("l","readwrite");tx.objectStore("l").clear();tx.oncomplete=tx.onerror=()=>r()}catch(e){r()}})},
- start(){if(Rec.on)return;Rec.on=true;Rec.add({k:"hdr",app:"Auto Dash v10",veh:Veh.p.id,ua:navigator.userAgent,perf:Perf.cfg,adapter:ELM.dev&&ELM.dev.name,sensors:Object.values(Veh.S).filter(s=>s.cmd).map(s=>[s.id,s.ecu,s.cmd])});dlog("logging avanzato attivo")},
+ start(){if(Rec.on)return;Rec.on=true;Rec.add({k:"hdr",app:"Auto Dash "+VER,veh:Veh.p.id,ua:navigator.userAgent,perf:Perf.cfg,adapter:ELM.dev&&ELM.dev.name,sensors:Object.values(Veh.S).filter(s=>s.cmd).map(s=>[s.id,s.ecu,s.cmd])});dlog("logging avanzato attivo")},
  stop(){if(!Rec.on)return;Rec.add({k:"end"});Rec.flush();Rec.on=false},
  mark(label){const was=Rec.on;if(!was)Rec.on=true;Rec.add({k:"m",label:label||"evento"});if(!was){Rec.flush();Rec.on=false}toast("Evento segnato nel log")},
  snap(){if(!Rec.on)return;const n=T();if(n-Rec._s<1000)return;Rec._s=n;const v={};for(const k in Live.v){const x=Live.v[k];if(x!=null)v[k]=x}Rec.add({k:"v",v,gps:{alt:GPS.alt,spd:GPS.spd},hvP:Live.hvP,perf:{rate:+Perf.rate.toFixed(1),lat:Math.round(Perf.lat)}})},
@@ -685,9 +693,11 @@ const CARS={"dacia-bigster-hg150":{L:4.57,W:1.81,wb:2.70,of:.92,style:"suv",rail
  "volvo-xc90":{L:4.95,W:1.92,wb:2.98,of:.91,style:"wagon",rails:1,drv:"emotor"},
  "byd-atto2-dmi":{L:4.31,W:1.83,wb:2.62,of:.88,style:"suv",drv:"fwd"},
  "generic-obd2":{L:4.40,W:1.80,wb:2.65,of:.90,style:"hatch",drv:"fwd"}};
-function carGeom(p){const c=CARS[p&&p.id]||CARS["generic-obd2"],k=80,L=c.L*k,W=c.W*k,wb=c.wb*k,hl=L/2,hw=W/2,yF=-hl+c.of*k,yR=yF+wb;
- return{c,k,L,W,wb,hl,hw,yF,yR,xw:hw-.2*k,ww:.235*k,wh:.7*k,cy:222}}
-function carBodySVG(g){const c=g.c,k=g.k,hl=g.hl,hw=g.hw,boxy=c.style==="boxy",nose=hw*(boxy?.82:.64),tail=hw*(boxy?.84:.7);
+const SX=1.3,SY=.84;
+function carGeom(p){const c=CARS[p&&p.id]||CARS["generic-obd2"],k=80,kx=k*SX,ky=k*SY,L=c.L*ky,W=c.W*kx,wb=c.wb*ky,hl=L/2,hw=W/2,yF=-hl+c.of*ky,yR=yF+wb;
+ return{c,k,kx,ky,L,W,wb,hl,hw,yF,yR,xw:hw-.14*kx,ww:.235*kx,wh:.7*k*.95}}
+const carBox=(g,px)=>`${(-(g.hw+px)).toFixed(1)} ${(-(g.hl+14)).toFixed(1)} ${(2*(g.hw+px)).toFixed(1)} ${(g.L+28).toFixed(1)}`;
+function carBodySVG(g){const c=g.c,k=g.ky,hl=g.hl,hw=g.hw,boxy=c.style==="boxy",nose=hw*(boxy?.82:.64),tail=hw*(boxy?.84:.7);
  const yWs=g.yF+.10*k,yWt=yWs+(boxy?.5:.62)*k,rg={suv:.30,hatch:.34,boxy:.22,wagon:.16,sedan:.95}[c.style]||.3,yRb=hl-rg*k,yRt=yRb-(c.style==="sedan"?.45:.55)*k,f=n=>n.toFixed(1);
  let s=`<path d="M${f(-nose)} ${f(-hl)}Q0 ${f(-hl-7)} ${f(nose)} ${f(-hl)}C${f(hw*.96)} ${f(-hl+5)} ${f(hw)} ${f(-hl+.45*k)} ${f(hw)} ${f(-hl+.75*k)}L${f(hw)} ${f(hl-.7*k)}C${f(hw)} ${f(hl-.3*k)} ${f(tail*1.08)} ${f(hl-3)} ${f(tail)} ${f(hl)}Q0 ${f(hl+4)} ${f(-tail)} ${f(hl)}C${f(-tail*1.08)} ${f(hl-3)} ${f(-hw)} ${f(hl-.3*k)} ${f(-hw)} ${f(hl-.7*k)}L${f(-hw)} ${f(-hl+.75*k)}C${f(-hw)} ${f(-hl+.45*k)} ${f(-hw*.96)} ${f(-hl+5)} ${f(-nose)} ${f(-hl)}Z" fill="var(--card2)" stroke="var(--mut)" stroke-width="2.5"/>`;
  s+=`<path d="M${f(-hw*.3)} ${f(-hl+6)}L${f(-hw*.42)} ${f(yWs)}M${f(hw*.3)} ${f(-hl+6)}L${f(hw*.42)} ${f(yWs)}" stroke="var(--line)" stroke-width="1.5" fill="none"/>`;
@@ -702,35 +712,44 @@ const wheelXY=g=>({fl:[-g.xw,g.yF],fr:[g.xw,g.yF],rl:[-g.xw,g.yR],rr:[g.xw,g.yR]
 const wheelRect=(g,x,y,fill,stroke,sw)=>`<rect x="${(x-g.ww/2).toFixed(1)}" y="${(y-g.wh/2).toFixed(1)}" width="${g.ww.toFixed(1)}" height="${g.wh.toFixed(1)}" rx="5" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/><path d="M${(x-g.ww/2+3).toFixed(1)} ${(y-g.wh/2+9).toFixed(1)}H${(x+g.ww/2-3).toFixed(1)}M${(x-g.ww/2+3).toFixed(1)} ${(y+g.wh/2-9).toFixed(1)}H${(x+g.ww/2-3).toFixed(1)}" stroke="rgba(0,0,0,.28)" stroke-width="1.5"/>`;
 const symG=(n,x,y,sc,col)=>`<g transform="translate(${x-12*sc} ${y-12*sc}) scale(${sc})" stroke="${col}" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${IC[n]}</g>`;
 const lockOf=()=>{const m=Veh.S&&Veh.S.mode;if(!m||!m.enum)return null;return V("mode")==null?undefined:Number(V("mode"))===5};
+const CMP={
+ engine:()=>`<path d="M-15 -3H15V8L11 12H-11L-15 8Z" fill="var(--card)"/><path d="M-12 -3V-9H12V-3M-6 -9V-3M0 -9V-3M6 -9V-3"/><circle cx="19" cy="3" r="3.2" fill="var(--card)"/><path d="M-15 3H-19"/>`,
+ tank:(l,col)=>`<rect x="-16" y="-10" width="32" height="20" rx="7" fill="var(--card)"/><rect x="-14" y="${(8-16*l).toFixed(1)}" width="28" height="${(16*l).toFixed(1)}" rx="4" fill="${col}" fill-opacity=".4" stroke="none"/><path d="M9 -10V-14H14"/>`,
+ battery:(l,col)=>`<rect x="-17" y="-9" width="31" height="18" rx="3" fill="var(--card)"/><path d="M14 -4V4" stroke-width="4"/><rect x="-15" y="-7" width="${(27*l).toFixed(1)}" height="14" rx="1.5" fill="${col}" fill-opacity=".45" stroke="none"/>`,
+ starter:()=>`<rect x="-17" y="-6" width="21" height="12" rx="3" fill="var(--card)"/><rect x="-12" y="-11" width="10" height="5" rx="1.5" fill="var(--card)"/><path d="M4 0H8"/><circle cx="14" cy="0" r="4.6" fill="var(--card)"/><path d="M14 -8.2V-6.4M14 6.4V8.2M20.4 0H22M5.4 0M9.6 -5l1.2 1.2M18.4 5l-1.2-1.2M18.4 -5l-1.2 1.2M9.6 5l1.2-1.2"/>`,
+ emotor:()=>`<rect x="-16" y="-9" width="23" height="18" rx="5" fill="var(--card)"/><path d="M-11 -9V9M-7 -9V9"/><path d="M7 0H15M15 -4V4"/><path d="M0 -5L-3 1H1L-1 6L4 -1H0Z" fill="currentColor"/>`,
+ diff:()=>`<circle r="8.5" fill="var(--card)"/><circle r="3.4"/><path d="M0 -8.5V-12M0 8.5V12M-8.5 0H-12M8.5 0H12"/>`};
+function comp(kind,x,y,col,on,val,lvl,title){const st=on?col:"var(--mut)";
+ let s=`<g transform="translate(${x} ${y})" fill="none" stroke="${st}" color="${st}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><title>${title||kind}</title>${CMP[kind](lvl==null?0:clamp(lvl,0,1),st)}</g>`;
+ if(val!=null&&val!=="")s+=`<text x="${x}" y="${y+23}" text-anchor="middle" font-size="10.5" font-weight="800" fill="var(--fg)" stroke="var(--card2)" stroke-width="3" paint-order="stroke">${val}</text>`;return s}
 const EngS={prev:null,crankT:0};
 function engFlows(){const rpm=V("rpm"),sp=V("speed")||0,hy=!!Veh.p.hybrid,P=Live.hvP,ft=Live.ft||Veh.fuels[0];const iceOn=rpm!=null&&rpm>=1;
  if(iceOn&&EngS.prev!=null&&EngS.prev<1)EngS.crankT=T();if(rpm!=null)EngS.prev=rpm;
  const crank=hy&&T()-EngS.crankT<2500,ev=hy&&!iceOn&&sp>2,Pp=P==null?0:P;
  return{rpm,sp,hy,iceOn,ev,crank,P,ft,fr:Live.fr,Pe:hy&&!iceOn?Pp:0,Ps:hy&&iceOn?Pp:0}}
 const flowP=(id,d,on,col,rev,w)=>`<path data-f="${id}" d="${d}" fill="none" stroke="var(--line)" stroke-width="3" stroke-linecap="round"/>`+(on?`<path data-f="${id}" d="${d}" class="fl${rev?" rv":""}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/>`:"");
-const nodeSVG=(x,y,w,hh,ic,t,val,col,on)=>`<rect x="${x}" y="${y}" width="${w}" height="${hh}" rx="9" fill="var(--card)" stroke="${on?col:"var(--line)"}" stroke-width="${on?2.6:1.6}"><title>${t}</title></rect>`+symG(ic,x+w/2,y+11,.72,on?col:"var(--mut)")+`<text x="${x+w/2}" y="${y+hh-5}" text-anchor="middle" font-size="10" font-weight="800" fill="var(--fg)">${val}</text>`;
-function flowSVG(F){const g=carGeom(Veh.p),th=.3,cT="var(--"+F.ft.color+")",cY="var(--y)",wd=(x,m)=>(3+Math.min(5,Math.abs(x)/m*5)).toFixed(1),mx=Veh.p.hvMax||15,xw=g.xw,ww=g.ww,yF=g.yF,yR=g.yR,hw=g.hw,k=g.k;
- const iceY=yF-.45*k,iceB=iceY+18,sgY=yF+.62*k,batY=(yF+yR)/2-.15*k,emY=yR-.5*k,tkY=yR-1.0*k,hy=F.hy,ft=F.ft,r0=(x,y,w,hh)=>[x-w/2,y-hh/2,w,hh];
- let s=`<svg viewBox="0 0 320 ${g.L+44}" style="width:100%;max-width:360px;display:block;margin:6px auto;height:auto" role="img" aria-label="flussi di energia tra i motori"><g transform="translate(160 ${g.L/2+22})">`;
+function flowSVG(F){const g=carGeom(Veh.p),th=.3,cT="var(--"+F.ft.color+")",cY="var(--y)",wd=(x,m)=>(3+Math.min(5,Math.abs(x)/m*5)).toFixed(1),mx=Veh.p.hvMax||15,xw=g.xw,ww=g.ww,yF=g.yF,yR=g.yR,hw=g.hw,k=g.ky;
+ const iceY=yF-.5*k,sgY=yF+.62*k,batY=(yF+yR)/2-.12*k,emY=yR-.55*k,tkY=yR-1.0*k,hy=F.hy,ft=F.ft,ix=-hw*.2,tx=-hw*.5,sx=hw*.36;
+ let s=`<svg viewBox="${carBox(g,16)}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;max-height:calc(100dvh - 290px);display:block;margin:6px auto" role="img" aria-label="flussi di energia tra i motori"><g>`;
  s+=carBodySVG(g);
  const wl=wheelXY(g),drv=F.sp>2;
  for(const w in wl){const front=w[0]==="f",on=front?F.iceOn&&drv:(hy&&Math.abs(F.Pe)>th);s+=wheelRect(g,wl[w][0],wl[w][1],on?(front?"color-mix(in srgb,"+cT+" 55%,var(--card2))":"color-mix(in srgb,"+cY+" 55%,var(--card2))"):"var(--card2)","var(--fg)",2)}
- s+=flowP("fuel",`M-36 ${tkY-18}V${iceY}H-49`,F.iceOn,cT,false,wd(F.fr||0,8));
- s+=flowP("ice-w",`M-20 ${iceB}V${yF}H0M${-xw+ww/2} ${yF}H${xw-ww/2}`,F.iceOn&&drv,cT,false,5);
+ s+=flowP("fuel",`M${tx} ${tkY-12}V${iceY}H${ix-20}`,F.iceOn,cT,false,wd(F.fr||0,8));
+ s+=flowP("ice-w",`M${ix} ${iceY+12}V${yF}H0M${-xw+ww/2} ${yF}H${xw-ww/2}`,F.iceOn&&drv,cT,false,5);
  if(hy){const asst=F.Ps>th||F.crank,chrg=F.Ps<-th&&!F.crank;
-  s+=flowP("ice-sg",`M7 ${iceY}H34V${sgY-17}`,F.iceOn&&(asst||chrg)||F.crank,cY,asst,wd(F.Ps,mx));
-  s+=flowP("bat-sg",`M27 ${batY}H34V${sgY+17}`,Math.abs(F.Ps)>th||F.crank,cY,chrg,wd(F.Ps,mx));
-  s+=flowP("bat-em",`M0 ${batY+18}V${emY-18}`,Math.abs(F.Pe)>th,cY,F.Pe<-th,wd(F.Pe,mx));
-  s+=flowP("em-w",`M0 ${emY+18}V${yR}M${-xw+ww/2} ${yR}H${xw-ww/2}`,Math.abs(F.Pe)>th,cY,F.Pe<-th,wd(F.Pe,mx))}
+  s+=flowP("ice-sg",`M${ix+20} ${iceY}H${sx}V${sgY-12}`,F.iceOn&&(asst||chrg)||F.crank,cY,asst,wd(F.Ps,mx));
+  s+=flowP("bat-sg",`M17 ${batY}H${sx}V${sgY+12}`,Math.abs(F.Ps)>th||F.crank,cY,chrg,wd(F.Ps,mx));
+  s+=flowP("bat-em",`M0 ${batY+11}V${emY-10}`,Math.abs(F.Pe)>th,cY,F.Pe<-th,wd(F.Pe,mx));
+  s+=flowP("em-w",`M0 ${emY+10}V${yR}M${-xw+ww/2} ${yR}H${xw-ww/2}`,Math.abs(F.Pe)>th,cY,F.Pe<-th,wd(F.Pe,mx))}
  const lv=V("level");
- let b=r0(-20,iceY,58,36);s+=nodeSVG(b[0],b[1],b[2],b[3],"engine","Motore termico",F.iceOn?fmt(F.rpm,0)+" rpm":"spento",cT,F.iceOn);
- b=r0(-36,tkY,58,36);s+=nodeSVG(b[0],b[1],b[2],b[3],ft.icon,"Serbatoio "+ft.name,lv!=null?fmt(lv,0)+"%":"–",cT,F.iceOn);
- s+=`<circle cx="0" cy="${yF}" r="6" fill="var(--card)" stroke="var(--fg)" stroke-width="2"/>`;
+ s+=comp("engine",ix,iceY,cT,F.iceOn,F.iceOn?fmt(F.rpm,0)+" rpm":"spento",0,"Motore termico");
+ s+=comp("tank",tx,tkY,cT,F.iceOn,lv!=null?fmt(lv,0)+"%":"–",lv!=null?lv/100:0,"Serbatoio "+ft.name);
+ s+=comp("diff",0,yF,"var(--fg)",true,null,0,"Differenziale anteriore (DA)");
  if(hy){const hv=V("hv"),soc=V("soc"),re=V("rpm_e"),rs=V("rpm_s");
-  b=r0(34,sgY,44,34);s+=nodeSVG(b[0],b[1],b[2],b[3],"gear","Avviamento / generatore",rs!=null?fmt(rs,0)+" rpm":F.crank?"AVVIO":fmt(F.Ps,1)+" kW",cY,Math.abs(F.Ps)>th||F.crank);
-  b=r0(0,batY,54,36);s+=nodeSVG(b[0],b[1],b[2],b[3],"battery","Batteria 48V",soc!=null?fmt(soc,0)+"%":(hv&&hv.V!=null?fmt(hv.V,1)+" V":"–"),cY,Math.abs(F.P||0)>th);
-  b=r0(0,emY,58,36);s+=nodeSVG(b[0],b[1],b[2],b[3],"bolt","Motore elettrico posteriore",re!=null?fmt(re,0)+" rpm":fmt(F.Pe,1)+" kW",cY,Math.abs(F.Pe)>th);
-  s+=`<circle cx="0" cy="${yR}" r="6" fill="var(--card)" stroke="var(--fg)" stroke-width="2"/>`}
+  s+=comp("starter",sx,sgY,cY,Math.abs(F.Ps)>th||F.crank,rs!=null?fmt(rs,0)+" rpm":F.crank?"AVVIO":fmt(F.Ps,1)+" kW",0,"Motorino di avviamento / generatore");
+  s+=comp("battery",0,batY,cY,Math.abs(F.P||0)>th,soc!=null?fmt(soc,0)+"%":(hv&&hv.V!=null?fmt(hv.V,1)+" V":"–"),soc!=null?soc/100:0,"Batteria 48V");
+  s+=comp("emotor",0,emY,cY,Math.abs(F.Pe)>th,re!=null?fmt(re,0)+" rpm":fmt(F.Pe,1)+" kW",0,"Motore elettrico posteriore");
+  s+=comp("diff",0,yR,"var(--fg)",true,null,0,"Differenziale posteriore (DP)")}
  return s+"</g></svg>"}
 
 function altSVG(arr,cur){const v=(arr||[]).filter(x=>x!=null);if(cur!=null)v.push(cur);if(v.length<2)return`<div class="lab" style="text-transform:none;letter-spacing:0">Il grafico compare dopo qualche secondo di guida con il GPS attivo.</div>`;
@@ -755,23 +774,23 @@ function dtData(){const w={},tp={},tt={};let any=false;for(const k of["fl","fr",
  return{w,tp,tt,any,f:any?(w.fl||0)+(w.fr||0):null,r:any?(w.rl||0)+(w.rr||0):null,brk:V("brk")!=null?V("brk"):(V("brkp")!=null?Math.min(100,Math.max(0,V("brkp"))):null),abs:V("abs")==null?null:V("abs"),awd:V("awd"),sp:V("speed")||0,ws:{fl:V("ws_fl"),fr:V("ws_fr"),rl:V("ws_rl"),rr:V("ws_rr")},lock:lockOf()}}
 const tqCol=n=>n==null?"var(--card2)":n<-5?"#38bdf8":n<135?"#34d058":n<270?"#f5c518":"#ef4444";
 const tpCol=b=>b==null?"var(--mut)":b<1.8?"var(--r)":b<2.0?"var(--o)":b<=3.4?"var(--g)":"var(--o)";
-function dtSVG(D){const g=carGeom(Veh.p),c=g.c,brk=D.brk||0,abs=!!D.abs,xw=g.xw,ww=g.ww,yF=g.yF,yR=g.yR,k=g.k,wl=wheelXY(g);
- let s=`<svg viewBox="0 0 320 ${g.L+44}" style="width:100%;max-width:380px;display:block;margin:6px auto;height:auto" role="img" aria-label="schema trasmissione"><g transform="translate(160 ${g.L/2+22})">`+carBodySVG(g);
- const ln=(d,col,w)=>`<path d="${d}" stroke="${col||"var(--mut)"}" stroke-width="${w||5}" stroke-linecap="round" fill="none"/>`,iceY=yF-.45*k;
+function dtSVG(D){const g=carGeom(Veh.p),c=g.c,brk=D.brk||0,abs=!!D.abs,xw=g.xw,ww=g.ww,yF=g.yF,yR=g.yR,k=g.ky,wl=wheelXY(g),side=g.hw+66;
+ let s=`<svg viewBox="${carBox(g,82)}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;max-height:calc(100dvh - 290px);display:block;margin:6px auto" role="img" aria-label="schema trasmissione"><g>`+carBodySVG(g);
+ const ln=(d,col,w)=>`<path d="${d}" stroke="${col||"var(--mut)"}" stroke-width="${w||5}" stroke-linecap="round" fill="none"/>`,iceY=yF-.5*k;
  s+=ln(`M${-xw+ww/2} ${yF}H${xw-ww/2}`);
- s+=`<rect x="-34" y="${iceY-12}" width="68" height="24" rx="8" fill="var(--card)" stroke="var(--line)"/>`+symG("engine",-21,iceY,.6,"var(--mut)")+`<text x="8" y="${iceY+3}" text-anchor="middle" font-size="9" font-weight="700" fill="var(--fg)">Termico</text>`+ln(`M0 ${iceY+12}V${yF-9}`);
- s+=`<circle cx="0" cy="${yF}" r="9" fill="var(--card)" stroke="var(--fg)" stroke-width="2.5"/><text x="0" y="${yF+3.5}" text-anchor="middle" font-size="9" font-weight="800" fill="var(--fg)">DA</text>`;
+ s+=ln(`M0 ${iceY+12}V${yF-9}`)+comp("engine",0,iceY,"var(--mut)",false,null,0,"Motore termico");
+ s+=comp("diff",0,yF,"var(--fg)",true,null,0,"Differenziale anteriore (DA)");
  if(c.drv==="fwd"){s+=`<path d="M${-xw+ww/2} ${yR}H${xw-ww/2}" stroke="var(--line)" stroke-width="3" stroke-dasharray="4 5" fill="none"/>`}
  else{s+=ln(`M${-xw+ww/2} ${yR}H${xw-ww/2}`);
   if(c.drv==="shaft")s+=ln(`M0 ${yF+9}V${yR-9}`);
-  else{const eY=yR-.62*k;s+=`<rect x="-34" y="${eY-12}" width="68" height="24" rx="8" fill="var(--card)" stroke="var(--y)"/>`+symG("bolt",-21,eY,.6,"var(--y)")+`<text x="8" y="${eY+3}" text-anchor="middle" font-size="9" font-weight="700" fill="var(--fg)">El. post.</text>`+ln(`M0 ${eY+12}V${yR-9}`,"var(--y)")}
-  s+=`<circle cx="0" cy="${yR}" r="9" fill="var(--card)" stroke="var(--fg)" stroke-width="2.5"/><text x="0" y="${yR+3.5}" text-anchor="middle" font-size="9" font-weight="800" fill="var(--fg)">DP</text>`}
- if(c.drv!=="fwd"&&D.lock!==null){const on=D.lock===true,my=(yF+yR)/2;s+=`<circle cx="0" cy="${my}" r="19" fill="${on?"var(--p)":"var(--card)"}" stroke="${on?"var(--p)":"var(--line)"}" stroke-width="2.5"/>`+symG(on?"lockc":"locko",0,my,1.05,on?"#fff":"var(--mut)")+`<text x="0" y="${my+32}" text-anchor="middle" font-size="9" font-weight="800" fill="${on?"var(--p)":"var(--mut)"}">4x4 LOCK ${D.lock===undefined?"?":on?"ATTIVO":"no"}</text>`}
- for(const w in wl){const[x,y]=wl[w],tq=D.w[w],sl=D.ws[w]!=null&&D.sp>5?(D.ws[w]-D.sp)/D.sp*100:null,side=x<0?-1:1,tx=side*(g.hw+16),anc=side<0?"end":"start",pr=D.tp[w],tt=D.tt[w];
+  else{const eY=yR-.55*k;s+=ln(`M0 ${eY+10}V${yR-9}`,"var(--y)")+comp("emotor",0,eY,"var(--y)",true,null,0,"Motore elettrico posteriore")}
+  s+=comp("diff",0,yR,"var(--fg)",true,null,0,"Differenziale posteriore (DP)")}
+ if(c.drv!=="fwd"&&D.lock!==null){const on=D.lock===true,my=(yF+yR)/2-.1*k;s+=`<circle cx="0" cy="${my}" r="19" fill="${on?"var(--p)":"var(--card)"}" stroke="${on?"var(--p)":"var(--line)"}" stroke-width="2.5"/>`+symG(on?"lockc":"locko",0,my,1.05,on?"#fff":"var(--mut)")+`<text x="0" y="${my+32}" text-anchor="middle" font-size="9.5" font-weight="800" fill="${on?"var(--p)":"var(--mut)"}" stroke="var(--card2)" stroke-width="3" paint-order="stroke">4x4 LOCK ${D.lock===undefined?"?":on?"ATTIVO":"no"}</text>`}
+ for(const w in wl){const[x,y]=wl[w],tq=D.w[w],sl=D.ws[w]!=null&&D.sp>5?(D.ws[w]-D.sp)/D.sp*100:null,sd=x<0?-1:1,tx=sd*(g.hw+12),anc=sd<0?"end":"start",pr=D.tp[w],tt=D.tt[w];
   s+=`<g${abs?' class="absb"':""}>`+wheelRect(g,x,y,tqCol(tq),brk>5?"#ef4444":"var(--fg)",(2.5+brk/18).toFixed(1))+`</g>`;
-  s+=`<text x="${tx}" y="${y-9}" text-anchor="${anc}" font-size="12" font-weight="800" fill="${tq==null?"var(--mut)":"var(--fg)"}">${tq==null?"n/d":Math.round(tq)+" Nm"}</text>`+
-   `<text x="${tx}" y="${y+5}" text-anchor="${anc}" font-size="11" font-weight="700" fill="${tpCol(pr)}">${pr==null?"– bar":fmt(pr,1)+" bar"}</text>`+
-   `<text x="${tx}" y="${y+18}" text-anchor="${anc}" font-size="9.5" fill="var(--mut)">${tt!=null?fmt(tt,0)+"°C":""}${tt!=null&&sl!=null?" · ":""}${sl!=null?(sl>=0?"+":"")+sl.toFixed(0)+"%":""}</text>`}
+  s+=`<text x="${tx}" y="${y-9}" text-anchor="${anc}" font-size="12.5" font-weight="800" fill="${tq==null?"var(--mut)":"var(--fg)"}">${tq==null?"n/d":Math.round(tq)+" Nm"}</text>`+
+   `<text x="${tx}" y="${y+6}" text-anchor="${anc}" font-size="11.5" font-weight="700" fill="${tpCol(pr)}">${pr==null?"– bar":fmt(pr,1)+" bar"}</text>`+
+   `<text x="${tx}" y="${y+19}" text-anchor="${anc}" font-size="10" fill="var(--mut)">${tt!=null?fmt(tt,0)+"°C":""}${tt!=null&&sl!=null?" · ":""}${sl!=null?(sl>=0?"+":"")+sl.toFixed(0)+"%":""}</text>`}
  return s+"</g></svg>"}
 function dtChart(b,any){const W0=320,H0=96,n=b.f.length;if(!any&&b.b.every(x=>x==null)||n<2)return`<div class="lab" style="text-transform:none;letter-spacing:0">Il grafico di coppia, freno e ABS compare con i dati.</div>`;
  const X=i=>(4+i*(W0-8)/(Math.max(n,2)-1)).toFixed(1),Yt=v=>(H0-4-(clamp(v,-300,600)+300)/900*(H0-8)).toFixed(1),Yb=v=>(H0-4-clamp(v,0,100)/100*(H0-8)).toFixed(1);
@@ -797,7 +816,7 @@ const W={
   return{root,need:["rpm"],update(){const rpm=V("rpm"),sp=V("speed");setHTML(r,valHTML(rpm,"rpm"));if(rpm==null){setTxt(c,"–");return}const hy=Veh.p.hybrid,off=rpm<1,ft=Live.ft||Veh.fuels[0];
    if(off&&hy&&(sp||0)>2){c.innerHTML=icoHTML("bolt")+" EV";c.className="chip y"}else if(off){c.textContent="spento";c.className="chip"}else{c.innerHTML=icoHTML(ft.icon)+" "+(hy?"TERMICO":"acceso");c.className="chip "+ft.color}}}},
  fuels:()=>{const root=h("section",{class:"card cAll"});const note=h("div",{class:"lab"},"");const cols=Veh.fuels.map(f=>({f,chip:h("span",{class:"chip "+f.color},ico(f.icon)," "+f.name),v:h("span",{class:"val"}),bar:h("i"),t:h("div",{class:"lab",style:"margin-top:4px"})}));
-  root.append(h("div",{class:"row sp"},h("div",{class:"lab"},"Carburante"),note),h("div",{class:"row",style:"margin-top:6px;align-items:flex-start;gap:14px"},...cols.map(c=>h("div",{style:"flex:1;min-width:120px"},h("div",{class:"row sp"},c.chip,c.v),h("div",{class:"bar"},c.bar),c.t))));
+  root.append(h("div",{class:"row sp"},h("div",{class:"lab"},"Carburante"),note),h("div",{class:"fgrid",style:"grid-template-columns:repeat("+cols.length+",minmax(0,1fr))"},...cols.map(c=>h("div",{class:"fcol"},h("div",{class:"fhd"},c.chip,c.v),h("div",{class:"bar"},c.bar),c.t))));
   return{root,need:["level"],update(){const act=Veh.has("ftype")&&V("ftype")!=null?Veh.fuelOf(V("ftype")):Veh.fuels[0];const L=Veh.lvl();
    cols.forEach(c=>{const l=L[c.f.key];const on=c.f===act;c.chip.className="chip "+c.f.color+(on||Veh.fuels.length===1?"":" dim");setHTML(c.v,valHTML(l?l.v:null,"%"));c.v.style.opacity=on?1:.55;c.bar.style.width=(l?l.v:0)+"%";c.bar.style.background=`var(--${c.f.color})`;setTxt(c.t,on?"in uso adesso":(l?"ultima lettura "+hhmm(l.t):"mai letto"))});
    setTxt(note,Veh.fuels.length>1?"l'auto legge solo il serbatoio in uso":"")}}},
@@ -878,7 +897,7 @@ const W={
   const root=h("section",{class:"card c2"},h("div",{class:"lab"},"Richiesta trazione integrale"),box,lbl,seg,h("div",{class:"row sp lab",style:"margin-top:4px"},h("span",null,"Solo anteriore"),h("span",null,"4x4 pieno")));
   const NAMES=["Solo anteriore","Posteriore in attesa","Aiuto leggero","Aiuto medio","Aiuto forte","4x4 al massimo"];
   return{root,need:["awd"],update(){const x=V("awd"),n=x==null?0:clamp(Math.round(x),0,5),g=carGeom(Veh.p),sc=.5;
-   const wl=wheelXY(g);let s=`<svg viewBox="-70 ${-g.L*sc/2-8} 140 ${g.L*sc+16}" style="height:150px;width:auto" role="img" aria-label="trazione"><g transform="scale(${sc})">`+carBodySVG(g);
+   const wl=wheelXY(g);let s=`<svg viewBox="${(-(g.hw*sc+10)).toFixed(1)} ${(-g.L*sc/2-8).toFixed(1)} ${(2*(g.hw*sc+10)).toFixed(1)} ${(g.L*sc+16).toFixed(1)}" style="height:150px;width:auto" role="img" aria-label="trazione"><g transform="scale(${sc})">`+carBodySVG(g);
    s+=`<path d="M${-g.xw} ${g.yF}H${g.xw}" stroke="var(--acc)" stroke-width="7" stroke-linecap="round"/>`;
    const ra=x==null?0:n/5;s+=`<path d="M${-g.xw} ${g.yR}H${g.xw}" stroke="var(--p)" stroke-width="7" stroke-linecap="round" opacity="${(.15+.85*ra).toFixed(2)}"/>`;
    if(g.c.drv==="shaft")s+=`<path d="M0 ${g.yF}V${g.yR}" stroke="var(--p)" stroke-width="6" opacity="${(.15+.85*ra).toFixed(2)}"/>`;
@@ -921,7 +940,7 @@ const PAGE_DEF=[
  {id:"drive",title:"Guida",icon:'<circle cx="12" cy="12" r="9"/><path d="M12 12l4-4M7 16h10"/>',widgets:["speedArc","modeGear","engineState","consumi","fuels","hybrid","pedal"]},
  {id:"energy",title:"Energia",icon:IC.bolt,widgets:["battHybrid","batt12","v48","rail"]},
  {id:"temp",title:"Temp.",icon:IC.therm,widgets:["tempsPrimary","tempsSecondary"]},
- {id:"engine",title:"Motori",icon:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',widgets:["engines","engineCard"]},
+ {id:"engine",title:"Motori",icon:IC.engine,widgets:["engines","engineCard"]},
  {id:"dyn",title:"Dinamica",icon:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 3v18M3 12h18"/>',widgets:["drivetrain","gmeter","incl","flags","awd","gps","altChart"]},
  {id:"trip",title:"Viaggio",icon:'<path d="M4 19l5-14 4 8 3-4 4 10z"/>',widgets:["trip","prices","diag"]},
  {id:"hist",title:"Storico",icon:IC.clock,widgets:["history"]},
@@ -1042,32 +1061,32 @@ function openUserSheet(first){const done=new Promise(res=>{openSheet(first?"Benv
   body.append(h("label",null,"Nome"),nm,h("label",null,"Password"),p1,p2,err,h("div",{class:"row",style:"margin-top:12px"},h("button",{class:"pri",onclick:go},"Crea e accedi"),users.length?h("button",{onclick:loginBox},"Indietro"):h("button",{onclick:()=>enter(async()=>Auth.guest())},"Continua come ospite")))};
  users.length?loginBox():createBox();if(first){const x=body.parentNode.querySelector('button[aria-label="chiudi"]');if(x)x.remove()}})});return done}
 
-const DRI={user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',car:'<path d="M3 16v-3l2-5h14l2 5v3M3 16h18M7 19v-3M17 19v-3"/><circle cx="7.5" cy="13.5" r="1"/><circle cx="16.5" cy="13.5" r="1"/>',cog:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',bell:'<path d="M6 17V11a6 6 0 0 1 12 0v6l1.5 2h-15zM10 21h4"/>',gauge:'<path d="M4 17a8 8 0 1 1 16 0"/><path d="M12 17l4-5"/>',down:'<path d="M12 4v11M7 11l5 5 5-5M5 20h14"/>',out:'<path d="M9 4H5v16h4M16 8l4 4-4 4M20 12H9"/>',term:'<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7 10l3 2-3 2M12 15h5"/>',flag:'<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>'};
+const DRI={cog:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',car:'<path d="M4 17V12l1.6-4.6A2 2 0 0 1 7.5 6h9a2 2 0 0 1 1.9 1.4L20 12v5"/><path d="M4 12h16M6 17v2.5M18 17v2.5"/><circle cx="8" cy="14.5" r=".7"/><circle cx="16" cy="14.5" r=".7"/><path d="M9 9.5h6"/>',bell:'<path d="M6 17V11a6 6 0 0 1 12 0v6l1.5 2h-15zM10 21h4"/>',gauge:'<path d="M4 17a8 8 0 1 1 16 0"/><path d="M12 17l4-5"/>',down:'<path d="M12 4v11M7 11l5 5 5-5M5 20h14"/>',out:'<path d="M9 4H5v16h4M16 8l4 4-4 4M20 12H9"/>',term:'<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7 10l3 2-3 2M12 15h5"/>',flag:'<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>'};
 const avatarEl=(big)=>U.avatar?h("div",{class:"avatar"+(big?" lg":"")},h("img",{src:U.avatar,alt:"foto profilo"})):h("div",{class:"avatar"+(big?" lg":"")},((Auth.cur&&Auth.cur.name)||"?").trim().slice(0,1).toUpperCase());
 function closeDrawer(){const d=$("#drawer"),sc=$("#scrim");d.classList.remove("open");d.setAttribute("aria-hidden","true");sc.classList.remove("show");setTimeout(()=>sc.classList.add("hidden"),200);Nav.sync()}
 function openDrawer(){const d=$("#drawer"),sc=$("#scrim");
  const go=fn=>()=>{Nav.origin="drawer";closeDrawer();fn()};const it=(icon,label,fn)=>h("button",{class:"dr-item",onclick:go(fn)},svg(24,24,DRI[icon]),label);
- d.replaceChildren(h("div",{class:"dr-head"},avatarEl(),h("div",{style:"min-width:0"},h("b",{style:"font-size:17px;display:block;overflow:hidden;text-overflow:ellipsis"},Auth.cur?Auth.cur.name:"Ospite"),h("div",{style:"font-size:12px;color:var(--mut)"},Veh.p.name))),
-  h("div",{class:"dr-list"},it("user","Profilo",()=>openSettings(1)),it("car","Auto e profili",openVehicles),it("cog","Impostazioni",()=>openSettings(0)),it("bell","Avvisi",()=>openSettings(2)),it("gauge","Prestazioni collegamento",()=>openSettings(3)),it("term","Avanzate e terminale",()=>openSettings(4)),Rec.on?it("flag","Segna evento nel log",()=>Rec.mark(prompt("Nome evento","evento")||"evento")):null,it("down","Esporta storico",()=>exportAll()),h("div",{class:"dr-sep"}),it("out",Auth.cur&&!Auth.cur.guest?"Esci":"Accedi / crea utente",async()=>{await Link.stop();Auth.cur=null;U=defaultPrefs();await openUserSheet(true)})));
+ const adv=h("button",{class:"dr-item",onclick:()=>{if(!confirm("Avanzate e terminale\n\nFunzioni per utenti esperti: il terminale invia comandi veri all'auto e il logging avanzato registra tutto lo scambio con la centralina. Usale solo se sai cosa stai facendo.\n\nContinuare?"))return;U.adv=true;savePrefs();go(()=>openSettings(4))()}},svg(24,24,DRI.term),"Avanzate e terminale");
+ d.replaceChildren(h("button",{class:"dr-head",onclick:go(()=>openSettings(1)),"aria-label":"Profilo"},avatarEl(),h("div",{style:"min-width:0;flex:1;text-align:left"},h("b",{style:"font-size:17px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"},Auth.cur?Auth.cur.name:"Ospite"),h("div",{style:"font-size:12px;color:var(--mut)"},Veh.p.name)),svg(20,20,'<path d="M9 5l7 7-7 7"/>')),
+  h("div",{class:"dr-list"},it("car","Auto e profili",openVehicles),it("bell","Avvisi",()=>openSettings(2)),it("gauge","Prestazioni collegamento",()=>openSettings(3)),Rec.on?it("flag","Segna evento nel log",()=>Rec.mark(prompt("Nome evento","evento")||"evento")):null,it("down","Esporta storico",()=>exportAll())),
+  h("div",{class:"dr-bottom"},it("cog","Impostazioni",()=>openSettings(0)),adv,it("out",Auth.cur&&!Auth.cur.guest?"Esci":"Accedi / crea utente",async()=>{await Link.stop();Auth.cur=null;U=defaultPrefs();await openUserSheet(true)}),h("div",{class:"dr-ver"},"Auto Dash "+VER+" · versione di sviluppo")));
  sc.classList.remove("hidden");requestAnimationFrame(()=>{sc.classList.add("show");d.classList.add("open");d.setAttribute("aria-hidden","false")});sc.onclick=closeDrawer;Nav.sync()}
 async function exportAll(){const trips=Store.range(null,null,Veh.p.id,true);if(!trips.length){toast("Nessun viaggio da esportare");return}await shareFile("viaggi_"+Veh.p.id+"_tutti.csv",tripsCsv(trips))}
 async function pickAvatar(file){
  const url=await new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.onerror=rej;fr.readAsDataURL(file)});
  const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url});
  const S=160,c=document.createElement("canvas");c.width=c.height=S;const x=c.getContext("2d");const m=Math.min(img.width,img.height);x.drawImage(img,(img.width-m)/2,(img.height-m)/2,m,m,0,0,S,S);U.avatar=c.toDataURL("image/jpeg",.82);await savePrefs()}
-function openSettings(tab){openSheet("Impostazioni",(body,close)=>{
- const tabs=["Generali","Profilo","Avvisi","Prestazioni","Avanzate"];const pane=h("div");const tb=h("div",{class:"tabs"});let cur=tab||0;
- const draw=()=>{[...tb.children].forEach((b,i)=>b.classList.toggle("on",i===cur));pane.replaceChildren();[gen,usr,alr,prf,adv][cur](pane)};
- tabs.forEach((t,i)=>tb.append(h("button",{onclick:()=>{cur=i;draw()}},t)));body.append(tb,pane);
+function openSettings(tab){tab=tab||0;openSheet(["Impostazioni","Profilo","Avvisi","Prestazioni collegamento","Avanzate"][tab],(body,close)=>{
+ const pane=h("div");const draw=()=>{pane.replaceChildren();[gen,usr,alr,prf,adv][tab](pane)};body.append(pane);
  const gen=p=>{p.append(h("label",null,"Auto"),h("button",{style:"width:100%;text-align:left",onclick:()=>openVehicles()},Veh.p.name+"  ›"),
   h("label",null,"Tema"),(()=>{const s=h("select",{onchange:()=>{U.theme=s.value;applyTheme();savePrefs()}},...[["auto","Automatico"],["dark","Scuro"],["light","Chiaro"]].map(([v,t])=>h("option",{value:v,selected:U.theme===v},t)));return s})(),
   h("label",null,"Soglia kickdown pedale (grezzo %)"),(()=>{const i=h("input",{type:"number",value:U.kd||86,onchange:()=>{U.kd=parseFloat(i.value)||86;savePrefs()}});return i})(),
-  h("label",null,"Collegamento"),h("div",{class:"row"},h("button",{onclick:()=>{close();connect(true)}},"Mostra tutti i dispositivi Bluetooth"),h("button",{onclick:()=>{close();demo()}},"Avvia simulazione")))};
+  h("label",null,"Collegamento"),h("div",{class:"row"},h("button",{onclick:()=>{close();connect(true)}},"Mostra tutti i dispositivi Bluetooth")))};
  const usr=p=>{
-  const photo=h("div",{class:"row",style:"align-items:center;gap:16px"},avatarEl(true));const file=h("input",{type:"file",accept:"image/*",style:"display:none",id:"avFile"});
+  const file=h("input",{type:"file",accept:"image/*",style:"display:none",id:"avFile"});
   file.addEventListener("change",async()=>{if(file.files&&file.files[0]){try{await pickAvatar(file.files[0]);draw();toast("Foto profilo aggiornata")}catch(e){toast("Immagine non valida")}}});
-  const ctr=h("div",{class:"row"},h("button",{onclick:()=>file.click()},U.avatar?"Cambia foto":"Carica foto"),U.avatar?h("button",{class:"danger",onclick:async()=>{U.avatar=null;await savePrefs();draw()}},"Rimuovi"):null);
-  photo.append(h("div",null,h("b",{style:"font-size:18px"},Auth.cur.name),h("div",{class:"sub"},Auth.cur.guest?"Ospite: dati non protetti":"Dati cifrati con la tua password"),h("div",{style:"margin-top:8px"},ctr)),file);p.append(photo);
+  const photo=h("div",{class:"row",style:"align-items:center;gap:16px;flex-wrap:nowrap"},h("button",{class:"avbtn","aria-label":"Cambia foto profilo",onclick:()=>file.click()},avatarEl(true),h("span",{class:"avcam"},svg(18,18,'<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>'))),
+   h("div",null,h("b",{style:"font-size:18px"},Auth.cur.name),h("div",{class:"sub"},Auth.cur.guest?"Ospite: dati non protetti":"Dati cifrati con la tua password"),h("div",{class:"sub",style:"margin-top:4px"},"Tocca la foto per cambiarla"),U.avatar?h("button",{class:"ghost danger",style:"min-height:32px;padding:2px 0;font-size:13px",onclick:async()=>{U.avatar=null;await savePrefs();draw()}},"Rimuovi foto"):null),file);p.append(photo);
   if(!Auth.cur.guest){const o=h("input",{type:"password",placeholder:"Password attuale"}),n=h("input",{type:"password",placeholder:"Nuova password"}),e=h("div",{class:"sub"});p.append(h("label",null,"Cambia password"),o,n,e,h("button",{style:"margin-top:8px",onclick:async()=>{try{await Auth.changePw(o.value,n.value);e.style.color="var(--g)";e.textContent="Password aggiornata";o.value=n.value=""}catch(x){e.style.color="var(--r)";e.textContent=x.message}}},"Aggiorna password"));
    const rp=h("input",{type:"password",placeholder:"Password attuale"}),re=h("div",{class:"sub"});p.append(h("label",null,"Chiave di recupero"),h("div",{class:"sub"},"Generare una nuova chiave invalida la precedente."),rp,re,h("button",{style:"margin-top:8px",onclick:async()=>{try{const k=await Auth.newRecoveryKey(rp.value);rp.value="";re.textContent="";close();await showRecovery(k,"Nuova chiave generata. ")}catch(x){re.style.color="var(--r)";re.textContent=x.message}}},"Genera nuova chiave"))}
   p.append(h("div",{class:"row",style:"margin-top:14px"},h("button",{onclick:async()=>{await Link.stop();Auth.cur=null;close();U=defaultPrefs();await openUserSheet(true)}},Auth.cur.guest?"Accedi / crea utente":"Esci"),!Auth.cur.guest?h("button",{class:"danger",onclick:async()=>{if(confirm("Eliminare questo utente e i suoi dati?")){Auth.remove(Auth.cur.id);Auth.cur=null;close();U=defaultPrefs();await openUserSheet(true)}}},"Elimina utente"):null))};
@@ -1075,7 +1094,7 @@ function openSettings(tab){openSheet("Impostazioni",(body,close)=>{
   p.append(h("label",null,"Soglie del profilo attivo"),...(Veh.p.alerts||[]).map(a=>h("div",{class:"item"},h("div",null,a.label,h("div",{class:"sub"},a.id)),h("b",null,a.hi!=null?"> "+a.hi:"< "+a.lo))))};
  const prf=p=>{
   const live=Link.on&&Link.mode==="ble";const cfg=Perf.cfg;
-  p.append(h("div",{class:"item"},h("div",null,h("b",null,"Auto Dash v9"),h("div",{class:"sub"},"Web Bluetooth · funziona offline dopo la prima apertura"))),
+  p.append(h("div",{class:"item"},h("div",null,h("b",null,"Auto Dash "+VER+" (versione di sviluppo)"),h("div",{class:"sub"},"Web Bluetooth · funziona offline dopo la prima apertura"))),
    h("div",{class:"sum"},h("div",null,h("span",{class:"lab"},"Richieste/s"),h("b",null,live?fmt(Perf.rate,0):"–")),h("div",null,h("span",{class:"lab"},"Latenza media"),h("b",null,live?fmt(Perf.lat,0)+" ms":"–")),h("div",null,h("span",{class:"lab"},"Errori"),h("b",null,Perf.req?fmt(100*Perf.fail/Perf.req,1)+"%":"–")),h("div",null,h("span",{class:"lab"},"Modo ELM"),h("b",{style:"font-size:14px"},"ST "+cfg.st+" · AT"+cfg.at+(cfg.cnt?" · conteggio":"")))));
   p.append(h("div",{class:"lab",style:"margin:12px 0 4px;text-transform:none;letter-spacing:0"},"Le richieste più frequenti sono per i sensori della pagina aperta; quelli nascosti si leggono più di rado (gli avvisi restano attivi)."));
   const rows=Object.values(Veh.S).filter(s=>s.cmd&&!s.dead&&s.hz).sort((a,b)=>b.hz-a.hz).slice(0,12);
@@ -1084,11 +1103,9 @@ function openSettings(tab){openSheet("Impostazioni",(body,close)=>{
   p.append(h("div",{class:"row",style:"margin-top:12px"},h("button",{class:"pri",onclick:async()=>{if(!live){toast("Collegati all'auto per misurare");return}close();await Link.hold(async()=>{await Perf.tune(true);toast("Configurazione scelta: "+(Perf.cfg.cnt?"con conteggio":"standard")+" ST"+Perf.cfg.st)})}},"Misura e ottimizza"),h("button",{onclick:async()=>{if(live){await Perf.apply(Perf.SAFE);toast("Modalità sicura attiva")}}},"Modalità sicura")))};
  const adv=p=>{
   p.append(h("div",{class:"warnbox"},"Funzioni per utenti esperti. Il terminale invia comandi veri all'auto: i comandi di lettura sono sicuri, quelli di scrittura o di controllo (sessioni diagnostiche, routine, attuatori, cancellazione codici) sono bloccati finché non li abiliti."));
-  p.append(h("label",null,"Modalità avanzata"),h("label",{style:"margin:0;text-transform:none;letter-spacing:0;display:flex;gap:8px;align-items:center"},h("input",{type:"checkbox",style:"width:auto;min-height:0",checked:!!U.adv,onchange:e=>{if(e.target.checked&&!confirm("Abilitare le funzioni avanzate? Usale solo se sai cosa stai facendo."))e.target.checked=false;U.adv=e.target.checked;savePrefs();draw()}}),"Abilita terminale e logging avanzato"));
   p.append(h("label",null,"Sensori sperimentali"),h("label",{style:"margin:0;text-transform:none;letter-spacing:0;display:flex;gap:8px;align-items:center"},h("input",{type:"checkbox",style:"width:auto;min-height:0",checked:U.exp!==false,onchange:e=>{U.exp=e.target.checked;savePrefs();Pages.refreshVisibility()}}),"Usa le mappature condivise online (non verificate su questa auto)"),
    h("label",{style:"margin:6px 0 0;text-transform:none;letter-spacing:0;display:flex;gap:8px;align-items:center"},h("input",{type:"checkbox",style:"width:auto;min-height:0",checked:!!U.expSw,onchange:e=>{U.expSw=e.target.checked;savePrefs();Pages.refreshVisibility()}}),"Includi quelle che cambiano protocollo CAN (es. TPMS Dacia/Renault: più lente)"),
    h("div",{class:"sub",style:"margin-top:4px"},"I sensori che l'auto non supporta si spengono da soli dopo qualche tentativo."));
-  if(!U.adv)return;
   p.append(h("label",null,"Terminale"),h("button",{onclick:()=>openTerminal()},"Apri il terminale ELM327 / UDS  ›"));
   const cnt=h("span",{class:"sub"},"…");Rec.count().then(n=>setTxt(cnt,n+" righe nel log"));
   p.append(h("label",null,"Logging avanzato"),h("label",{style:"margin:0;text-transform:none;letter-spacing:0;display:flex;gap:8px;align-items:center"},h("input",{type:"checkbox",style:"width:auto;min-height:0",checked:!!U.advLog,onchange:e=>{U.advLog=e.target.checked;savePrefs();if(U.advLog&&Link.on&&Link.mode==="ble")Rec.start();else if(!U.advLog)Rec.stop()}}),"Registra ogni collegamento (comandi, risposte, valori, GPS)"),
@@ -1126,6 +1143,7 @@ function migrateV5(){if(lsGet("ad.mig",false))return;const L=lsGet("lvl",null),P
 async function afterLogin(){migrateV5();applyTheme();await Store.load();Veh.set(U.vehicle);Pages.build();$("#veh").textContent=Veh.p.short;try{if(Trip.timer)clearInterval(Trip.timer)}catch(e){}
  Trip.timer=setInterval(()=>{Pages.render(false);Alerts.check();if(Trip.lvlDirty){Trip.lvlDirty=false;savePrefs()}if(Link.on&&Veh.trip.dist>=0.05&&T()-(Trip._as||0)>30000){Trip._as=T();Store.upsert(tripRecord(Veh.trip))}if(Link.on)$("#stat").textContent=Link.mode==="sim"?"SIM · "+fmt(Live.hz,0)+" Hz":"live · "+fmt(Perf.rate,0)+" req/s · "+fmt(Perf.lat,0)+" ms"},250)}
 $("#btnConn").onclick=()=>connect(false);
+$("#btnDemo").onclick=()=>demo();
 $("#btnMenu").onclick=openDrawer;
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){if(!$("#sheet").classList.contains("hidden"))Nav.back();else closeDrawer()}});
 window.addEventListener("popstate",()=>Nav.pop());
