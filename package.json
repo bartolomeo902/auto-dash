@@ -1,0 +1,7 @@
+{
+  "name": "auto-dash",
+  "private": true,
+  "description": "Dashboard OBD-II (Web Bluetooth). Nessuna build: serve solo per i test.",
+  "scripts": { "test": "node tests/run.js", "serve": "python3 -m http.server 8000" },
+  "devDependencies": { "jsdom": "^26.0.0" }
+}
