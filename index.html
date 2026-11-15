@@ -291,7 +291,7 @@ const PROFILES=[
    {id:"ws_rl",ecu:"ESP",cmd:"224B02",every:2,f:"(d[0]*256+d[1])/100",unit:"km/h",dec:1,label:"Ruota post. sx"},{id:"ws_rr",ecu:"ESP",cmd:"224B03",every:2,f:"(d[0]*256+d[1])/100",unit:"km/h",dec:1,label:"Ruota post. dx"},
    {id:"steer",ecu:"ESP",cmd:"220100",every:2,f:"(d[0]*256+d[1]-32768)/10",unit:"°",dec:0,label:"Sterzo (positivo = sinistra)"},
    {id:"brkp",ecu:"ESP",cmd:"224B0E",every:2,f:"d[0]",unit:"bar",label:"Pressione freno"},{id:"brksw",ecu:"ESP",cmd:"224B11",every:3,f:"d[0]",label:"Freno premuto"}],
-  esp:{lon:{k:96},lat:{k:22.7}},
+  esp:{lon:{k:96},lat:{k:25}},spdK:1.009,
   alt:{hv:["DMCM","TCM","BMS"]},
   flags:{escOffValue:170},hvMax:15,
   alerts:[...ALERTS_STD,{id:"v48",lo:40,label:"Tensione 48V bassa"}]},
@@ -514,7 +514,7 @@ const Trip={last:performance.now(),
   if(v.level!=null&&ft){Veh.lvl()[ft.key]={v:v.level,t:T()};Trip.lvlDirty=true}
   const fr=v.frate!=null?v.frate:(v.maf!=null?v.maf/14.7/745*3600:null);Live.fr=fr;
   t.time+=dt;const mov=spd>2;if(mov){t.movTime+=dt;if(Veh.p.hybrid&&(v.rpm||0)<1)t.evTime+=dt}
-  const km=spd*dt/3600;t.dist+=km;const lit=(fr||0)*dt/3600;
+  const km=spd*(Veh.p.spdK||1)*dt/3600;t.dist+=km;const lit=(fr||0)*dt/3600;
   const evNow=Veh.p.hybrid&&mov&&(v.rpm||0)<1;if(evNow)t.kmEv=(t.kmEv||0)+km;
   if(ft){if(!evNow)t.km[ft.key]=(t.km[ft.key]||0)+km;t.lit[ft.key]=(t.lit[ft.key]||0)+lit}
   const hv=v.hv;if(hv&&hv.V!=null){let P=hv.V*hv.I/1000;Sign.learn(P,spd,v.pedal);if(Veh.inv())P=-P;Live.hvP=P;if(P>0)t.energyOut+=P*dt/3600;else t.energyIn+=-P*dt/3600}
