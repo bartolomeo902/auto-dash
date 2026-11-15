@@ -268,9 +268,9 @@ const ECU11=(n)=>({h:n,r:(parseInt(n,16)+8).toString(16).toUpperCase()});
 
 const PROFILES=[
  {id:"dacia-bigster-hg150",name:"Dacia Bigster Hybrid-G 150 4x4",short:"Bigster",brand:"Dacia",verified:true,hybrid:true,proto:"7",
-  notes:"Profilo validato su questa auto: modo guida, marcia, ESC, HDC, freno di stazionamento, batteria 48V, accelerazioni (raw). TPMS sperimentale (DID della Sandero III, stessa piattaforma): abilitalo in Impostazioni > Avanzate.",
+  notes:"Profilo validato su questa auto: modo guida, marcia, ESC, HDC, freno di stazionamento, batteria 48V, accelerazioni (raw). Velocità ruote, sterzo, pressione e interruttore freno verificati il 15/11. TPMS indiretto: l'auto mostra solo lo stato, non le pressioni.",
   fuels:["benzina","gpl"],
-  ecus:{ECM:ECU29("15"),TCM:ECU29("18"),ESP:ECU29("2D"),DMCM:ECU29("55"),BMS:ECU29("92"),TPMS:{h:"745",r:"765",p:"6"}},
+  ecus:{ECM:ECU29("15"),TCM:ECU29("18"),ESP:ECU29("2D"),DMCM:ECU29("55"),BMS:ECU29("92")},
   sensors:[...std("ECM").filter(s=>s.id!=="soc"),
    {id:"mode",ecu:"ECM",cmd:"220442",every:3,f:"d[0]",label:"Modo guida",enum:{1:"AUTO",3:"ECO",4:"SNOW",5:"LOCK",7:"MUD/SAND"}},
    {id:"gear",ecu:"TCM",cmd:"222271",every:3,f:"d[0]",label:"Marcia",enum:{1:"P",2:"R",3:"N",4:"D",5:"M"}},
@@ -286,7 +286,11 @@ const PROFILES=[
    {id:"t48b",ecu:"BMS",cmd:"229026",every:30,f:"d[0]-40",unit:"°C",label:"48V sens. 2",temp:{p:0,lim:[10,50],smin:-10,smax:70}},
    {id:"t48c",ecu:"BMS",cmd:"229027",every:30,f:"(d[0]*256+d[1])-40",unit:"°C",label:"48V sens. 3",temp:{p:0,lim:[10,50],smin:-10,smax:70}},
    {id:"t48d",ecu:"BMS",cmd:"229034",every:30,f:"(d[0]*256+d[1])-40",unit:"°C",label:"48V sens. 4",temp:{p:0,lim:[10,50],smin:-10,smax:70}},
-   {id:"t48e",ecu:"BMS",cmd:"229035",every:30,f:"(d[0]*256+d[1])-40",unit:"°C",label:"48V sens. 5",temp:{p:0,lim:[10,50],smin:-10,smax:70}},...TYRE("TPMS")],
+   {id:"t48e",ecu:"BMS",cmd:"229035",every:30,f:"(d[0]*256+d[1])-40",unit:"°C",label:"48V sens. 5",temp:{p:0,lim:[10,50],smin:-10,smax:70}},
+   {id:"ws_fl",ecu:"ESP",cmd:"224B00",every:2,f:"(d[0]*256+d[1])/100",unit:"km/h",dec:1,label:"Ruota ant. sx"},{id:"ws_fr",ecu:"ESP",cmd:"224B01",every:2,f:"(d[0]*256+d[1])/100",unit:"km/h",dec:1,label:"Ruota ant. dx"},
+   {id:"ws_rl",ecu:"ESP",cmd:"224B02",every:2,f:"(d[0]*256+d[1])/100",unit:"km/h",dec:1,label:"Ruota post. sx"},{id:"ws_rr",ecu:"ESP",cmd:"224B03",every:2,f:"(d[0]*256+d[1])/100",unit:"km/h",dec:1,label:"Ruota post. dx"},
+   {id:"steer",ecu:"ESP",cmd:"220100",every:2,f:"(d[0]*256+d[1]-32768)/10",unit:"°",dec:0,label:"Sterzo (positivo = sinistra)"},
+   {id:"brkp",ecu:"ESP",cmd:"224B0E",every:2,f:"d[0]",unit:"bar",label:"Pressione freno"},{id:"brksw",ecu:"ESP",cmd:"224B11",every:3,f:"d[0]",label:"Freno premuto"}],
   esp:{lon:{k:96},lat:{k:22.7}},
   alt:{hv:["DMCM","TCM","BMS"]},
   flags:{escOffValue:170},hvMax:15,
@@ -546,6 +550,7 @@ const Sim={tm:null,t:0,
    const br=al<-1.2?clamp(-al*25,0,100):0;Live.put("brk",Math.round(br));Live.put("abs",br>60&&Math.sin(t*3)>.5?1:0)}
   if(hy){Live.put("rpm_e",ev||P>0?Math.round(speed*(ev?52:30)+(P>0?200:0)):0);Live.put("rpm_s",ev?0:Math.round(P*60+(Math.sin(t)>.9?300:0)))}
   for(const w of["fl","fr","rl","rr"]){const f=w[0]==="f"?2.4:2.3;Live.put("tp_"+w,+(f+.05*Math.sin(t/20)+(w==="rr"?-0.1:0)).toFixed(2));Live.put("tt_"+w,Math.round(22+Math.min(18,speed/8)))}
+  Live.put("steer",+(280*Math.sin(t/5)).toFixed(0));
   Live.hz=2;S_alt=1540+14*Math.sin(t/30);GPS.alt=S_alt;GPS.spd=speed;tick()}};
 let S_alt=null;
 const GPS={alt:null,spd:null,on:false};
@@ -765,7 +770,7 @@ function tripView(t){
  if(hy)s+=`<div class="fc" style="--c:var(--y)"><div class="lab" style="color:var(--y)">${icoHTML("bolt")} Elettrico</div><div class="big">${t.movTime>0?fmt(100*t.evTime/t.movTime,0):"–"}<small>% in EV</small></div><div class="kv"><span>Solo EV</span><b>${fmt(kmE,1)} km</b></div><div class="kv"><span>Erogata</span><b>${fmt(t.energyOut,2)} kWh</b></div><div class="kv"><span>Rigenerata</span><b>${fmt(t.energyIn,2)} kWh</b></div><div class="kv"><span>Consumo</span><b>${t.dist>.3?fmt(t.energyOut/t.dist*100,1)+" kWh/100 km":"–"}</b></div></div>`;
  return s+`</div>`}
 function dtData(){const w={},tp={},tt={};let any=false;for(const k of["fl","fr","rl","rr"]){const x=V("tq_"+k);w[k]=x==null?null:x;if(x!=null)any=true;tp[k]=V("tp_"+k);tt[k]=V("tt_"+k)}
- return{w,tp,tt,any,f:any?(w.fl||0)+(w.fr||0):null,r:any?(w.rl||0)+(w.rr||0):null,brk:V("brk")!=null?V("brk"):(V("brkp")!=null?Math.min(100,Math.max(0,V("brkp"))):null),abs:V("abs")==null?null:V("abs"),awd:V("awd"),sp:V("speed")||0,ws:{fl:V("ws_fl"),fr:V("ws_fr"),rl:V("ws_rl"),rr:V("ws_rr")},lock:lockOf()}}
+ return{w,tp,tt,any,f:any?(w.fl||0)+(w.fr||0):null,r:any?(w.rl||0)+(w.rr||0):null,brk:V("brk")!=null?V("brk"):(V("brkp")!=null?Math.min(100,Math.max(0,V("brkp"))):null),abs:V("abs")==null?null:V("abs"),awd:V("awd"),steer:V("steer"),sp:V("speed")||0,ws:{fl:V("ws_fl"),fr:V("ws_fr"),rl:V("ws_rl"),rr:V("ws_rr")},lock:lockOf()}}
 const tqCol=n=>n==null?"var(--card2)":n<-5?"#38bdf8":n<135?"#34d058":n<270?"#f5c518":"#ef4444";
 const tpCol=b=>b==null?"var(--mut)":b<1.8?"var(--r)":b<2.0?"var(--o)":b<=3.4?"var(--g)":"var(--o)";
 function dtSVG(D){const g=carGeom(Veh.p),c=g.c,F=engFlows(),brk=D.brk||0,abs=!!D.abs,yF=g.yF,yR=g.yR,k=g.ky,th=.3;
@@ -791,7 +796,8 @@ function dtSVG(D){const g=carGeom(Veh.p),c=g.c,F=engFlows(),brk=D.brk||0,abs=!!D
  if(!fwd){if(c.drv==="emotor")s+=comp("emotor",0,eY,cY,Math.abs(F.Pe)>th,null,0,"Motore elettrico posteriore");s+=comp("diff",0,yR,"var(--fg)",true,null,0,"Differenziale posteriore (DP)")}
  if(!fwd&&D.lock!==null){const on=D.lock===true,my=(yF+yR)/2-.1*k;s+=`<circle cx="0" cy="${my}" r="19" fill="${on?"var(--p)":"var(--card)"}" stroke="${on?"var(--p)":"var(--line)"}" stroke-width="2.5"/>`+symG(on?"lockc":"locko",0,my,1.05,on?"#fff":"var(--mut)")+`<text x="0" y="${my+32}" text-anchor="middle" font-size="9.5" font-weight="800" fill="${on?"var(--p)":"var(--mut)"}" stroke="var(--card2)" stroke-width="3" paint-order="stroke">4x4 LOCK ${D.lock===undefined?"?":on?"ATTIVO":"no"}</text>`}
  for(const w in wl){const[x,y]=wl[w],tq=D.w[w],sl=D.ws[w]!=null&&D.sp>5?(D.ws[w]-D.sp)/D.sp*100:null,sd=x<0?-1:1,tx=x+sd*(wW/2+6),anc=sd<0?"end":"start",pr=D.tp[w],tt=D.tt[w];
-  s+=`<g${abs?' class="absb"':""}>`+wheelRect(wg,x,y,tqCol(tq),brk>5?"#ef4444":"var(--fg)",(2.5+brk/18).toFixed(1))+`</g>`;
+  const rot=w[0]==="f"&&D.steer!=null?clamp(D.steer/15,-35,35):0;
+  s+=`<g${abs?' class="absb"':""}><g transform="rotate(${rot.toFixed(1)} ${x.toFixed(1)} ${y.toFixed(1)})">`+wheelRect(wg,x,y,tqCol(tq),brk>5?"#ef4444":"var(--fg)",(2.5+brk/18).toFixed(1))+`</g></g>`;
   s+=`<text x="${tx}" y="${y-10}" text-anchor="${anc}" font-size="12" font-weight="800" fill="${tq==null?"var(--mut)":"var(--fg)"}">${tq==null?"n/d":Math.round(tq)+" Nm"}</text>`+
    `<text x="${tx}" y="${y+5}" text-anchor="${anc}" font-size="11.5" font-weight="700" fill="${tpCol(pr)}">${pr==null?"– bar":fmt(pr,1)+" bar"}</text>`+
    `<text x="${tx}" y="${y+19}" text-anchor="${anc}" font-size="10" fill="var(--mut)">${tt!=null?fmt(tt,0)+"°C":""}${tt!=null&&sl!=null?" · ":""}${sl!=null?(sl>=0?"+":"")+sl.toFixed(0)+"%":""}</text>`}
@@ -878,7 +884,7 @@ const W={
   return{root,need:[],always:true,update(){const D=dtData();
    if(T()-buf.t>=250){buf.t=T();buf.f.push(D.f);buf.r.push(D.r);buf.b.push(D.brk);buf.a.push(D.abs?1:0);if(buf.f.length>120)for(const k of["f","r","b","a"])buf[k].shift()}
    setHTML(svgb,dtSVG(D));
-   setHTML(stats,`<div><span class="lab">Asse anteriore</span><b>${D.any?fmt(D.f,0)+" Nm":"n/d"}</b></div><div><span class="lab">Asse posteriore</span><b>${D.any?fmt(D.r,0)+" Nm":"n/d"}</b></div><div><span class="lab">Ripartizione</span><b>${D.any&&Math.abs(D.f)+Math.abs(D.r)>1?fmt(100*Math.abs(D.f)/(Math.abs(D.f)+Math.abs(D.r)),0)+" / "+fmt(100*Math.abs(D.r)/(Math.abs(D.f)+Math.abs(D.r)),0):"n/d"}</b></div><div><span class="lab">Freno</span><b>${D.brk==null?"n/d":fmt(D.brk,0)+"%"}</b></div><div><span class="lab">ABS</span><b style="color:${D.abs?"var(--r)":"inherit"}">${D.abs==null?"n/d":D.abs?"ATTIVO":"inattivo"}</b></div><div><span class="lab">Lock 4x4</span><b>${D.lock==null?"n/d":D.lock?"ATTIVO":"no"}</b></div>`);
+   setHTML(stats,`<div><span class="lab">Asse anteriore</span><b>${D.any?fmt(D.f,0)+" Nm":"n/d"}</b></div><div><span class="lab">Asse posteriore</span><b>${D.any?fmt(D.r,0)+" Nm":"n/d"}</b></div><div><span class="lab">Ripartizione</span><b>${D.any&&Math.abs(D.f)+Math.abs(D.r)>1?fmt(100*Math.abs(D.f)/(Math.abs(D.f)+Math.abs(D.r)),0)+" / "+fmt(100*Math.abs(D.r)/(Math.abs(D.f)+Math.abs(D.r)),0):"n/d"}</b></div><div><span class="lab">Freno</span><b>${D.brk==null?"n/d":fmt(D.brk,0)+"%"}</b></div><div><span class="lab">ABS</span><b style="color:${D.abs?"var(--r)":"inherit"}">${D.abs==null?"n/d":D.abs?"ATTIVO":"inattivo"}</b></div><div><span class="lab">Sterzo</span><b>${D.steer==null?"n/d":(D.steer>0?"◀ ":D.steer<0?"▶ ":"")+fmt(Math.abs(D.steer),0)+"°"}</b></div><div><span class="lab">Lock 4x4</span><b>${D.lock==null?"n/d":D.lock?"ATTIVO":"no"}</b></div>`);
    setHTML(chart,dtChart(buf,D.any));
    setTxt(note,D.any?(Link.mode==="sim"?"Dati simulati.":""):"Coppia per ruota, ABS e freni non sono ancora decodificati su questa auto: i campi mostrano n/d. Il lock 4x4 e la richiesta di trazione sono letti davvero dall'auto.")}}},
  flags:()=>{const esc=h("span",{class:"chip"},"–"),hdc=h("span",{class:"chip"},"–"),park=h("span",{class:"chip"},"–");
@@ -951,7 +957,7 @@ const PAGE_DEF=[
 ];
 
 /* ---------- pagine ---------- */
-const USES={batt12:["soc12"],engineState:["speed"],consumi:["speed","rpm","ftype","level"],fuels:["ftype"],engines:["speed","rpm","frate","maf","hv","load","ftype","level","soc","rpm_e","rpm_s"],drivetrain:["speed","awd","alat","alon","mode","tp_fl","tp_fr","tp_rl","tp_rr"],incl:["speed","alat","alon"],trip:["speed","rpm","frate","maf","hv","ftype","level","soc"],battHybrid:["hv"]};
+const USES={batt12:["soc12"],engineState:["speed"],consumi:["speed","rpm","ftype","level"],fuels:["ftype"],engines:["speed","rpm","frate","maf","hv","load","ftype","level","soc","rpm_e","rpm_s"],drivetrain:["speed","awd","alat","alon","mode","tp_fl","tp_fr","tp_rl","tp_rr","ws_fl","ws_fr","ws_rl","ws_rr","steer","brkp","brksw"],incl:["speed","alat","alon"],trip:["speed","rpm","frate","maf","hv","ftype","level","soc"],battHybrid:["hv"]};
 const Pages={cur:0,built:[],
  build(){
   const root=$("#pages"),tabs=$("#tabs");root.replaceChildren();tabs.replaceChildren();Pages.built=[];
