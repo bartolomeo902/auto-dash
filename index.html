@@ -173,6 +173,87 @@ nav button{min-width:54px;font-size:11px;padding:10px 2px 12px}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.chips .chip{font-size:15px;padding:5px 12px}
 .sbig{font-size:64px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1;letter-spacing:-.03em}.sbig small{font-size:16px;color:var(--mut);margin-left:4px;font-weight:600}
 .ebat{display:grid;grid-template-columns:1fr;gap:6px}
+  .arc-stack{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+  margin:12px 0 4px;
+}
+.arc-row{
+  position:relative;
+  width:220px;
+  height:58px;
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+}
+.arc-ring{
+  position:absolute;
+  left:50%;
+  bottom:0;
+  transform:translateX(-50%);
+  box-sizing:border-box;
+  overflow:visible;
+}
+.arc-ring svg{
+  display:block;
+  width:100%;
+  height:100%;
+  overflow:visible;
+}
+.arc-ring .bg{
+  fill:none;
+  stroke:rgba(255,255,255,.08);
+  stroke-width:8;
+  stroke-linecap:round;
+}
+.arc-ring .fg{
+  fill:none;
+  stroke-width:8;
+  stroke-linecap:round;
+  stroke-dasharray:180;
+  stroke-dashoffset:180;
+  transform-origin:center;
+  animation:arcFlow 1.1s ease forwards;
+}
+.arc-ring.small{ width:64px; height:22px; }
+.arc-ring.mid  { width:132px; height:34px; }
+.arc-ring.large{ width:190px; height:46px; }
+.arc-ring.y .fg{ stroke:var(--o); }
+.arc-ring.b .fg{ stroke:var(--b); }
+.arc-ring.g .fg{ stroke:var(--g); }
+
+@keyframes arcFlow{
+  from{ stroke-dashoffset:180; opacity:.25; }
+  to{ stroke-dashoffset:0; opacity:1; }
+}
+
+.arc-txt{
+  text-align:center;
+  margin-top:2px;
+  font-size:11px;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  color:var(--mut);
+}
+.arc-legend{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap;
+  font-size:10px;
+  color:var(--mut);
+  margin-top:2px;
+}
+.arc-legend i{
+  display:inline-block;
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  margin-right:4px;
+  vertical-align:middle;
+}
 </style>
 </head>
 <body>
